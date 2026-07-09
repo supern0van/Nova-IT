@@ -3,35 +3,41 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Link } from "@tanstack/react-router";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, CheckCircle2 } from "lucide-react";
 
 const difficultyStyles: Record<Service["difficulty"], string> = {
-  Enkel: "bg-emerald-100 text-emerald-800 border-emerald-200",
-  Medel: "bg-amber-100 text-amber-800 border-amber-200",
-  Avancerad: "bg-rose-100 text-rose-800 border-rose-200",
+  Start: "border-emerald-200 bg-emerald-50 text-emerald-800",
+  Standard: "border-sky-200 bg-sky-50 text-sky-800",
+  Fördjupad: "border-amber-200 bg-amber-50 text-amber-900",
 };
 
 export function ServiceCard({ service }: { service: Service }) {
   const Icon = service.icon;
+
   return (
-    <Card className="flex h-full flex-col transition-shadow hover:shadow-md">
+    <Card className="flex h-full flex-col border-border/70 shadow-sm transition-shadow hover:shadow-md">
       <CardHeader>
-        <div className="flex items-center justify-between">
-          <span className="grid h-11 w-11 place-items-center rounded-lg bg-primary/10 text-primary">
+        <div className="flex items-start justify-between gap-3">
+          <span className="grid h-11 w-11 shrink-0 place-items-center rounded-md bg-primary/10 text-primary">
             <Icon className="h-5 w-5" />
           </span>
           <Badge variant="outline" className={difficultyStyles[service.difficulty]}>
             {service.difficulty}
           </Badge>
         </div>
-        <CardTitle className="mt-4 text-lg">{service.title}</CardTitle>
+        <p className="mt-4 text-xs font-medium uppercase text-muted-foreground">
+          {service.category}
+        </p>
+        <CardTitle className="text-lg">{service.title}</CardTitle>
         <CardDescription>{service.description}</CardDescription>
       </CardHeader>
       <CardContent className="mt-auto flex flex-1 flex-col justify-between gap-4">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            Exempel
+          <p className="flex gap-2 text-sm font-medium text-foreground">
+            <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
+            {service.outcome}
           </p>
+          <p className="mt-4 text-xs font-semibold uppercase text-muted-foreground">Exempel</p>
           <ul className="mt-2 space-y-1 text-sm text-muted-foreground">
             {service.examples.map((e) => (
               <li key={e} className="flex gap-2">
@@ -42,8 +48,12 @@ export function ServiceCard({ service }: { service: Service }) {
           </ul>
         </div>
         <Button asChild variant="outline" className="w-full">
-          <Link to="/kontakt">
-            Boka {service.title.toLowerCase()}
+          <Link
+            to="/kontakt"
+            search={{ service: service.slug }}
+            aria-label={`Beskriv ärende för ${service.title}`}
+          >
+            Beskriv ärende
             <ArrowRight className="h-4 w-4" />
           </Link>
         </Button>

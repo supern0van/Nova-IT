@@ -1,56 +1,68 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Card, CardContent } from "@/components/ui/card";
-import { Building2, Heart, Users } from "lucide-react";
+import { Building2, HeartHandshake, ShieldCheck } from "lucide-react";
+import { demoNotice } from "@/lib/nova-data";
 
 export const Route = createFileRoute("/om-oss")({
   head: () => ({
     meta: [
-      { title: "Om oss – Nova IT" },
+      { title: "Om Nova IT – fiktivt demo-case" },
       {
         name: "description",
         content:
-          "Nova IT är ett litet Stockholmsbaserat IT-företag som hjälper mindre verksamheter med support, nätverk och säkerhet.",
+          "Nova IT är ett fiktivt svenskt IT-supportcase med demo-säker copy, tydliga avgränsningar och trovärdig tjänstepresentation.",
       },
       { property: "og:title", content: "Om Nova IT" },
       {
         property: "og:description",
-        content: "Ett litet, kompetent IT-team med fokus på tydlighet och trygghet.",
+        content:
+          "Ett fiktivt exempel på hur en svensk IT-supportsajt kan kännas mer polerad och trovärdig.",
       },
     ],
   }),
   component: About,
 });
 
+const principles = [
+  {
+    icon: Building2,
+    title: "Fiktivt bolag",
+    text: "Ingen låtsasadress, inget organisationsnummer och inga påhittade kundsiffror.",
+  },
+  {
+    icon: ShieldCheck,
+    title: "Säker copy",
+    text: "Tjänster och formulär beskriver ett möjligt arbetssätt utan att lova verklig drift.",
+  },
+  {
+    icon: HeartHandshake,
+    title: "Svensk tonalitet",
+    text: "Rak, lugn och praktisk text för småföretag, skolor och privatpersoner.",
+  },
+];
+
 function About() {
   return (
-    <section className="mx-auto max-w-3xl px-4 py-16">
-      <h1 className="text-4xl font-semibold tracking-tight">Om Nova IT</h1>
-      <p className="mt-4 text-lg text-muted-foreground">
-        Nova IT startades 2019 i Stockholm av två tekniker som var trötta på att
-        se småföretag betala dyrt för IT som ändå inte fungerade. Idag är vi ett team
-        på fem personer som hjälper skolor, mindre företag och privatpersoner med
-        allt från vardagssupport till nätverk och säkerhet.
-      </p>
+    <section className="mx-auto max-w-4xl px-4 py-16">
+      <p className="text-sm font-medium uppercase text-muted-foreground">Om Nova IT</p>
+      <h1 className="mt-2 text-4xl font-semibold tracking-tight">
+        Ett fiktivt IT-supportbolag med verklighetstrogen struktur
+      </h1>
+      <p className="mt-4 text-lg text-muted-foreground">{demoNotice}</p>
       <p className="mt-4 text-muted-foreground">
-        Vi tror på tydlighet: du ska förstå vad vi gör, varför vi gör det och vad
-        det kostar. Vi tror på trygghet: dina system ska vara säkra och dina
-        data ska finnas kvar, även när något går fel. Och vi tror på att göra
-        färre saker riktigt bra, snarare än många saker halvbra.
+        Syftet är att visa hur en Lovable-export kan göras mer kundredo: tydligare tjänster, mer
+        svensk ton, bättre formulär och ett ärligt stödflöde utan fejkade företagsuppgifter.
       </p>
 
       <div className="mt-10 grid gap-4 sm:grid-cols-3">
-        {[
-          { icon: Users, title: "5 tekniker", text: "Med olika specialiteter." },
-          { icon: Building2, title: "80+ kunder", text: "I Storstockholm." },
-          { icon: Heart, title: "Sedan 2019", text: "Fortfarande självständiga." },
-        ].map((s) => (
-          <Card key={s.title}>
+        {principles.map((item) => (
+          <Card key={item.title} className="border-border/70">
             <CardContent className="p-5">
               <span className="grid h-10 w-10 place-items-center rounded-md bg-primary/10 text-primary">
-                <s.icon className="h-5 w-5" />
+                <item.icon className="h-5 w-5" />
               </span>
-              <h3 className="mt-4 font-semibold">{s.title}</h3>
-              <p className="mt-1 text-sm text-muted-foreground">{s.text}</p>
+              <h2 className="mt-4 text-base font-semibold">{item.title}</h2>
+              <p className="mt-2 text-sm text-muted-foreground">{item.text}</p>
             </CardContent>
           </Card>
         ))}

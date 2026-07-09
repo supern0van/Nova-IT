@@ -1,12 +1,13 @@
 import { Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { Menu, X, Sparkles } from "lucide-react";
+import { Menu, X, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { contactChannels, demoNotice } from "@/lib/nova-data";
 
 const nav = [
   { to: "/", label: "Hem" },
   { to: "/tjanster", label: "Tjänster" },
-  { to: "/assistent", label: "Assistent" },
+  { to: "/assistent", label: "Supportguide" },
   { to: "/faq", label: "FAQ" },
   { to: "/om-oss", label: "Om oss" },
   { to: "/kontakt", label: "Kontakt" },
@@ -19,8 +20,8 @@ export function SiteHeader() {
     <header className="sticky top-0 z-40 w-full border-b border-border/60 bg-background/80 backdrop-blur">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
         <Link to="/" className="flex items-center gap-2" onClick={() => setOpen(false)}>
-          <span className="grid h-9 w-9 place-items-center rounded-lg bg-primary text-primary-foreground">
-            <Sparkles className="h-5 w-5" />
+          <span className="grid h-9 w-9 place-items-center rounded-md bg-primary text-primary-foreground">
+            <ShieldCheck className="h-5 w-5" />
           </span>
           <span className="text-lg font-semibold tracking-tight">Nova IT</span>
         </Link>
@@ -38,7 +39,7 @@ export function SiteHeader() {
             </Link>
           ))}
           <Button asChild size="sm" className="ml-2">
-            <Link to="/kontakt">Boka support</Link>
+            <Link to="/kontakt">Beskriv ärende</Link>
           </Button>
         </nav>
 
@@ -70,7 +71,7 @@ export function SiteHeader() {
             ))}
             <Button asChild size="sm" className="mt-2">
               <Link to="/kontakt" onClick={() => setOpen(false)}>
-                Boka support
+                Beskriv ärende
               </Link>
             </Button>
           </nav>
@@ -87,41 +88,65 @@ export function SiteFooter() {
         <div>
           <div className="flex items-center gap-2">
             <span className="grid h-8 w-8 place-items-center rounded-md bg-primary text-primary-foreground">
-              <Sparkles className="h-4 w-4" />
+              <ShieldCheck className="h-4 w-4" />
             </span>
             <span className="font-semibold">Nova IT</span>
           </div>
           <p className="mt-3 text-sm text-muted-foreground">
-            Tryggt IT-stöd för mindre företag, skolor och privatpersoner i Sverige.
+            Fiktiv svensk IT-supportwebb för mindre företag, skolor och privatpersoner.
           </p>
         </div>
         <div>
           <h4 className="text-sm font-semibold">Tjänster</h4>
           <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
-            <li><Link to="/tjanster" className="hover:text-foreground">IT-support</Link></li>
-            <li><Link to="/tjanster" className="hover:text-foreground">Nätverk & Wi-Fi</Link></li>
-            <li><Link to="/tjanster" className="hover:text-foreground">Säkerhet & backup</Link></li>
+            <li>
+              <Link to="/tjanster" className="hover:text-foreground">
+                IT-support
+              </Link>
+            </li>
+            <li>
+              <Link to="/tjanster" className="hover:text-foreground">
+                Nätverk & Wi-Fi
+              </Link>
+            </li>
+            <li>
+              <Link to="/tjanster" className="hover:text-foreground">
+                Säkerhet & backup
+              </Link>
+            </li>
           </ul>
         </div>
         <div>
           <h4 className="text-sm font-semibold">Företag</h4>
           <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
-            <li><Link to="/om-oss" className="hover:text-foreground">Om oss</Link></li>
-            <li><Link to="/faq" className="hover:text-foreground">Vanliga frågor</Link></li>
-            <li><Link to="/kontakt" className="hover:text-foreground">Kontakt</Link></li>
+            <li>
+              <Link to="/om-oss" className="hover:text-foreground">
+                Om oss
+              </Link>
+            </li>
+            <li>
+              <Link to="/faq" className="hover:text-foreground">
+                Vanliga frågor
+              </Link>
+            </li>
+            <li>
+              <Link to="/kontakt" className="hover:text-foreground">
+                Kontakt
+              </Link>
+            </li>
           </ul>
         </div>
         <div>
-          <h4 className="text-sm font-semibold">Kontakt</h4>
+          <h4 className="text-sm font-semibold">Demo-kontakt</h4>
           <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
-            <li>hej@novait.se</li>
-            <li>08 – 123 45 67</li>
-            <li>Mån–Fre 08–18</li>
+            <li>{contactChannels.email}</li>
+            <li>{contactChannels.availability}</li>
+            <li>Formuläret är frontend-only</li>
           </ul>
         </div>
       </div>
-      <div className="border-t border-border/60 py-6 text-center text-xs text-muted-foreground">
-        © {new Date().getFullYear()} Nova IT AB · Org.nr 559000-0000 (fiktivt)
+      <div className="border-t border-border/60 px-4 py-6 text-center text-xs text-muted-foreground">
+        © {new Date().getFullYear()} Nova IT · {demoNotice}
       </div>
     </footer>
   );

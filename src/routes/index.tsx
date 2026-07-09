@@ -8,145 +8,251 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import {
-  Zap,
-  MessageSquare,
-  ShieldCheck,
-  Users,
   ArrowRight,
-  ClipboardList,
-  Search,
   CheckCircle2,
+  ClipboardList,
+  LockKeyhole,
+  MessageSquare,
+  Search,
+  ShieldCheck,
+  Sparkles,
 } from "lucide-react";
-import { services, faqs } from "@/lib/nova-data";
+import {
+  credibilityItems,
+  demoNotice,
+  faqs,
+  processSteps,
+  serviceCategories,
+  services,
+} from "@/lib/nova-data";
 import { ServiceCard } from "@/components/service-card";
 
 export const Route = createFileRoute("/")({
+  head: () => ({
+    meta: [
+      { title: "Nova IT – fiktiv svensk IT-supportdemo" },
+      {
+        name: "description",
+        content:
+          "En polerad svensk demo för Nova IT med tydliga IT-tjänster, supportguide och tillgängligt kontaktformulär.",
+      },
+      { property: "og:title", content: "Nova IT – svensk IT-supportdemo" },
+      {
+        property: "og:description",
+        content:
+          "Fiktiv client-ready webbplats för IT-support, nätverk, säkerhet och bokningsflöden.",
+      },
+    ],
+  }),
   component: Home,
 });
 
-const values = [
-  { icon: Zap, title: "Snabb hjälp", text: "Svar inom en timme på vardagar." },
-  { icon: MessageSquare, title: "Tydlig kommunikation", text: "Inga tekniska ord i onödan." },
-  { icon: ShieldCheck, title: "Trygga lösningar", text: "Säkerhet och GDPR i grunden." },
-  { icon: Users, title: "Anpassat", text: "Byggt för mindre verksamheter." },
+const heroStats = [
+  { value: "Fiktivt", label: "demo-case, tydligt märkt" },
+  { value: "6", label: "konkreta tjänsteområden" },
+  { value: "0", label: "riktiga kund- eller org-claims" },
 ];
 
-const steps = [
-  { icon: ClipboardList, title: "Beskriv problemet", text: "Ring, mejla eller fyll i formuläret." },
-  { icon: Search, title: "Få en tydlig åtgärdsplan", text: "Vi förklarar vad som ska göras och vad det kostar." },
-  { icon: CheckCircle2, title: "Vi löser och dokumenterar", text: "Åtgärdat, testat och nedskrivet — så du vet." },
-];
+const credibilityIcons = [ShieldCheck, ClipboardList, LockKeyhole];
 
 function Home() {
   return (
     <>
-      {/* Hero */}
-      <section className="relative overflow-hidden">
-        <div className="absolute inset-0 -z-10 bg-gradient-to-b from-primary/5 to-transparent" />
-        <div className="mx-auto max-w-6xl px-4 py-20 md:py-28">
-          <div className="max-w-3xl">
-            <span className="inline-flex items-center rounded-full border border-border bg-background px-3 py-1 text-xs font-medium text-muted-foreground">
-              IT-support i Stockholm · svarar inom 1 timme
+      <section className="relative overflow-hidden bg-[linear-gradient(135deg,#f8fafc_0%,#eef6f4_48%,#f6f7fb_100%)]">
+        <div className="mx-auto grid max-w-6xl gap-12 px-4 py-16 lg:grid-cols-[0.95fr_1.05fr] lg:items-center lg:py-20">
+          <div>
+            <span className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-white/80 px-3 py-1 text-xs font-medium text-emerald-900 shadow-sm">
+              <Sparkles className="h-3.5 w-3.5" />
+              Demo-säker svensk IT-webb
             </span>
-            <h1 className="mt-5 text-4xl font-semibold tracking-tight sm:text-5xl md:text-6xl">
-              Tryggt IT-stöd för dig som vill kunna jobba i lugn och ro.
-            </h1>
-            <p className="mt-5 text-lg text-muted-foreground">
-              Nova IT hjälper småföretag, skolor och privatpersoner med support, nätverk
-              och säkerhet — utan krångel och utan onödiga tekniska ord.
+            <h1 className="mt-6 text-5xl font-semibold leading-none sm:text-6xl">Nova IT</h1>
+            <p className="mt-5 max-w-2xl text-xl text-muted-foreground">
+              IT-stöd för små verksamheter som vill slippa vardagsstrul, otydliga besked och
+              låtsastrygghet.
             </p>
+            <p className="mt-4 max-w-2xl text-muted-foreground">{demoNotice}</p>
+
             <div className="mt-8 flex flex-wrap gap-3">
               <Button asChild size="lg">
                 <Link to="/kontakt">
-                  Boka support <ArrowRight className="h-4 w-4" />
+                  Beskriv ditt ärende
+                  <ArrowRight className="h-4 w-4" />
                 </Link>
               </Button>
               <Button asChild size="lg" variant="outline">
                 <Link to="/tjanster">Se tjänster</Link>
               </Button>
             </div>
+
+            <dl className="mt-10 grid max-w-2xl gap-3 sm:grid-cols-3">
+              {heroStats.map((stat) => (
+                <div
+                  key={stat.label}
+                  className="rounded-md border border-white/70 bg-white/70 p-4 shadow-sm"
+                >
+                  <dt className="text-2xl font-semibold">{stat.value}</dt>
+                  <dd className="mt-1 text-sm text-muted-foreground">{stat.label}</dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+
+          <div className="relative">
+            <div className="absolute -right-5 top-8 hidden rounded-md border border-sky-200 bg-white/90 px-4 py-3 text-sm shadow-lg lg:block">
+              <p className="font-medium">Supportguide</p>
+              <p className="text-muted-foreground">Förskrivna svar, inga AI-anrop</p>
+            </div>
+            <div className="overflow-hidden rounded-lg border border-white/80 bg-white shadow-xl">
+              <img
+                src="/nova-it-workspace.png"
+                alt="Ljust kontor med laptop, headset och nätverksutrustning."
+                className="aspect-[4/3] h-full w-full object-cover"
+              />
+            </div>
+            <div className="absolute -bottom-6 left-5 right-5 rounded-md border border-emerald-200 bg-white p-4 shadow-lg">
+              <p className="flex items-center gap-2 text-sm font-medium">
+                <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                Fokus på tydliga åtgärder före stora löften.
+              </p>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Trust / values */}
-      <section className="mx-auto max-w-6xl px-4 py-12">
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {values.map((v) => (
-            <Card key={v.title} className="border-border/70">
-              <CardContent className="p-5">
-                <span className="grid h-10 w-10 place-items-center rounded-md bg-primary/10 text-primary">
-                  <v.icon className="h-5 w-5" />
-                </span>
-                <h3 className="mt-4 font-semibold">{v.title}</h3>
-                <p className="mt-1 text-sm text-muted-foreground">{v.text}</p>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </section>
-
-      {/* How it works */}
       <section className="mx-auto max-w-6xl px-4 py-16">
-        <div className="mx-auto max-w-2xl text-center">
-          <h2 className="text-3xl font-semibold tracking-tight">Så här funkar det</h2>
-          <p className="mt-3 text-muted-foreground">
-            Tre enkla steg — från att du hör av dig till att problemet är löst.
-          </p>
+        <div className="grid gap-6 lg:grid-cols-[0.75fr_1.25fr] lg:items-start">
+          <div>
+            <p className="text-sm font-medium uppercase text-muted-foreground">
+              Tydligare tjänsteområden
+            </p>
+            <h2 className="mt-2 text-3xl font-semibold tracking-tight">
+              Välj väg utifrån problemet, inte tekniken bakom.
+            </h2>
+            <p className="mt-3 text-muted-foreground">
+              Den förbättrade strukturen gör det lättare att förstå vad Nova IT kan hjälpa till med
+              och vilket formulärval som passar.
+            </p>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            {serviceCategories.map((category) => (
+              <div key={category.title} className="rounded-lg border border-border/70 bg-card p-5">
+                <h3 className="text-lg font-semibold">{category.title}</h3>
+                <p className="mt-2 text-sm text-muted-foreground">{category.description}</p>
+                <ul className="mt-5 space-y-2 text-sm">
+                  {category.serviceSlugs.map((slug) => {
+                    const service = services.find((item) => item.slug === slug);
+                    if (!service) return null;
+
+                    return (
+                      <li key={slug} className="flex items-center justify-between gap-3">
+                        <span>{service.shortTitle}</span>
+                        <Link
+                          to="/kontakt"
+                          search={{ service: service.slug }}
+                          className="text-sm font-medium text-primary hover:underline"
+                        >
+                          Välj
+                        </Link>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            ))}
+          </div>
         </div>
-        <ol className="mt-10 grid gap-6 md:grid-cols-3">
-          {steps.map((s, i) => (
-            <li key={s.title} className="relative rounded-xl border border-border/70 bg-card p-6">
-              <span className="absolute -top-3 left-6 rounded-full bg-primary px-2.5 py-0.5 text-xs font-semibold text-primary-foreground">
-                Steg {i + 1}
-              </span>
-              <span className="grid h-10 w-10 place-items-center rounded-md bg-primary/10 text-primary">
-                <s.icon className="h-5 w-5" />
-              </span>
-              <h3 className="mt-4 font-semibold">{s.title}</h3>
-              <p className="mt-1 text-sm text-muted-foreground">{s.text}</p>
-            </li>
-          ))}
-        </ol>
       </section>
 
-      {/* Featured services */}
+      <section className="border-y border-border/70 bg-muted/30">
+        <div className="mx-auto grid max-w-6xl gap-4 px-4 py-14 md:grid-cols-3">
+          {credibilityItems.map((item, index) => {
+            const Icon = credibilityIcons[index] ?? MessageSquare;
+
+            return (
+              <Card key={item.title} className="border-border/70 bg-background/80">
+                <CardContent className="p-5">
+                  <span className="grid h-10 w-10 place-items-center rounded-md bg-primary/10 text-primary">
+                    <Icon className="h-5 w-5" />
+                  </span>
+                  <h3 className="mt-4 font-semibold">{item.title}</h3>
+                  <p className="mt-2 text-sm text-muted-foreground">{item.text}</p>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      </section>
+
       <section className="mx-auto max-w-6xl px-4 py-16">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <h2 className="text-3xl font-semibold tracking-tight">Utvalda tjänster</h2>
-            <p className="mt-2 text-muted-foreground">Det vi hjälper till med varje vecka.</p>
+            <p className="text-sm font-medium uppercase text-muted-foreground">
+              Populära ärendetyper
+            </p>
+            <h2 className="mt-2 text-3xl font-semibold tracking-tight">
+              Tjänster som går att förstå direkt
+            </h2>
           </div>
           <Button asChild variant="ghost">
             <Link to="/tjanster">
-              Alla tjänster <ArrowRight className="h-4 w-4" />
+              Alla tjänster
+              <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>
         </div>
         <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {services.slice(0, 3).map((s) => (
-            <ServiceCard key={s.slug} service={s} />
+          {services.slice(0, 3).map((service) => (
+            <ServiceCard key={service.slug} service={service} />
           ))}
         </div>
       </section>
 
-      {/* FAQ preview */}
-      <section className="mx-auto max-w-3xl px-4 py-16">
-        <h2 className="text-3xl font-semibold tracking-tight">Vanliga frågor</h2>
-        <p className="mt-2 text-muted-foreground">Snabba svar på det kunder oftast undrar.</p>
-        <Accordion type="single" collapsible className="mt-6">
-          {faqs.slice(0, 4).map((f) => (
-            <AccordionItem key={f.q} value={f.q}>
-              <AccordionTrigger className="text-left">{f.q}</AccordionTrigger>
-              <AccordionContent className="text-muted-foreground">{f.a}</AccordionContent>
-            </AccordionItem>
-          ))}
-        </Accordion>
-        <div className="mt-6">
-          <Button asChild variant="outline">
+      <section className="mx-auto max-w-6xl px-4 py-16">
+        <div className="rounded-lg border border-primary/15 bg-primary px-6 py-10 text-primary-foreground md:px-10">
+          <div className="grid gap-8 lg:grid-cols-[0.8fr_1.2fr] lg:items-center">
+            <div>
+              <h2 className="text-3xl font-semibold tracking-tight">
+                Från otydligt problem till tydligt nästa steg.
+              </h2>
+              <p className="mt-3 text-primary-foreground/80">
+                Kontaktformuläret samlar brådska, tjänst och beskrivning så en verklig tekniker
+                skulle kunna prioritera rätt.
+              </p>
+            </div>
+            <ol className="grid gap-3 md:grid-cols-3">
+              {processSteps.map((step, index) => (
+                <li key={step.title} className="rounded-md bg-white/10 p-4">
+                  <span className="text-sm text-primary-foreground/70">0{index + 1}</span>
+                  <h3 className="mt-2 font-semibold">{step.title}</h3>
+                  <p className="mt-1 text-sm text-primary-foreground/75">{step.text}</p>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </div>
+      </section>
+
+      <section className="mx-auto grid max-w-6xl gap-10 px-4 py-16 lg:grid-cols-[0.75fr_1fr]">
+        <div>
+          <p className="text-sm font-medium uppercase text-muted-foreground">FAQ</p>
+          <h2 className="mt-2 text-3xl font-semibold tracking-tight">Frågor som gör demon ärlig</h2>
+          <p className="mt-3 text-muted-foreground">
+            Inga dolda fejkclaims. Vanliga frågor förklarar vad som är demo och vad som hade behövt
+            lösas i en skarp version.
+          </p>
+          <Button asChild variant="outline" className="mt-6">
             <Link to="/faq">Se alla frågor</Link>
           </Button>
         </div>
+        <Accordion type="single" collapsible>
+          {faqs.slice(0, 4).map((faq) => (
+            <AccordionItem key={faq.q} value={faq.q}>
+              <AccordionTrigger className="text-left">{faq.q}</AccordionTrigger>
+              <AccordionContent className="text-muted-foreground">{faq.a}</AccordionContent>
+            </AccordionItem>
+          ))}
+        </Accordion>
       </section>
     </>
   );
