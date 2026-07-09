@@ -39,8 +39,7 @@ export const Route = createFileRoute("/")({
       { property: "og:title", content: "Nova IT – svensk IT-supportdemo" },
       {
         property: "og:description",
-        content:
-          "Fiktiv client-ready webbplats för IT-support, nätverk, säkerhet och bokningsflöden.",
+        content: "Fiktiv kundredo webbplats för IT-support, nätverk, säkerhet och ärendeflöden.",
       },
     ],
   }),
@@ -48,9 +47,9 @@ export const Route = createFileRoute("/")({
 });
 
 const heroStats = [
-  { value: "Fiktivt", label: "demo-case, tydligt märkt" },
+  { value: "Fiktivt", label: "demoexempel, tydligt märkt" },
   { value: "6", label: "konkreta tjänsteområden" },
-  { value: "0", label: "riktiga kund- eller org-claims" },
+  { value: "0", label: "verkliga kund- eller organisationslöften" },
 ];
 
 const credibilityIcons = [ShieldCheck, ClipboardList, LockKeyhole];
@@ -63,18 +62,18 @@ function Home() {
           <div>
             <span className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-white/80 px-3 py-1 text-xs font-medium text-emerald-900 shadow-sm">
               <Sparkles className="h-3.5 w-3.5" />
-              Demo-säker svensk IT-webb
+              Ärlig svensk IT-demo
             </span>
             <h1 className="mt-6 text-5xl font-semibold leading-none sm:text-6xl">Nova IT</h1>
             <p className="mt-5 max-w-2xl text-xl text-muted-foreground">
               IT-stöd för små verksamheter som vill slippa vardagsstrul, otydliga besked och
-              låtsastrygghet.
+              överdrivna löften.
             </p>
             <p className="mt-4 max-w-2xl text-muted-foreground">{demoNotice}</p>
 
             <div className="mt-8 flex flex-wrap gap-3">
               <Button asChild size="lg">
-                <Link to="/kontakt">
+                <Link to="/kontakt" search={{ service: undefined }}>
                   Beskriv ditt ärende
                   <ArrowRight className="h-4 w-4" />
                 </Link>
@@ -100,7 +99,7 @@ function Home() {
           <div className="relative">
             <div className="absolute -right-5 top-8 hidden rounded-md border border-sky-200 bg-white/90 px-4 py-3 text-sm shadow-lg lg:block">
               <p className="font-medium">Supportguide</p>
-              <p className="text-muted-foreground">Förskrivna svar, inga AI-anrop</p>
+              <p className="text-muted-foreground">Fördefinierade svar, inga AI-anrop</p>
             </div>
             <div className="overflow-hidden rounded-lg border border-white/80 bg-white shadow-xl">
               <img
@@ -238,8 +237,8 @@ function Home() {
           <p className="text-sm font-medium uppercase text-muted-foreground">FAQ</p>
           <h2 className="mt-2 text-3xl font-semibold tracking-tight">Frågor som gör demon ärlig</h2>
           <p className="mt-3 text-muted-foreground">
-            Inga dolda fejkclaims. Vanliga frågor förklarar vad som är demo och vad som hade behövt
-            lösas i en skarp version.
+            Inga dolda påhittade löften. Vanliga frågor förklarar vad som är demo och vad som hade
+            behövt lösas i en skarp version.
           </p>
           <Button asChild variant="outline" className="mt-6">
             <Link to="/faq">Se alla frågor</Link>

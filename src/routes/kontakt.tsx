@@ -47,11 +47,7 @@ const urgencyLevels = ["Planerat", "Normal", "Akut"] as const;
 const schema = z.object({
   name: z.string().trim().min(2, "Ange ditt namn med minst två tecken").max(100),
   email: z.string().trim().email("Ange en giltig e-postadress").max(255),
-  phone: z
-    .string()
-    .trim()
-    .min(6, "Ange ett telefonnummer eller skriv hur du vill bli kontaktad")
-    .max(30),
+  phone: z.string().trim().max(60, "Kontaktvägen får vara högst 60 tecken"),
   customerType: z.enum(customerTypes, {
     message: "Välj vilken typ av kund ärendet gäller",
   }),
@@ -263,10 +259,10 @@ function ContactPage() {
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <Field
-                  label="Telefon eller kontaktväg"
+                  label="Telefon eller annan kontaktväg"
                   name="phone"
                   error={errors.phone}
-                  hint="Skriv telefonnummer, Teams eller annan kontaktväg."
+                  hint="Valfritt. Skriv telefonnummer, Teams eller annan kontaktväg."
                 >
                   {(fieldProps) => (
                     <Input
@@ -275,7 +271,6 @@ function ContactPage() {
                       value={values.phone}
                       onChange={(event) => update("phone", event.target.value)}
                       autoComplete="tel"
-                      required
                     />
                   )}
                 </Field>
@@ -398,7 +393,7 @@ function ContactPage() {
               </div>
 
               <Button type="submit" size="lg" className="mt-2 justify-self-start">
-                Validera demoförfrågan
+                Kontrollera och visa sammanfattning
               </Button>
             </form>
           </CardContent>

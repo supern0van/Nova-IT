@@ -16,7 +16,8 @@ export const Route = createFileRoute("/tjanster")({
       { property: "og:title", content: "Tjänster – Nova IT" },
       {
         property: "og:description",
-        content: "Se hur en svensk IT-supportsajt kan presentera tjänster utan fejkade kundlöften.",
+        content:
+          "Se hur en svensk IT-supportsajt kan presentera tjänster utan påhittade kundlöften.",
       },
     ],
   }),
@@ -93,7 +94,7 @@ function ServicesPage() {
           </div>
           <div className="mt-5 flex flex-wrap gap-3 md:mt-0">
             <Button asChild>
-              <Link to="/kontakt">
+              <Link to="/kontakt" search={{ service: undefined }}>
                 Beskriv ärende
                 <ArrowRight className="h-4 w-4" />
               </Link>

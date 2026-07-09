@@ -13,12 +13,12 @@ export const Route = createFileRoute("/assistent")({
       {
         name: "description",
         content:
-          "Frontend-only supportguide för Nova IT med förskrivna svar och tydlig väg vidare till kontaktformuläret.",
+          "Supportguide för Nova IT med fördefinierade svar och tydlig väg vidare till kontaktformuläret.",
       },
       { property: "og:title", content: "Supportguide – Nova IT" },
       {
         property: "og:description",
-        content: "En guidad demo för vanliga IT-problem. Inga AI-anrop, ingen backend.",
+        content: "En guidad demo för vanliga IT-problem. Inga AI-anrop och ingen backend.",
       },
     ],
   }),
@@ -30,7 +30,7 @@ type Message = { role: "user"; text: string } | { role: "assistant"; answer: Ass
 const introAnswer: AssistantAnswer = {
   title: "Guiden hjälper dig att sortera ärendet",
   summary:
-    "Det här är en frontend-only demo med förskrivna svar. Välj en kategori eller beskriv problemet så får du ett första strukturerat förslag.",
+    "Det här är en demo med fördefinierade svar. Välj en kategori eller beskriv problemet så får du ett första strukturerat förslag.",
   steps: [
     "Välj en snabbkategori för vanliga ärenden.",
     "Läs vilka kontroller som är rimliga att göra först.",
@@ -66,8 +66,8 @@ function AssistantPage() {
           </span>
           <h1 className="mt-4 text-4xl font-semibold tracking-tight">Supportguide</h1>
           <p className="mt-3 text-muted-foreground">
-            En tydlig guidad demo för vanliga IT-problem. Den låtsas inte vara en riktig AI och gör
-            inga anrop utanför webbläsaren.
+            En tydlig guidad demo för vanliga IT-problem. Den utger sig inte för att vara en riktig
+            AI och gör inga anrop utanför webbläsaren.
           </p>
         </div>
 
@@ -77,8 +77,8 @@ function AssistantPage() {
             <div>
               <p className="font-medium">Demo, inte diagnostik</p>
               <p className="mt-1">
-                Svaren är förskrivna och ska hjälpa besökaren att formulera ett bättre ärende. För
-                riktig hjälp går flödet vidare till formuläret.
+                Svaren är fördefinierade och ska hjälpa besökaren att formulera ett bättre ärende.
+                För riktig hjälp går flödet vidare till formuläret.
               </p>
             </div>
           </div>

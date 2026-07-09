@@ -14,7 +14,7 @@ export const Route = createFileRoute("/faq")({
       {
         name: "description",
         content:
-          "Svar på vanliga frågor om Nova IT som fiktivt demo-case, formulärflöde, supportguide och demo-säkra kontaktuppgifter.",
+          "Svar på vanliga frågor om Nova IT som fiktivt demoexempel, formulärflöde, supportguide och säkra demouppgifter.",
       },
       { property: "og:title", content: "Vanliga frågor – Nova IT" },
       {

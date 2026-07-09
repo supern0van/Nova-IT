@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 
 export const demoNotice =
-  "Nova IT är ett fiktivt demo-case. Kontaktuppgifter, svarstider och processer är exempel för en client-ready webbplats, inte uppgifter om ett verkligt bolag.";
+  "Nova IT är ett fiktivt demoexempel. Kontaktuppgifter, svarstider och processer visar hur en kundredo webbplats kan fungera, inte uppgifter om ett verkligt bolag.";
 
 export const contactChannels = {
   email: "demo@novait.example",
@@ -143,8 +143,8 @@ export const serviceCategories = [
 
 export const credibilityItems = [
   {
-    title: "Demo-säker transparens",
-    text: "Inga fejksiffror, inget fiktivt organisationsnummer och inga låtsasadresser som kan misstas för verkliga.",
+    title: "Tydligt demoexempel",
+    text: "Inga påhittade siffror, inget organisationsnummer och inga adresser som kan misstas för verkliga.",
   },
   {
     title: "Tydlig prioritering",
@@ -174,7 +174,7 @@ export const processSteps = [
 export const faqs = [
   {
     q: "Är Nova IT ett riktigt företag?",
-    a: "Nej. Nova IT är ett fiktivt demo-case för en svensk IT-supportwebb. Därmed visar sajten inga verkliga organisationsnummer, adresser eller kundsiffror.",
+    a: "Nej. Nova IT är ett fiktivt demoexempel för en svensk IT-supportwebb. Därmed visar sajten inga verkliga organisationsnummer, adresser eller kundsiffror.",
   },
   {
     q: "Vad kostar tjänsterna?",
@@ -190,11 +190,11 @@ export const faqs = [
   },
   {
     q: "Vad händer med uppgifterna i formuläret?",
-    a: "I den här frontend-demon skickas formuläret inte till någon server. Det visar validering, tillgänglighet och ett tänkt flöde för en framtida integration.",
+    a: "I den här demon skickas formuläret inte till någon server. Det visar validering, tillgänglighet och ett tänkt flöde för en framtida integration.",
   },
   {
     q: "Kan supportguiden ersätta en tekniker?",
-    a: "Nej. Guiden är en frontend-only demo med förskrivna svar. Den hjälper besökaren att sortera ärendet, men gör inga AI-anrop och tar inga beslut.",
+    a: "Nej. Guiden är en demo med fördefinierade svar. Den hjälper besökaren att sortera ärendet, men gör inga AI-anrop och tar inga beslut.",
   },
   {
     q: "Vilka kunder passar upplägget för?",
@@ -247,7 +247,7 @@ const fallbackAnswer: AssistantAnswer = {
     "Bifoga felmeddelanden eller skärmbilder i en verklig supportkanal.",
   ],
   escalation:
-    "Boka en genomgång om problemet stoppar arbete, påverkar flera personer eller rör inloggning och säkerhet.",
+    "Gå vidare till formuläret om problemet stoppar arbete, påverkar flera personer eller rör inloggning och säkerhet.",
   serviceSlug: "it-support",
 };
 
@@ -269,7 +269,7 @@ export function getAssistantAnswer(question: string): AssistantAnswer {
         "Testa nära utrustningen. Fungerar det där, pekar det på täckning eller placering.",
       ],
       escalation:
-        "Boka nätverksgenomgång om felet återkommer, påverkar möten eller om gästnät/säkerhet behöver ses över.",
+        "Gå vidare till formuläret om felet återkommer, påverkar möten eller om gästnät/säkerhet behöver ses över.",
       serviceSlug: "natverk",
     };
   }
@@ -285,7 +285,7 @@ export function getAssistantAnswer(question: string): AssistantAnswer {
         "Notera om felet gäller ett specifikt program eller hela datorn.",
       ],
       escalation:
-        "Boka felsökning om datorn fortsätter vara seg efter omstart, om den blir varm eller om felmeddelanden visas.",
+        "Gå vidare till formuläret om datorn fortsätter vara seg efter omstart, om den blir varm eller om felmeddelanden visas.",
       serviceSlug: "felsokning",
     };
   }
@@ -306,7 +306,7 @@ export function getAssistantAnswer(question: string): AssistantAnswer {
         "Se om fler användare har samma problem eller om det gäller en person.",
       ],
       escalation:
-        "Boka molnkontorsstöd om konton, licenser, delade postlådor eller behörigheter behöver gås igenom.",
+        "Gå vidare till formuläret om konton, licenser, delade postlådor eller behörigheter behöver gås igenom.",
       serviceSlug: "microsoft-google",
     };
   }
@@ -321,7 +321,7 @@ export function getAssistantAnswer(question: string): AssistantAnswer {
         "Gör ett litet återläsningstest till separat plats.",
       ],
       escalation:
-        "Boka säkerhets- och backupgenomgång om ni saknar testad återläsning eller om bara en person vet hur backupen fungerar.",
+        "Gå vidare till formuläret om ni saknar testad återläsning eller om bara en person vet hur backupen fungerar.",
       serviceSlug: "sakerhet-backup",
     };
   }

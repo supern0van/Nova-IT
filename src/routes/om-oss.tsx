@@ -6,11 +6,11 @@ import { demoNotice } from "@/lib/nova-data";
 export const Route = createFileRoute("/om-oss")({
   head: () => ({
     meta: [
-      { title: "Om Nova IT – fiktivt demo-case" },
+      { title: "Om Nova IT – fiktivt demoexempel" },
       {
         name: "description",
         content:
-          "Nova IT är ett fiktivt svenskt IT-supportcase med demo-säker copy, tydliga avgränsningar och trovärdig tjänstepresentation.",
+          "Nova IT är ett fiktivt svenskt IT-supportexempel med tydliga avgränsningar, ärlig copy och trovärdig tjänstepresentation.",
       },
       { property: "og:title", content: "Om Nova IT" },
       {
@@ -27,7 +27,7 @@ const principles = [
   {
     icon: Building2,
     title: "Fiktivt bolag",
-    text: "Ingen låtsasadress, inget organisationsnummer och inga påhittade kundsiffror.",
+    text: "Ingen adress, inget organisationsnummer och inga kundsiffror som kan misstas för verkliga.",
   },
   {
     icon: ShieldCheck,
@@ -51,7 +51,7 @@ function About() {
       <p className="mt-4 text-lg text-muted-foreground">{demoNotice}</p>
       <p className="mt-4 text-muted-foreground">
         Syftet är att visa hur en Lovable-export kan göras mer kundredo: tydligare tjänster, mer
-        svensk ton, bättre formulär och ett ärligt stödflöde utan fejkade företagsuppgifter.
+        svensk ton, bättre formulär och ett ärligt stödflöde utan påhittade företagsuppgifter.
       </p>
 
       <div className="mt-10 grid gap-4 sm:grid-cols-3">

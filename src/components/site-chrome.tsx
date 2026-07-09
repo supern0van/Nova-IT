@@ -39,7 +39,9 @@ export function SiteHeader() {
             </Link>
           ))}
           <Button asChild size="sm" className="ml-2">
-            <Link to="/kontakt">Beskriv ärende</Link>
+            <Link to="/kontakt" search={{ service: undefined }}>
+              Beskriv ärende
+            </Link>
           </Button>
         </nav>
 
@@ -70,7 +72,7 @@ export function SiteHeader() {
               </Link>
             ))}
             <Button asChild size="sm" className="mt-2">
-              <Link to="/kontakt" onClick={() => setOpen(false)}>
+              <Link to="/kontakt" search={{ service: undefined }} onClick={() => setOpen(false)}>
                 Beskriv ärende
               </Link>
             </Button>
@@ -130,7 +132,7 @@ export function SiteFooter() {
               </Link>
             </li>
             <li>
-              <Link to="/kontakt" className="hover:text-foreground">
+              <Link to="/kontakt" search={{ service: undefined }} className="hover:text-foreground">
                 Kontakt
               </Link>
             </li>
@@ -141,7 +143,7 @@ export function SiteFooter() {
           <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
             <li>{contactChannels.email}</li>
             <li>{contactChannels.availability}</li>
-            <li>Formuläret är frontend-only</li>
+            <li>Formuläret skickar inget vidare</li>
           </ul>
         </div>
       </div>

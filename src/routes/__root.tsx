@@ -82,7 +82,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         name: "description",
         content:
-          "Fiktivt demo-case för Nova IT: en svensk IT-supportwebb med tydliga tjänster, tillgängligt kontaktflöde och demo-säker copy.",
+          "Fiktivt demoexempel för Nova IT: en svensk IT-supportwebb med tydliga tjänster, tillgängligt kontaktflöde och ärlig copy.",
       },
       { name: "author", content: "Nova IT" },
       { property: "og:locale", content: "sv_SE" },
