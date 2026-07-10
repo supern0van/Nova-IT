@@ -9,8 +9,8 @@ Det här dokumentet är projektets gemensamma karta. Syftet är att undvika att 
 | Lovable-export           | Genomförd     | Första committen `3340de8` finns kvar som projektets historiska startpunkt. Ingen separat Lovable-branch används. |
 | Codex förbättringspass 1 | Genomfört     | Commits `d8e0803` och `ae1911f`; senaste stabila kod ligger på `main`.                                            |
 | GitHub-grund             | Genomförd     | Privat repo `supern0van/Nova-IT`, standardbranch `main`.                                                          |
-| Visuell redesign         | Väntar        | Körbar prompt finns i `prompts/02-visual-redesign.md`.                                                            |
-| Supportbot i React       | Väntar        | Plan finns i `docs/supportbot-integration-plan.md`.                                                               |
+| Visuell redesign         | Genomförd     | Nytt designsystem, omarbetade sidor och `/case-study`; se `docs/visual-redesign-report.md`.                       |
+| Supportbot i React       | Nästa steg    | Plan finns i `docs/supportbot-integration-plan.md`.                                                               |
 | Riktig backend/AI        | Inte påbörjad | Ska inte byggas innan frontend, säkerhet och databehandling är beslutade.                                         |
 
 ## Vad första Codex-passet redan förbättrade
@@ -26,11 +26,10 @@ Det här dokumentet är projektets gemensamma karta. Syftet är att undvika att 
 
 ## Ordning framåt
 
-1. Genomför den visuella redesignen utan regression.
-2. Verifiera mobil, tangentbord, formulär, lint och build.
-3. Porta supportbotens kunskapsbas och flöde till React/TypeScript.
-4. Återanvänd samma supportmotor på `/assistent` och i robotwidgeten.
-5. Utvärdera backend, ticketing eller riktig AI först därefter.
+1. Porta supportbotens kunskapsbas och flöde till React/TypeScript.
+2. Återanvänd samma supportmotor på `/assistent` och i robotwidgeten.
+3. Verifiera mobil, tangentbord, formulär, botflöden, lint och build.
+4. Utvärdera backend, ticketing eller riktig AI först därefter.
 
 ## Branchregler
 

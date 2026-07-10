@@ -5,7 +5,8 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { contactChannels, faqs } from "@/lib/nova-data";
+import { faqs } from "@/lib/nova-data";
+import { Container, CTASection, DemoNotice, PageHeader } from "@/components/design-system";
 
 export const Route = createFileRoute("/faq")({
   head: () => ({
@@ -14,12 +15,7 @@ export const Route = createFileRoute("/faq")({
       {
         name: "description",
         content:
-          "Svar på vanliga frågor om Nova IT som fiktivt demoexempel, formulärflöde, supportguide och säkra demouppgifter.",
-      },
-      { property: "og:title", content: "Vanliga frågor – Nova IT" },
-      {
-        property: "og:description",
-        content: "Demo-säkra svar om tjänster, formulär, supportguide och fiktiva uppgifter.",
+          "Demo-säkra svar om tjänster, formulär, Frågeguiden, datahantering och en möjlig framtida skarp version.",
       },
     ],
   }),
@@ -28,21 +24,39 @@ export const Route = createFileRoute("/faq")({
 
 function FaqPage() {
   return (
-    <section className="mx-auto max-w-3xl px-4 py-16">
-      <p className="text-sm font-medium uppercase text-muted-foreground">FAQ</p>
-      <h1 className="mt-2 text-4xl font-semibold tracking-tight">Vanliga frågor</h1>
-      <p className="mt-3 text-muted-foreground">
-        Frågorna förklarar både tjänsteupplägget och vad som är fiktivt. Demo-adressen är{" "}
-        {contactChannels.email}.
-      </p>
-      <Accordion type="single" collapsible className="mt-8">
-        {faqs.map((f) => (
-          <AccordionItem key={f.q} value={f.q}>
-            <AccordionTrigger className="text-left">{f.q}</AccordionTrigger>
-            <AccordionContent className="text-muted-foreground">{f.a}</AccordionContent>
-          </AccordionItem>
-        ))}
-      </Accordion>
-    </section>
+    <>
+      <PageHeader
+        eyebrow="Vanliga frågor"
+        title="Tydliga svar om demon och tjänsteupplägget."
+        intro="Här skiljer vi på vad frontend-demon faktiskt gör och vad som skulle kräva riktiga avtal, kontaktvägar, dataskydd och supportprocesser."
+      />
+      <Container className="grid gap-10 py-14 lg:grid-cols-[0.68fr_1.32fr]">
+        <div>
+          <DemoNotice />
+          <p className="mt-6 text-sm leading-6 text-muted-foreground">
+            Frågorna undviker bindande priser och servicenivåer. De visar i stället vilken
+            information en skarp sida behöver göra tydlig.
+          </p>
+        </div>
+        <Accordion
+          type="single"
+          collapsible
+          className="rounded-lg border border-border bg-card px-5"
+        >
+          {faqs.map((faq) => (
+            <AccordionItem key={faq.q} value={faq.q}>
+              <AccordionTrigger className="text-left text-base">{faq.q}</AccordionTrigger>
+              <AccordionContent className="leading-7 text-muted-foreground">
+                {faq.a}
+              </AccordionContent>
+            </AccordionItem>
+          ))}
+        </Accordion>
+      </Container>
+      <CTASection
+        title="Hittar du inte rätt fråga? Börja med problemet."
+        text="Frågeguiden hjälper dig välja område och kontaktformuläret visar vilken information som normalt behövs."
+      />
+    </>
   );
 }
