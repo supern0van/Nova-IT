@@ -37,6 +37,6 @@ Det här passet förde Nova IT från en tekniskt förbättrad men visuellt gener
 - frågeguidens val, svar och kontakt-CTA kontrollerade
 - horisontell mobil overflow på kontaktsidan hittades och åtgärdades
 
-## Nästa steg
+## Efterföljande steg
 
-Nästa avgränsade pass är att porta supportbotens användbara kunskapsflöden till React/TypeScript, låta `/assistent` och en global robotwidget dela samma motor och därefter verifiera hela applikationen på nytt.
+Det efterföljande passet portade supportbotens användbara kunskapsflöden till React/TypeScript och lät `/assistent` och en global robotwidget dela samma motor. Resultatet finns i `docs/supportbot-integration-report.md`.

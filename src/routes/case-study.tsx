@@ -35,14 +35,14 @@ const stages = [
   {
     number: "03",
     label: "Visuell redesign",
-    status: "Aktuellt steg",
+    status: "Genomförd",
     text: "Ett tydligare designsystem, operativa statusytor och starkare sidstruktur gör förbättringen synlig även utan kodgranskning.",
     result: "Mer egen identitet och bättre väg från problem till nästa steg.",
   },
   {
     number: "04",
     label: "Professionell demo",
-    status: "Nästa nivå",
+    status: "Genomförd",
     text: "Supportbot, återanvändbar supportmotor och bredare interaktion testas i samma designsystem.",
     result: "En sammanhängande frontend som går att demonstrera och utvärdera.",
   },
@@ -90,7 +90,7 @@ function CaseStudyPage() {
             >
               <div
                 className={`grid h-11 w-11 place-items-center rounded-md text-xs font-semibold ${
-                  index < 3
+                  index < 4
                     ? "bg-primary text-primary-foreground"
                     : "border border-border bg-secondary text-muted-foreground"
                 }`}
@@ -106,7 +106,7 @@ function CaseStudyPage() {
                 </div>
                 <p className="mt-3 leading-7 text-muted-foreground">{stage.text}</p>
                 <p className="mt-3 flex items-start gap-2 text-sm font-medium">
-                  {index < 3 ? (
+                  {index < 4 ? (
                     <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
                   ) : (
                     <CircleDashed className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />

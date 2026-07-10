@@ -43,10 +43,11 @@ bun run build
 
 `main` ska alltid vara den senaste stabila versionen. Större förändringar görs på en separat branch och granskas i en pull request innan de går in i `main`.
 
-Den visuella redesignen är genomförd och dokumenterad i [`docs/visual-redesign-report.md`](docs/visual-redesign-report.md). Nästa planerade kodpass är React-integrationen av supportboten enligt [`docs/supportbot-integration-plan.md`](docs/supportbot-integration-plan.md).
+Den visuella redesignen och supportbotens React-integration är genomförda. `/assistent` och den globala Nova-guiden använder samma regelbaserade motor med 13 ärendespår. Backend, ticketing och riktig AI är uttryckligen inte del av den här frontend-etappen.
 
 ## Dokumentation
 
 - [Promptindex](docs/prompt-index.md)
 - [Rapport för visuell redesign](docs/visual-redesign-report.md)
 - [Supportbotens integrationsplan](docs/supportbot-integration-plan.md)
+- [Rapport för supportbotintegrationen](docs/supportbot-integration-report.md)

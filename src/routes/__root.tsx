@@ -12,6 +12,7 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { SiteHeader, SiteFooter } from "../components/site-chrome";
+import { SupportBotLauncher } from "../features/support/SupportBotLauncher";
 
 function NotFoundComponent() {
   return (
@@ -134,6 +135,7 @@ function RootComponent() {
           <Outlet />
         </main>
         <SiteFooter />
+        <SupportBotLauncher />
       </div>
     </QueryClientProvider>
   );
