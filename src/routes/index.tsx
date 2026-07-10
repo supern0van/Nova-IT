@@ -1,6 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import {
   Accordion,
   AccordionContent,
@@ -12,247 +11,280 @@ import {
   CheckCircle2,
   ClipboardList,
   LockKeyhole,
-  MessageSquare,
-  Search,
+  MessageSquareText,
   ShieldCheck,
-  Sparkles,
 } from "lucide-react";
-import {
-  credibilityItems,
-  demoNotice,
-  faqs,
-  processSteps,
-  serviceCategories,
-  services,
-} from "@/lib/nova-data";
+import { credibilityItems, faqs, processSteps, serviceCategories, services } from "@/lib/nova-data";
 import { ServiceCard } from "@/components/service-card";
+import { Container, CTASection, DemoNotice, StatusPanel } from "@/components/design-system";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Nova IT – fiktiv svensk IT-supportdemo" },
+      { title: "Nova IT – tydlig svensk IT-supportdemo" },
       {
         name: "description",
         content:
-          "En polerad svensk demo för Nova IT med tydliga IT-tjänster, supportguide och tillgängligt kontaktformulär.",
+          "Fiktivt svenskt IT-supportdemo med praktiska tjänster, Frågeguiden och ett tillgängligt kontaktflöde.",
       },
-      { property: "og:title", content: "Nova IT – svensk IT-supportdemo" },
+      { property: "og:title", content: "Nova IT – tydlig svensk IT-supportdemo" },
       {
         property: "og:description",
-        content: "Fiktiv kundredo webbplats för IT-support, nätverk, säkerhet och ärendeflöden.",
+        content: "Från otydligt IT-problem till ett begripligt nästa steg.",
       },
     ],
   }),
   component: Home,
 });
 
-const heroStats = [
-  { value: "Fiktivt", label: "demoexempel, tydligt märkt" },
-  { value: "6", label: "konkreta tjänsteområden" },
-  { value: "0", label: "verkliga kund- eller organisationslöften" },
-];
-
 const credibilityIcons = [ShieldCheck, ClipboardList, LockKeyhole];
 
 function Home() {
   return (
     <>
-      <section className="relative overflow-hidden bg-[linear-gradient(135deg,#f8fafc_0%,#eef6f4_48%,#f6f7fb_100%)]">
-        <div className="mx-auto grid max-w-6xl gap-12 px-4 py-16 lg:grid-cols-[0.95fr_1.05fr] lg:items-center lg:py-20">
+      <section className="tech-grid relative overflow-hidden border-b border-border bg-secondary/35">
+        <Container className="grid gap-12 py-14 lg:grid-cols-[0.92fr_1.08fr] lg:items-center lg:py-20">
           <div>
-            <span className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-white/80 px-3 py-1 text-xs font-medium text-emerald-900 shadow-sm">
-              <Sparkles className="h-3.5 w-3.5" />
-              Ärlig svensk IT-demo
-            </span>
-            <h1 className="mt-6 text-5xl font-semibold leading-none sm:text-6xl">Nova IT</h1>
-            <p className="mt-5 max-w-2xl text-xl text-muted-foreground">
-              IT-stöd för små verksamheter som vill slippa vardagsstrul, otydliga besked och
-              överdrivna löften.
+            <p className="eyebrow">Svensk IT-support · frontend-demo</p>
+            <h1 className="mt-5 max-w-3xl text-5xl font-semibold leading-[0.98] tracking-[-0.055em] text-balance sm:text-6xl lg:text-7xl">
+              IT-hjälp som börjar med att reda ut läget.
+            </h1>
+            <p className="mt-6 max-w-2xl text-lg leading-8 text-muted-foreground">
+              Nova IT visar hur support, nätverk och säkerhet kan presenteras med konkreta nästa
+              steg—utan fejkade kundsiffror eller överdrivna löften.
             </p>
-            <p className="mt-4 max-w-2xl text-muted-foreground">{demoNotice}</p>
 
-            <div className="mt-8 flex flex-wrap gap-3">
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Button asChild size="lg">
                 <Link to="/kontakt" search={{ service: undefined }}>
-                  Beskriv ditt ärende
-                  <ArrowRight className="h-4 w-4" />
+                  Beskriv ärende <ArrowRight className="h-4 w-4" />
                 </Link>
               </Button>
-              <Button asChild size="lg" variant="outline">
-                <Link to="/tjanster">Se tjänster</Link>
+              <Button asChild size="lg" variant="outline" className="bg-background/70">
+                <Link to="/assistent">Starta Frågeguiden</Link>
               </Button>
             </div>
 
-            <dl className="mt-10 grid max-w-2xl gap-3 sm:grid-cols-3">
-              {heroStats.map((stat) => (
-                <div
-                  key={stat.label}
-                  className="rounded-md border border-white/70 bg-white/70 p-4 shadow-sm"
-                >
-                  <dt className="text-2xl font-semibold">{stat.value}</dt>
-                  <dd className="mt-1 text-sm text-muted-foreground">{stat.label}</dd>
-                </div>
-              ))}
-            </dl>
+            <p className="mt-4 text-xs font-medium text-muted-foreground">
+              Frontend-demo. Inga uppgifter skickas till en server.
+            </p>
           </div>
 
           <div className="relative">
-            <div className="absolute -right-5 top-8 hidden rounded-md border border-sky-200 bg-white/90 px-4 py-3 text-sm shadow-lg lg:block">
-              <p className="font-medium">Supportguide</p>
-              <p className="text-muted-foreground">Fördefinierade svar, inga AI-anrop</p>
-            </div>
-            <div className="overflow-hidden rounded-lg border border-white/80 bg-white shadow-xl">
-              <img
-                src="/nova-it-workspace.png"
-                alt="Ljust kontor med laptop, headset och nätverksutrustning."
-                className="aspect-[4/3] h-full w-full object-cover"
-              />
-            </div>
-            <div className="absolute -bottom-6 left-5 right-5 rounded-md border border-emerald-200 bg-white p-4 shadow-lg">
-              <p className="flex items-center gap-2 text-sm font-medium">
-                <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-                Fokus på tydliga åtgärder före stora löften.
-              </p>
-            </div>
+            <div className="absolute -left-5 top-8 hidden h-20 w-px bg-primary/25 lg:block" />
+            <StatusPanel />
           </div>
-        </div>
+        </Container>
       </section>
 
-      <section className="mx-auto max-w-6xl px-4 py-16">
-        <div className="grid gap-6 lg:grid-cols-[0.75fr_1.25fr] lg:items-start">
-          <div>
-            <p className="text-sm font-medium uppercase text-muted-foreground">
-              Tydligare tjänsteområden
-            </p>
-            <h2 className="mt-2 text-3xl font-semibold tracking-tight">
-              Välj väg utifrån problemet, inte tekniken bakom.
+      <section className="border-b border-border bg-card">
+        <Container className="grid gap-0 sm:grid-cols-2 lg:grid-cols-4">
+          {["Problem först", "Tydlig prioritet", "Förvalt nästa steg", "Ingen låtsasdata"].map(
+            (item, index) => (
+              <div
+                key={item}
+                className="flex items-center gap-3 border-b border-border px-4 py-4 last:border-b-0 sm:border-r sm:[&:nth-child(2)]:border-r-0 lg:border-b-0 lg:[&:nth-child(2)]:border-r lg:last:border-r-0"
+              >
+                <span className="text-xs font-semibold text-primary">0{index + 1}</span>
+                <span className="text-sm font-medium">{item}</span>
+              </div>
+            ),
+          )}
+        </Container>
+      </section>
+
+      <Container className="py-18">
+        <div className="grid gap-10 lg:grid-cols-[0.72fr_1.28fr] lg:items-start">
+          <div className="lg:sticky lg:top-28">
+            <p className="eyebrow">Tjänstekarta</p>
+            <h2 className="mt-3 text-3xl font-semibold tracking-[-0.035em] text-balance sm:text-4xl">
+              Välj efter vad som stoppar arbetet.
             </h2>
-            <p className="mt-3 text-muted-foreground">
-              Den förbättrade strukturen gör det lättare att förstå vad Nova IT kan hjälpa till med
-              och vilket formulärval som passar.
+            <p className="mt-4 leading-7 text-muted-foreground">
+              Två tydliga ingångar samlar vardagssupport och mer långsiktiga driftfrågor.
             </p>
+            <Button asChild variant="outline" className="mt-6">
+              <Link to="/tjanster">Se hela tjänstekatalogen</Link>
+            </Button>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2">
-            {serviceCategories.map((category) => (
-              <div key={category.title} className="rounded-lg border border-border/70 bg-card p-5">
-                <h3 className="text-lg font-semibold">{category.title}</h3>
-                <p className="mt-2 text-sm text-muted-foreground">{category.description}</p>
-                <ul className="mt-5 space-y-2 text-sm">
+          <div className="grid gap-4 sm:grid-cols-2">
+            {serviceCategories.map((category, index) => (
+              <article key={category.title} className="rounded-lg border border-border bg-card p-6">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold text-primary">0{index + 1}</span>
+                  <span className="rounded-full bg-secondary px-2.5 py-1 text-xs text-muted-foreground">
+                    {category.serviceSlugs.length} områden
+                  </span>
+                </div>
+                <h3 className="mt-5 text-xl font-semibold tracking-[-0.02em]">{category.title}</h3>
+                <p className="mt-3 text-sm leading-6 text-muted-foreground">
+                  {category.description}
+                </p>
+                <ul className="mt-6 divide-y divide-border border-y border-border">
                   {category.serviceSlugs.map((slug) => {
                     const service = services.find((item) => item.slug === slug);
                     if (!service) return null;
 
                     return (
-                      <li key={slug} className="flex items-center justify-between gap-3">
-                        <span>{service.shortTitle}</span>
+                      <li key={slug}>
                         <Link
                           to="/kontakt"
                           search={{ service: service.slug }}
-                          className="text-sm font-medium text-primary hover:underline"
+                          className="flex items-center justify-between py-3 text-sm font-medium transition-colors hover:text-primary"
                         >
-                          Välj
+                          {service.shortTitle}
+                          <ArrowRight className="h-4 w-4" />
                         </Link>
                       </li>
                     );
                   })}
                 </ul>
-              </div>
+              </article>
             ))}
           </div>
         </div>
-      </section>
+      </Container>
 
-      <section className="border-y border-border/70 bg-muted/30">
-        <div className="mx-auto grid max-w-6xl gap-4 px-4 py-14 md:grid-cols-3">
-          {credibilityItems.map((item, index) => {
-            const Icon = credibilityIcons[index] ?? MessageSquare;
-
-            return (
-              <Card key={item.title} className="border-border/70 bg-background/80">
-                <CardContent className="p-5">
-                  <span className="grid h-10 w-10 place-items-center rounded-md bg-primary/10 text-primary">
+      <section className="border-y border-border bg-secondary/45">
+        <Container className="py-16">
+          <div className="grid gap-5 md:grid-cols-3">
+            {credibilityItems.map((item, index) => {
+              const Icon = credibilityIcons[index] ?? MessageSquareText;
+              return (
+                <article
+                  key={item.title}
+                  className="rounded-lg border border-border bg-background p-6"
+                >
+                  <span className="grid h-10 w-10 place-items-center rounded-md bg-primary/8 text-primary">
                     <Icon className="h-5 w-5" />
                   </span>
-                  <h3 className="mt-4 font-semibold">{item.title}</h3>
-                  <p className="mt-2 text-sm text-muted-foreground">{item.text}</p>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
+                  <h3 className="mt-5 font-semibold">{item.title}</h3>
+                  <p className="mt-2 text-sm leading-6 text-muted-foreground">{item.text}</p>
+                </article>
+              );
+            })}
+          </div>
+        </Container>
       </section>
 
-      <section className="mx-auto max-w-6xl px-4 py-16">
-        <div className="flex flex-wrap items-end justify-between gap-4">
+      <Container className="py-18">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="text-sm font-medium uppercase text-muted-foreground">
-              Populära ärendetyper
-            </p>
-            <h2 className="mt-2 text-3xl font-semibold tracking-tight">
-              Tjänster som går att förstå direkt
+            <p className="eyebrow">Vanliga ärenden</p>
+            <h2 className="mt-3 text-3xl font-semibold tracking-[-0.035em] sm:text-4xl">
+              Tjänster med ett tydligt resultat.
             </h2>
           </div>
           <Button asChild variant="ghost">
             <Link to="/tjanster">
-              Alla tjänster
-              <ArrowRight className="h-4 w-4" />
+              Alla sex områden <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>
         </div>
-        <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-8 grid gap-5 md:grid-cols-3">
           {services.slice(0, 3).map((service) => (
             <ServiceCard key={service.slug} service={service} />
           ))}
         </div>
-      </section>
+      </Container>
 
-      <section className="mx-auto max-w-6xl px-4 py-16">
-        <div className="rounded-lg border border-primary/15 bg-primary px-6 py-10 text-primary-foreground md:px-10">
-          <div className="grid gap-8 lg:grid-cols-[0.8fr_1.2fr] lg:items-center">
-            <div>
-              <h2 className="text-3xl font-semibold tracking-tight">
-                Från otydligt problem till tydligt nästa steg.
-              </h2>
-              <p className="mt-3 text-primary-foreground/80">
-                Kontaktformuläret samlar brådska, tjänst och beskrivning så en verklig tekniker
-                skulle kunna prioritera rätt.
-              </p>
-            </div>
-            <ol className="grid gap-3 md:grid-cols-3">
-              {processSteps.map((step, index) => (
-                <li key={step.title} className="rounded-md bg-white/10 p-4">
-                  <span className="text-sm text-primary-foreground/70">0{index + 1}</span>
-                  <h3 className="mt-2 font-semibold">{step.title}</h3>
-                  <p className="mt-1 text-sm text-primary-foreground/75">{step.text}</p>
-                </li>
-              ))}
-            </ol>
+      <section className="border-y border-border bg-[#102724] text-white">
+        <Container className="grid gap-10 py-16 lg:grid-cols-[0.7fr_1.3fr] lg:items-start">
+          <div>
+            <p className="eyebrow text-emerald-200">Arbetssätt</p>
+            <h2 className="mt-3 text-3xl font-semibold tracking-[-0.035em] text-balance">
+              Från symptom till dokumenterat nästa steg.
+            </h2>
+            <p className="mt-4 leading-7 text-slate-300">
+              Ett bra supportflöde börjar med rätt information, inte med stora löften.
+            </p>
           </div>
-        </div>
+          <ol className="grid gap-px overflow-hidden rounded-lg border border-white/10 bg-white/10 md:grid-cols-3">
+            {processSteps.map((step, index) => (
+              <li key={step.title} className="bg-[#102724] p-6">
+                <span className="text-xs font-semibold text-emerald-300">0{index + 1}</span>
+                <h3 className="mt-5 font-semibold">{step.title}</h3>
+                <p className="mt-2 text-sm leading-6 text-slate-400">{step.text}</p>
+              </li>
+            ))}
+          </ol>
+        </Container>
       </section>
 
-      <section className="mx-auto grid max-w-6xl gap-10 px-4 py-16 lg:grid-cols-[0.75fr_1fr]">
+      <Container className="grid gap-10 py-18 lg:grid-cols-[0.8fr_1.2fr] lg:items-center">
         <div>
-          <p className="text-sm font-medium uppercase text-muted-foreground">FAQ</p>
-          <h2 className="mt-2 text-3xl font-semibold tracking-tight">Frågor som gör demon ärlig</h2>
-          <p className="mt-3 text-muted-foreground">
-            Inga dolda påhittade löften. Vanliga frågor förklarar vad som är demo och vad som hade
-            behövt lösas i en skarp version.
+          <p className="eyebrow">Frågeguiden</p>
+          <h2 className="mt-3 text-3xl font-semibold tracking-[-0.035em] text-balance sm:text-4xl">
+            Sortera problemet innan du beskriver det.
+          </h2>
+          <p className="mt-4 leading-7 text-muted-foreground">
+            Fördefinierade svar hjälper dig skilja på nätverk, dator, konto och backup. Guiden är
+            ingen AI och gör ingen riktig diagnostik.
           </p>
-          <Button asChild variant="outline" className="mt-6">
-            <Link to="/faq">Se alla frågor</Link>
+          <Button asChild className="mt-6">
+            <Link to="/assistent">
+              Starta Frågeguiden <ArrowRight className="h-4 w-4" />
+            </Link>
           </Button>
         </div>
-        <Accordion type="single" collapsible>
-          {faqs.slice(0, 4).map((faq) => (
-            <AccordionItem key={faq.q} value={faq.q}>
-              <AccordionTrigger className="text-left">{faq.q}</AccordionTrigger>
-              <AccordionContent className="text-muted-foreground">{faq.a}</AccordionContent>
-            </AccordionItem>
-          ))}
-        </Accordion>
+        <div className="rounded-lg border border-border bg-card p-6 operational-shadow">
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+            Exempel: långsam dator
+          </p>
+          <div className="mt-5 space-y-3">
+            {[
+              "Kontrollera ledigt diskutrymme",
+              "Jämför före och efter omstart",
+              "Notera om ett program eller hela datorn påverkas",
+            ].map((item) => (
+              <div
+                key={item}
+                className="flex items-start gap-3 rounded-md bg-secondary/60 p-3 text-sm"
+              >
+                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                {item}
+              </div>
+            ))}
+          </div>
+        </div>
+      </Container>
+
+      <section className="border-y border-border bg-card">
+        <Container className="grid gap-10 py-16 lg:grid-cols-[0.72fr_1.28fr]">
+          <div>
+            <p className="eyebrow">FAQ</p>
+            <h2 className="mt-3 text-3xl font-semibold tracking-[-0.035em]">
+              Vad är demo—och vad återstår?
+            </h2>
+            <p className="mt-4 leading-7 text-muted-foreground">
+              Vanliga frågor förklarar avgränsningar, datahantering och hur en skarp version skulle
+              skilja sig.
+            </p>
+            <Button asChild variant="outline" className="mt-6">
+              <Link to="/faq">Se alla frågor</Link>
+            </Button>
+          </div>
+          <Accordion type="single" collapsible>
+            {faqs.slice(0, 4).map((faq) => (
+              <AccordionItem key={faq.q} value={faq.q}>
+                <AccordionTrigger className="text-left">{faq.q}</AccordionTrigger>
+                <AccordionContent className="leading-6 text-muted-foreground">
+                  {faq.a}
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
+        </Container>
       </section>
+
+      <Container className="pt-16">
+        <DemoNotice />
+      </Container>
+      <CTASection
+        title="Beskriv vad som stoppar arbetet—så blir nästa steg lättare att välja."
+        text="Formuläret samlar tjänst, brådska och ärendebeskrivning utan att skicka data vidare i den här demon."
+      />
     </>
   );
 }

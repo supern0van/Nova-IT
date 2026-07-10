@@ -13,6 +13,7 @@ import { Route as TjansterRouteImport } from './routes/tjanster'
 import { Route as OmOssRouteImport } from './routes/om-oss'
 import { Route as KontaktRouteImport } from './routes/kontakt'
 import { Route as FaqRouteImport } from './routes/faq'
+import { Route as CaseStudyRouteImport } from './routes/case-study'
 import { Route as AssistentRouteImport } from './routes/assistent'
 import { Route as IndexRouteImport } from './routes/index'
 
@@ -36,6 +37,11 @@ const FaqRoute = FaqRouteImport.update({
   path: '/faq',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CaseStudyRoute = CaseStudyRouteImport.update({
+  id: '/case-study',
+  path: '/case-study',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AssistentRoute = AssistentRouteImport.update({
   id: '/assistent',
   path: '/assistent',
@@ -50,6 +56,7 @@ const IndexRoute = IndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/assistent': typeof AssistentRoute
+  '/case-study': typeof CaseStudyRoute
   '/faq': typeof FaqRoute
   '/kontakt': typeof KontaktRoute
   '/om-oss': typeof OmOssRoute
@@ -58,6 +65,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/assistent': typeof AssistentRoute
+  '/case-study': typeof CaseStudyRoute
   '/faq': typeof FaqRoute
   '/kontakt': typeof KontaktRoute
   '/om-oss': typeof OmOssRoute
@@ -67,6 +75,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/assistent': typeof AssistentRoute
+  '/case-study': typeof CaseStudyRoute
   '/faq': typeof FaqRoute
   '/kontakt': typeof KontaktRoute
   '/om-oss': typeof OmOssRoute
@@ -74,13 +83,28 @@ export interface FileRoutesById {
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/assistent' | '/faq' | '/kontakt' | '/om-oss' | '/tjanster'
+  fullPaths:
+    | '/'
+    | '/assistent'
+    | '/case-study'
+    | '/faq'
+    | '/kontakt'
+    | '/om-oss'
+    | '/tjanster'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/assistent' | '/faq' | '/kontakt' | '/om-oss' | '/tjanster'
+  to:
+    | '/'
+    | '/assistent'
+    | '/case-study'
+    | '/faq'
+    | '/kontakt'
+    | '/om-oss'
+    | '/tjanster'
   id:
     | '__root__'
     | '/'
     | '/assistent'
+    | '/case-study'
     | '/faq'
     | '/kontakt'
     | '/om-oss'
@@ -90,6 +114,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AssistentRoute: typeof AssistentRoute
+  CaseStudyRoute: typeof CaseStudyRoute
   FaqRoute: typeof FaqRoute
   KontaktRoute: typeof KontaktRoute
   OmOssRoute: typeof OmOssRoute
@@ -126,6 +151,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FaqRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/case-study': {
+      id: '/case-study'
+      path: '/case-study'
+      fullPath: '/case-study'
+      preLoaderRoute: typeof CaseStudyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/assistent': {
       id: '/assistent'
       path: '/assistent'
@@ -146,6 +178,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AssistentRoute: AssistentRoute,
+  CaseStudyRoute: CaseStudyRoute,
   FaqRoute: FaqRoute,
   KontaktRoute: KontaktRoute,
   OmOssRoute: OmOssRoute,

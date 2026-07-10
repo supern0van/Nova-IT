@@ -227,6 +227,11 @@ export const assistantQuickActions = [
     prompt: "Jag vill veta om vår backup verkligen fungerar",
     serviceSlug: "sakerhet-backup",
   },
+  {
+    label: "E-post och filer",
+    prompt: "E-post, delade filer eller behörigheter fungerar inte",
+    serviceSlug: "microsoft-google",
+  },
 ];
 
 export type AssistantAnswer = {
@@ -294,7 +299,10 @@ export function getAssistantAnswer(question: string): AssistantAnswer {
     q.includes("microsoft") ||
     q.includes("365") ||
     q.includes("office") ||
-    q.includes("outlook")
+    q.includes("outlook") ||
+    q.includes("e-post") ||
+    q.includes("mail") ||
+    q.includes("behörighet")
   ) {
     return {
       title: "Kontrollera konto och åtkomst",
