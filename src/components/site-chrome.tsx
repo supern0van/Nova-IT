@@ -7,7 +7,7 @@ import { Container } from "@/components/design-system";
 const nav = [
   { to: "/", label: "Hem" },
   { to: "/tjanster", label: "Tjänster" },
-  { to: "/assistent", label: "Frågeguiden" },
+  { to: "/assistent", label: "Nova-guiden" },
   { to: "/case-study", label: "Case study" },
   { to: "/faq", label: "FAQ" },
   { to: "/kontakt", label: "Kontakt" },
@@ -117,7 +117,7 @@ export function SiteFooter() {
         <FooterColumn title="Tjänster">
           <FooterLink to="/tjanster">Alla tjänster</FooterLink>
           <FooterLink to="/kontakt">Beskriv ärende</FooterLink>
-          <FooterLink to="/assistent">Frågeguiden</FooterLink>
+          <FooterLink to="/assistent">Nova-guiden</FooterLink>
         </FooterColumn>
 
         <FooterColumn title="Projektet">

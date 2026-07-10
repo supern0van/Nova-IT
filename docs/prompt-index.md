@@ -10,7 +10,7 @@ Det här dokumentet är projektets gemensamma karta. Syftet är att undvika att 
 | Codex förbättringspass 1 | Genomfört     | Commits `d8e0803` och `ae1911f`; senaste stabila kod ligger på `main`.                                            |
 | GitHub-grund             | Genomförd     | Privat repo `supern0van/Nova-IT`, standardbranch `main`.                                                          |
 | Visuell redesign         | Genomförd     | Nytt designsystem, omarbetade sidor och `/case-study`; se `docs/visual-redesign-report.md`.                       |
-| Supportbot i React       | Nästa steg    | Plan finns i `docs/supportbot-integration-plan.md`.                                                               |
+| Supportbot i React       | Genomförd     | Gemensam motor på `/assistent` och i global widget; se `docs/supportbot-integration-report.md`.                   |
 | Riktig backend/AI        | Inte påbörjad | Ska inte byggas innan frontend, säkerhet och databehandling är beslutade.                                         |
 
 ## Vad första Codex-passet redan förbättrade
@@ -26,10 +26,9 @@ Det här dokumentet är projektets gemensamma karta. Syftet är att undvika att 
 
 ## Ordning framåt
 
-1. Porta supportbotens kunskapsbas och flöde till React/TypeScript.
-2. Återanvänd samma supportmotor på `/assistent` och i robotwidgeten.
-3. Verifiera mobil, tangentbord, formulär, botflöden, lint och build.
-4. Utvärdera backend, ticketing eller riktig AI först därefter.
+1. Behåll `main` som stabil bas och dokumentera nya avgränsade mål innan nästa kodpass.
+2. Utvärdera databehandling, samtycke och drift innan backend eller ticketing byggs.
+3. Utvärdera riktig AI separat; den nuvarande Nova-guiden ska fortsätta vara tydligt regelbaserad tills ett sådant beslut tas.
 
 ## Branchregler
 

@@ -1,5 +1,7 @@
 # Integrationsplan för supportboten
 
+> Status: genomförd. Resultat och verifiering finns i `docs/supportbot-integration-report.md`.
+
 ## Utgångsläge
 
 Hemsidan har en enkel React-baserad supportguide på `/assistent`. Den fristående supportbotprototypen är byggd i vanilla HTML, CSS och JavaScript och innehåller fler ärendeflöden, följdfrågor, sammanfattning och en tydlig robotidentitet.
