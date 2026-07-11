@@ -30,8 +30,8 @@ const principles = [
   },
   {
     icon: HeartHandshake,
-    title: "Praktisk svensk ton",
-    text: "Rak och begriplig hjälp för mindre verksamheter, skolor och privatpersoner.",
+    title: "Personlig support",
+    text: "Tydlig hjälp som utgår från hur problemet påverkar dig, din arbetsdag och din verksamhet.",
   },
 ];
 
@@ -40,8 +40,8 @@ function About() {
     <>
       <PageHeader
         eyebrow="Om Nova IT"
-        title="IT-support med fokus på tydliga nästa steg."
-        intro="Nova IT hjälper dig beskriva problemet, välja rätt supportområde och få hjälp utan onödigt tekniskt brus."
+        title="Rätt hjälp när tekniken bromsar."
+        intro="Nova IT hjälper privatpersoner och mindre verksamheter med datorer, nätverk, konton och säkerhet."
         aside={<TrustNotice className="mt-5" />}
       />
 

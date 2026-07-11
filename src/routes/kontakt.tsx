@@ -213,13 +213,13 @@ function ContactPage() {
 
   return (
     <>
-      <section className="tech-grid-dark border-b border-[#235451] bg-[#102b2c] text-white">
+      <section className="border-b border-sky-100 bg-[#eef7fb] text-foreground">
         <Container className="py-14 lg:py-18">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-sky-200">Kontakt</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">Kontakt</p>
           <h1 className="mt-4 max-w-3xl text-4xl font-semibold tracking-[-0.04em] text-balance sm:text-5xl lg:text-6xl">
             Berätta vad som händer.
           </h1>
-          <p className="mt-5 max-w-2xl text-lg leading-8 text-slate-300">{contactNotice}</p>
+          <p className="mt-5 max-w-2xl text-lg leading-8 text-muted-foreground">{contactNotice}</p>
         </Container>
       </section>
 

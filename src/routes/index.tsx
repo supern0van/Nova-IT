@@ -103,32 +103,32 @@ function Home() {
             </Link>
           </Button>
         </div>
-        <div className="mt-8 grid gap-5 md:grid-cols-3">
+        <div className="mt-8 grid gap-5 md:auto-rows-fr md:grid-cols-3">
           {services.slice(0, 3).map((service) => (
             <ServiceCard key={service.slug} service={service} compact />
           ))}
         </div>
       </Container>
 
-      <section className="border-y border-border bg-[#102b2c] text-white">
+      <section className="border-y border-sky-100 bg-[#eef7fb] text-foreground">
         <Container className="grid gap-10 py-16 lg:grid-cols-[0.7fr_1.3fr] lg:items-start">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-sky-200">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
               Så arbetar vi
             </p>
             <h2 className="mt-3 text-3xl font-semibold tracking-[-0.035em] text-balance sm:text-4xl">
               Mindre gissningar. Mer kontroll.
             </h2>
-            <p className="mt-4 max-w-md leading-7 text-slate-300">
+            <p className="mt-4 max-w-md leading-7 text-muted-foreground">
               Ett tydligt ärende ger rätt hjälp snabbare och minskar risken att problemet växer.
             </p>
           </div>
           <ol className="grid gap-7 sm:grid-cols-3">
             {processSteps.map((step, index) => (
               <li key={step.title}>
-                <span className="text-xs font-semibold text-sky-300">0{index + 1}</span>
+                <span className="text-xs font-semibold text-primary">0{index + 1}</span>
                 <h3 className="mt-4 font-semibold">{step.title}</h3>
-                <p className="mt-2 text-sm leading-6 text-slate-400">{step.text}</p>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">{step.text}</p>
               </li>
             ))}
           </ol>
