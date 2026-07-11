@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, CheckCircle2 } from "lucide-react";
+import { CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { services, serviceCategories } from "@/lib/nova-data";
 import { ServiceCard } from "@/components/service-card";
@@ -104,18 +104,13 @@ function ServicesPage() {
 
       <section className="border-y border-border bg-secondary/35">
         <Container className="py-16">
-          <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div className="mb-8">
             <div>
               <p className="eyebrow">Alla tjänsteområden</p>
               <h2 className="mt-3 text-3xl font-semibold tracking-[-0.035em]">
                 Sex vägar till ett tydligare nästa steg.
               </h2>
             </div>
-            <Button asChild variant="outline">
-              <Link to="/assistent">
-                Osäker? Öppna Nova-guiden <ArrowRight className="h-4 w-4" />
-              </Link>
-            </Button>
           </div>
           <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
             {services.map((service) => (
@@ -127,7 +122,7 @@ function ServicesPage() {
 
       <CTASection
         title="Osäker på vilket område som passar?"
-        text="Börja i Nova-guiden eller välj närmaste tjänst. Valet går att ändra i kontaktformuläret."
+        text="Välj den tjänst som ligger närmast problemet. Valet går alltid att ändra när du beskriver ärendet."
       />
     </>
   );

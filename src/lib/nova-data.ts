@@ -193,8 +193,8 @@ export const faqs = [
     a: "Formuläret hjälper dig formulera ett tydligt underlag. Inför publicering kopplas det till vald kontaktlösning hos webbhotellet eller till ett e-postflöde.",
   },
   {
-    q: "Kan Nova-guiden ersätta en tekniker?",
-    a: "Nej. Nova-guiden hjälper dig beskriva problemet och välja rätt tjänsteområde. Den ersätter inte teknisk bedömning, fjärrsupport eller service.",
+    q: "Hur beskriver jag ett ärende på bästa sätt?",
+    a: "Skriv vad som inte fungerar, när problemet började och hur det påverkar dig eller verksamheten. Lägg gärna till felmeddelande, enhet och hur brådskande det är.",
   },
   {
     q: "Vilka kunder passar upplägget för?",

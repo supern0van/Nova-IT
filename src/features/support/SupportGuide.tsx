@@ -79,8 +79,8 @@ export function SupportGuide({ compact = false, onNavigate }: SupportGuideProps)
           <div className="mb-5 flex items-center gap-3">
             <RobotMascot />
             <div>
-              <h2 className="font-semibold">Välj ett område</h2>
-              <p className="text-sm text-muted-foreground">13 spår för att förbereda ärendet</p>
+              <h2 className="font-semibold">Vad behöver du hjälp med?</h2>
+              <p className="text-sm text-muted-foreground">Välj område eller beskriv problemet.</p>
             </div>
           </div>
         )}
@@ -145,7 +145,8 @@ export function SupportGuide({ compact = false, onNavigate }: SupportGuideProps)
           <div className="mt-5 flex gap-3 rounded-md border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950">
             <Info className="mt-0.5 h-4 w-4 shrink-0" />
             <p className="leading-6">
-              Guiden ersätter inte support. Den hjälper dig samla rätt underlag till Nova IT.
+              Nova ger en första sortering. När problemet behöver teknisk hjälp går du vidare till
+              Nova IT.
             </p>
           </div>
         )}
@@ -162,8 +163,7 @@ export function SupportGuide({ compact = false, onNavigate }: SupportGuideProps)
             <RobotMascot className="mx-auto h-14 w-14" />
             <h2 className="mt-4 text-xl font-semibold">Vad behöver sorteras?</h2>
             <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-muted-foreground">
-              Välj ett område eller beskriv problemet. Guiden hjälper dig formulera ärendet och
-              visar när Nova IT bör ta över.
+              Välj ett område eller beskriv problemet. Nova hjälper dig sätta ord på ärendet.
             </p>
           </div>
         ) : (
@@ -172,7 +172,7 @@ export function SupportGuide({ compact = false, onNavigate }: SupportGuideProps)
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-200">
-                    Regelbaserat spår
+                    Första bedömning
                   </p>
                   <h2 className="mt-2 text-xl font-semibold tracking-[-0.03em]">{flow.title}</h2>
                 </div>
@@ -256,7 +256,7 @@ export function SupportGuide({ compact = false, onNavigate }: SupportGuideProps)
               <div className={cn("mt-5 flex gap-2", compact ? "flex-col" : "flex-wrap")}>
                 <Button asChild onClick={onNavigate}>
                   <Link to="/kontakt" search={{ service: flow.serviceSlug }}>
-                    Fortsätt till formulär <ArrowRight className="h-4 w-4" />
+                    Kontakta Nova IT <ArrowRight className="h-4 w-4" />
                   </Link>
                 </Button>
                 <Button type="button" variant="outline" onClick={copySummary}>

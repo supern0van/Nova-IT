@@ -23,7 +23,7 @@ Det här passet förde Nova IT från en tekniskt förbättrad men visuellt gener
 - tjänsteförval via `/kontakt?service=<slug>`
 - formulärvalidering och tillgänglighetsattribut
 - tangentbords- och fokuslägen
-- regelbaserad och kontaktinriktad positionering för Nova-guiden
+- regelbaserad och kontaktinriktad positionering för robotassistenten
 - befintliga routes och TanStack-projektstruktur
 
 ## Verifiering
@@ -34,9 +34,9 @@ Det här passet förde Nova IT från en tekniskt förbättrad men visuellt gener
 - samtliga routes kontrollerade i mobil vy, inklusive svensk 404
 - mobilnavigation öppnad och kontrollerad
 - kontaktformulärets tjänsteförval och svenska felmeddelanden kontrollerade
-- Nova-guidens val, svar och kontakt-CTA kontrollerade
+- robotassistentens val, svar och kontakt-CTA kontrollerade
 - horisontell mobil overflow på kontaktsidan hittades och åtgärdades
 
 ## Efterföljande steg
 
-Det efterföljande passet portade supportbotens användbara kunskapsflöden till React/TypeScript och lät `/assistent` och en global robotwidget dela samma motor. Resultatet finns i `docs/supportbot-integration-report.md`.
+Det efterföljande passet portade supportbotens användbara kunskapsflöden till React/TypeScript och lät den globala robotwidgeten använda samma motor. Resultatet finns i `docs/supportbot-integration-report.md`.

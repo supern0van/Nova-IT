@@ -4,7 +4,7 @@
 
 ## Utgångsläge
 
-Hemsidan har en enkel React-baserad supportguide på `/assistent`. Den fristående supportbotprototypen är byggd i vanilla HTML, CSS och JavaScript och innehåller fler ärendeflöden, följdfrågor, sammanfattning och en tydlig robotidentitet.
+Hemsidan har en React-baserad robotassistent. Den fristående supportbotprototypen är byggd i vanilla HTML, CSS och JavaScript och innehåller fler ärendeflöden, följdfrågor, sammanfattning och en tydlig robotidentitet.
 
 De två implementationerna ska inte köras parallellt. Prototypens användbara logik ska portas till projektets befintliga React/TypeScript-arkitektur.
 
@@ -39,7 +39,7 @@ src/features/support/
   SupportBotLauncher.tsx
 ```
 
-`support-engine.ts` ska vara ren logik utan DOM-beroenden. Både `/assistent` och robotwidgeten ska använda samma datakälla och motor.
+`support-engine.ts` ska vara ren logik utan DOM-beroenden. Robotwidgeten ska använda samma datakälla och motor oavsett framtida kontaktintegration.
 
 ## Tjänstemappning
 
@@ -69,7 +69,7 @@ Botens CTA ska använda `/kontakt?service=<slug>`. Kontaktuppgifter och fritext 
 
 1. Slutför visuellt designsystem.
 2. Porta data och ren supportlogik.
-3. Låt `/assistent` använda den gemensamma motorn.
+3. Låt robotwidgeten använda den gemensamma motorn.
 4. Lägg till robotwidgeten i appskalet.
 5. Koppla CTA till befintligt kontaktformulär.
 6. Smoke-testa alla routes, mobil, tangentbord och tjänsteförval.

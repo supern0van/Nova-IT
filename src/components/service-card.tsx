@@ -9,7 +9,7 @@ const difficultyStyles: Record<Service["difficulty"], string> = {
   Fördjupad: "border-amber-200 bg-amber-50 text-amber-900",
 };
 
-export function ServiceCard({ service }: { service: Service }) {
+export function ServiceCard({ service, compact = false }: { service: Service; compact?: boolean }) {
   const Icon = service.icon;
 
   return (
@@ -33,19 +33,21 @@ export function ServiceCard({ service }: { service: Service }) {
         <h2 className="mt-2 text-xl font-semibold tracking-[-0.025em]">{service.title}</h2>
         <p className="mt-3 text-sm leading-6 text-muted-foreground">{service.description}</p>
 
-        <div className="mt-6 border-t border-border pt-5">
-          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-            Vanliga ärenden
-          </p>
-          <ul className="mt-3 space-y-2 text-sm">
-            {service.examples.map((example) => (
-              <li key={example} className="flex gap-2 text-muted-foreground">
-                <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
-                {example}
-              </li>
-            ))}
-          </ul>
-        </div>
+        {!compact && (
+          <div className="mt-6 border-t border-border pt-5">
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+              Vanliga ärenden
+            </p>
+            <ul className="mt-3 space-y-2 text-sm">
+              {service.examples.map((example) => (
+                <li key={example} className="flex gap-2 text-muted-foreground">
+                  <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+                  {example}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
 
         <div className="mt-6 rounded-md bg-secondary/65 p-4">
           <p className="flex gap-2 text-sm font-medium leading-6">

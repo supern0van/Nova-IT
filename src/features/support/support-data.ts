@@ -425,7 +425,7 @@ export const supportFlows: SupportFlow[] = [
     label: "Förbered support",
     title: "Förbered ett supportärende",
     keywords: ["boka", "support", "hjälp", "tid", "fjärrhjälp", "service", "kontakt"],
-    intro: "Guiden hjälper dig samla ett tydligt underlag innan Nova IT kontaktas.",
+    intro: "Nova hjälper dig samla ett tydligt underlag innan Nova IT kontaktas.",
     firstSteps: [
       "Beskriv problemet kort.",
       "Notera enhetens modell om du känner till den.",

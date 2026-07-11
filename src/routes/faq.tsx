@@ -54,7 +54,7 @@ function FaqPage() {
       </Container>
       <CTASection
         title="Hittar du inte rätt fråga? Börja med problemet."
-        text="Nova-guiden hjälper dig välja område och kontaktformuläret samlar informationen som behövs för nästa steg."
+        text="Kontaktformuläret samlar informationen som behövs för att Nova IT ska kunna bedöma nästa steg."
       />
     </>
   );

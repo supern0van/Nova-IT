@@ -9,7 +9,7 @@ Den fristående vanilla JavaScript-prototypens användbara delar har portats til
 - gemensamma typer, data och ren matchningslogik i `src/features/support`
 - 13 regelbaserade ärendespår med första kontroller, eskaleringsvillkor och följdval
 - automatisk lokal matchning av fritext mot relevant spår
-- full Nova-guide på `/assistent`
+- flytande Nova-robot på hela webbplatsen
 - global robotwidget som kan öppnas från alla routes
 - tillgänglig Radix-dialog med Escape-stängning och fokusåterställning
 - frivillig kopiering av en kontaktinriktad ärendesammanfattning

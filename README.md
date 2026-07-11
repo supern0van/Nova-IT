@@ -17,7 +17,6 @@ Lägg inte in påhittade kundsiffror, organisationsnummer, adresser, telefonnumm
 
 - `/`
 - `/tjanster`
-- `/assistent`
 - `/kontakt`
 - `/arbetssatt`
 - `/faq`
@@ -51,7 +50,7 @@ bun run ci
 
 `main` ska alltid vara den senaste stabila versionen. Större förändringar görs på en separat branch och granskas i en pull request innan de går in i `main`.
 
-Den visuella redesignen och supportbotens React-integration är genomförda. `/assistent` och den globala Nova-guiden använder samma regelbaserade motor med 13 ärendespår. Nästa större steg är att koppla kontaktflödet till vald lösning hos webbhotell eller ärendehantering.
+Den visuella redesignen och robotassistentens React-integration är genomförda. Den flytande roboten använder en regelbaserad motor med 13 ärendespår och leder besökaren vidare till kontakt. Nästa större steg är att koppla kontaktflödet till vald lösning hos webbhotell eller ärendehantering.
 
 ## Dokumentation
 

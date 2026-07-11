@@ -20,16 +20,18 @@ export function PageHeader({
   aside?: ReactNode;
 }) {
   return (
-    <section className="tech-grid border-b border-border bg-secondary/35">
-      <Container className="grid gap-8 py-14 lg:grid-cols-[1fr_0.72fr] lg:items-end lg:py-18">
+    <section className="tech-grid-dark border-b border-[#1f4c46] bg-[#102724] text-white">
+      <Container className="grid gap-8 py-16 lg:grid-cols-[1fr_0.72fr] lg:items-end lg:py-20">
         <div>
-          <p className="eyebrow">{eyebrow}</p>
-          <h1 className="mt-4 max-w-3xl text-4xl font-semibold tracking-[-0.04em] text-balance sm:text-5xl">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-200">
+            {eyebrow}
+          </p>
+          <h1 className="mt-4 max-w-3xl text-4xl font-semibold tracking-[-0.04em] text-balance sm:text-5xl lg:text-6xl">
             {title}
           </h1>
         </div>
-        <div className="border-l-2 border-primary/25 pl-5">
-          <p className="text-base leading-7 text-muted-foreground">{intro}</p>
+        <div className="border-l-2 border-emerald-300/60 pl-5 [&_.trust-notice]:border-white/20 [&_.trust-notice]:bg-white/8 [&_.trust-notice_p]:text-slate-200 [&_.trust-notice_strong]:text-white">
+          <p className="text-base leading-7 text-slate-300">{intro}</p>
           {aside}
         </div>
       </Container>
@@ -41,7 +43,7 @@ export function TrustNotice({ className }: { className?: string }) {
   return (
     <div
       className={cn(
-        "flex items-start gap-3 rounded-md border border-primary/20 bg-primary/5 p-4 text-sm",
+        "trust-notice flex items-start gap-3 rounded-md border border-primary/20 bg-primary/5 p-4 text-sm",
         className,
       )}
     >
@@ -117,12 +119,12 @@ export function StatusPanel() {
 export function CTASection({
   title,
   text,
-  secondaryTo = "/assistent",
-  secondaryLabel = "Öppna Nova-guiden",
+  secondaryTo = "/tjanster",
+  secondaryLabel = "Se tjänster",
 }: {
   title: string;
   text: string;
-  secondaryTo?: "/assistent" | "/tjanster" | "/arbetssatt";
+  secondaryTo?: "/tjanster" | "/arbetssatt";
   secondaryLabel?: string;
 }) {
   return (

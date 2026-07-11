@@ -16,6 +16,6 @@ Den befintliga React-supportboten har fått ett visuellt lyft utan att byta arki
 - `bun run lint`
 - `bunx tsc --noEmit --pretty false`
 - `bun run build`
-- Lokal route-kontroll för `/`, `/assistent` och `/kontakt`.
+- Lokal route-kontroll för `/`, `/kontakt` och robotassistenten.
 
 Lint passerar med befintliga fast-refresh-varningar från UI-komponenterna, men utan fel.

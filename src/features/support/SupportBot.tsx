@@ -24,9 +24,9 @@ export function SupportBot({ open, onOpenChange }: SupportBotProps) {
           <div className="flex items-center gap-3">
             <RobotMascot />
             <div>
-              <DialogTitle>Nova-guiden</DialogTitle>
+              <DialogTitle>Nova</DialogTitle>
               <DialogDescription className="mt-1 text-emerald-100/75">
-                Förbered ärendet så Nova IT kan hjälpa snabbare.
+                Berätta vad som händer, så hjälper jag dig till rätt nästa steg.
               </DialogDescription>
             </div>
           </div>

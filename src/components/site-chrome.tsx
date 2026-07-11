@@ -7,7 +7,7 @@ import { Container } from "@/components/design-system";
 const nav = [
   { to: "/", label: "Hem" },
   { to: "/tjanster", label: "Tjänster" },
-  { to: "/assistent", label: "Nova-guiden" },
+  { to: "/arbetssatt", label: "Så arbetar vi" },
   { to: "/faq", label: "FAQ" },
   { to: "/om-oss", label: "Om oss" },
   { to: "/kontakt", label: "Kontakt" },
@@ -118,7 +118,6 @@ export function SiteFooter() {
         <FooterColumn title="Tjänster">
           <FooterLink to="/tjanster">Alla tjänster</FooterLink>
           <FooterLink to="/kontakt">Beskriv ärende</FooterLink>
-          <FooterLink to="/assistent">Nova-guiden</FooterLink>
         </FooterColumn>
 
         <FooterColumn title="Projektet">
@@ -161,7 +160,7 @@ function FooterLink({
   to,
   children,
 }: {
-  to: "/tjanster" | "/kontakt" | "/assistent" | "/arbetssatt" | "/om-oss" | "/faq";
+  to: "/tjanster" | "/kontakt" | "/arbetssatt" | "/om-oss" | "/faq";
   children: React.ReactNode;
 }) {
   return (
