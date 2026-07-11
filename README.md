@@ -36,7 +36,15 @@ Kontroller:
 
 ```bash
 bun run lint
+bun run typecheck
+bun run test
 bun run build
+```
+
+All verifiering:
+
+```bash
+bun run ci
 ```
 
 ## Arbetsflöde
@@ -51,3 +59,6 @@ Den visuella redesignen och supportbotens React-integration är genomförda. `/a
 - [Rapport för visuell redesign](docs/visual-redesign-report.md)
 - [Supportbotens integrationsplan](docs/supportbot-integration-plan.md)
 - [Rapport för supportbotintegrationen](docs/supportbot-integration-report.md)
+- [Arbetsflöde](docs/workflow.md)
+- [Roadmap](docs/roadmap.md)
+- [Deploy och publicering](docs/deployment.md)
