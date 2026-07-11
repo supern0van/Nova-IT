@@ -1,5 +1,7 @@
 # Nova IT
 
+Copyright (c) 2026 Nova IT. All rights reserved. See [LICENSE](LICENSE).
+
 Nova IT är en svensk IT-supportwebb för datorproblem, nätverk, installationer, säkerhet, backup och tydliga kontaktflöden. Projektet är i förlanseringsläge inför kommande migrering till webbhotell.
 
 Lägg inte in påhittade kundsiffror, organisationsnummer, adresser, telefonnummer, omdömen eller servicenivåer. Riktiga hemligheter och API-nycklar får aldrig ligga i frontend-kod.

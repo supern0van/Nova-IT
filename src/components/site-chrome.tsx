@@ -100,54 +100,67 @@ export function SiteHeader() {
 
 export function SiteFooter() {
   return (
-    <footer className="mt-20 border-t border-border bg-[#102b2c] text-slate-200">
-      <Container className="grid gap-10 py-12 sm:grid-cols-2 lg:grid-cols-4">
-        <div>
+    <footer className="mt-20 border-t border-[#243946] bg-[#111c25] text-slate-200">
+      <Container className="grid overflow-hidden lg:grid-cols-[1.45fr_0.8fr_0.8fr_1fr]">
+        <div className="border-b border-white/10 py-10 lg:border-r lg:pr-10">
           <div className="flex items-center gap-3">
-            <span className="grid h-9 w-9 place-items-center rounded-md bg-sky-300 text-slate-950">
+            <span className="grid h-10 w-10 place-items-center rounded-md border border-sky-200/20 bg-sky-300/10 text-sky-200">
               <ShieldCheck className="h-4 w-4" />
             </span>
-            <span className="font-semibold text-white">Nova IT</span>
+            <span>
+              <span className="block font-semibold text-white">Nova IT</span>
+              <span className="block text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400">
+                IT som bara fungerar
+              </span>
+            </span>
           </div>
-          <p className="mt-4 text-sm leading-6 text-slate-400">
-            Praktisk IT-support, nätverk, installationer och säkerhet för när tekniken behöver
-            fungera utan krångel.
+          <p className="mt-5 max-w-xs text-sm leading-6 text-slate-400">
+            Datorer, nätverk och säkerhet. När tekniken behöver fungera.
           </p>
         </div>
 
-        <FooterColumn title="Tjänster">
+        <FooterColumn
+          title="Tjänster"
+          className="border-b border-white/10 py-10 lg:border-r lg:px-8"
+        >
           <FooterLink to="/tjanster">Alla tjänster</FooterLink>
           <FooterLink to="/kontakt">Beskriv ärende</FooterLink>
         </FooterColumn>
 
-        <FooterColumn title="Projektet">
+        <FooterColumn
+          title="Information"
+          className="border-b border-white/10 py-10 lg:border-r lg:px-8"
+        >
           <FooterLink to="/om-oss">Om Nova IT</FooterLink>
           <FooterLink to="/faq">Vanliga frågor</FooterLink>
         </FooterColumn>
 
-        <div>
-          <h2 className="text-xs font-semibold uppercase tracking-[0.16em] text-sky-200">
-            Nästa steg
-          </h2>
-          <p className="mt-4 text-sm leading-6 text-slate-400">
-            Beskriv problemet, välj brådska och låt Nova IT hjälpa dig avgöra om ärendet passar
-            fjärrsupport, service eller besök.
-          </p>
-        </div>
+        <FooterColumn title="Kontakt" className="py-10 lg:pl-8">
+          <FooterLink to="/kontakt">Få hjälp</FooterLink>
+          <FooterLink to="/arbetssatt">Så arbetar vi</FooterLink>
+        </FooterColumn>
       </Container>
-      <div className="border-t border-white/10">
+      <div className="border-t border-white/10 bg-black/10">
         <Container className="flex flex-col gap-2 py-5 text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between">
-          <span>© {new Date().getFullYear()} Nova IT</span>
-          <span>IT-support med tydliga nästa steg.</span>
+          <span>© {new Date().getFullYear()} Nova IT. All rights reserved.</span>
+          <span>IT-support · nätverk · säkerhet</span>
         </Container>
       </div>
     </footer>
   );
 }
 
-function FooterColumn({ title, children }: { title: string; children: React.ReactNode }) {
+function FooterColumn({
+  title,
+  children,
+  className,
+}: {
+  title: string;
+  children: React.ReactNode;
+  className?: string;
+}) {
   return (
-    <div>
+    <div className={className}>
       <h2 className="text-xs font-semibold uppercase tracking-[0.16em] text-sky-200">{title}</h2>
       <ul className="mt-4 space-y-3 text-sm text-slate-400">{children}</ul>
     </div>
