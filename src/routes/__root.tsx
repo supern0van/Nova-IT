@@ -83,14 +83,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         name: "description",
         content:
-          "Fiktivt demoexempel för Nova IT: en svensk IT-supportwebb med tydliga tjänster, tillgängligt kontaktflöde och ärlig copy.",
+          "Nova IT hjälper med datorproblem, nätverk, installationer, säkerhet, backup och tydliga supportärenden.",
       },
       { name: "author", content: "Nova IT" },
       { property: "og:locale", content: "sv_SE" },
-      { property: "og:title", content: "Nova IT – Svensk IT-supportdemo" },
+      { property: "og:title", content: "Nova IT – IT-support, nätverk och säkerhet" },
       {
         property: "og:description",
-        content: "Polerad fiktiv webbplats för IT-support, nätverk, säkerhet och bokningsflöde.",
+        content: "Praktisk IT-hjälp när datorer, Wi-Fi, konton eller backup behöver fungera.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

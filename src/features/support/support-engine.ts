@@ -32,13 +32,13 @@ export function getSupportOption(flow: SupportFlow, optionId: string): SupportOp
 
 export function createSupportSummary({ flow, option, query }: SupportSelection): string {
   return [
-    "Nova IT – förberett demoärende",
+    "Nova IT – förberett supportärende",
     `Område: ${flow.title}`,
     query ? `Beskrivning: ${query}` : undefined,
     option ? `Vald situation: ${option.label}` : undefined,
-    option ? `Guidens råd: ${option.reply}` : undefined,
+    option ? `Viktigt underlag: ${option.reply}` : undefined,
     `Föreslagen tjänst: ${flow.serviceSlug}`,
-    "Inga kontaktuppgifter har samlats in eller skickats.",
+    "Nästa steg: kontakta Nova IT med sammanfattningen.",
   ]
     .filter(Boolean)
     .join("\n");

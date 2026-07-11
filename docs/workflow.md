@@ -34,7 +34,7 @@ bun run ci
 
 En ändring är klar när:
 
-- svensk text är naturlig och demo-säker
+- svensk text är naturlig och skarp utan obekräftade påståenden
 - mobil och desktop är kontrollerade
 - kontaktflöden och länkar fungerar
 - supportboten fungerar globalt och på `/assistent`

@@ -8,13 +8,13 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
-export const demoNotice =
-  "Nova IT är ett fiktivt demoexempel. Kontaktuppgifter, svarstider och processer visar hur en kundredo webbplats kan fungera, inte uppgifter om ett verkligt bolag.";
+export const contactNotice =
+  "Beskriv problemet kort, bifoga gärna felmeddelanden och välj hur brådskande ärendet är. Underlaget gör det enklare att ta rätt nästa steg.";
+
+const configuredContactEmail = import.meta.env.VITE_NOVA_CONTACT_EMAIL?.trim();
 
 export const contactChannels = {
-  email: "demo@novait.example",
-  availability: "Vardagar 08.00-17.00 i demoexemplet",
-  location: "Stockholm, fiktivt upptagningsområde",
+  email: configuredContactEmail || undefined,
 };
 
 export type Service = {
@@ -143,12 +143,12 @@ export const serviceCategories = [
 
 export const credibilityItems = [
   {
-    title: "Tydligt demoexempel",
-    text: "Inga påhittade siffror, inget organisationsnummer och inga adresser som kan misstas för verkliga.",
+    title: "Tydlig första sortering",
+    text: "Ärendet ringas in innan åtgärd så att rätt typ av hjälp kan planeras från start.",
   },
   {
     title: "Tydlig prioritering",
-    text: "Formulär och supportguide samlar rätt information innan en tekniker tar över i en skarp leverans.",
+    text: "Kontaktflödet samlar problemtyp, brådska och påverkan innan en tekniker tar över.",
   },
   {
     title: "Säkerhet från start",
@@ -173,36 +173,36 @@ export const processSteps = [
 
 export const faqs = [
   {
-    q: "Är Nova IT ett riktigt företag?",
-    a: "Nej. Nova IT är ett fiktivt demoexempel för en svensk IT-supportwebb. Därmed visar sajten inga verkliga organisationsnummer, adresser eller kundsiffror.",
+    q: "Vilken typ av IT-hjälp kan Nova IT hjälpa med?",
+    a: "Nova IT fokuserar på praktisk IT-support, datorproblem, nätverk, Wi-Fi, installationer, konton, säkerhet och backup för privatpersoner och mindre verksamheter.",
   },
   {
     q: "Vad kostar tjänsterna?",
-    a: "Demon innehåller inga bindande priser. På en skarp sajt skulle timpris, startavgift, avtal och eventuella framkörningskostnader beskrivas tydligt innan bokning.",
+    a: "Pris beror på ärendets omfattning, om hjälpen kan ges på distans och om utrustning eller längre felsökning behövs. Beskriv ärendet så kan Nova IT återkomma med rimligt nästa steg.",
   },
   {
     q: "Hur snabbt får jag hjälp?",
-    a: "Svarstiderna på sajten är formulerade som ett exempel på servicenivå. En verklig leverans skulle koppla svarstid till avtal, öppettider och ärendets brådska.",
+    a: "Beskriv hur arbetet, internet, kontoåtkomst eller viktiga filer påverkas. Nova IT kan sedan bedöma rätt prioritet och nästa steg.",
   },
   {
     q: "Kan ärenden lösas på distans?",
-    a: "Många vanliga IT-ärenden kan förberedas för distanssupport. I en verklig implementation skulle rutiner för fjärråtkomst, samtycke och loggning beskrivas innan anslutning.",
+    a: "Många ärenden kan börja på distans, särskilt program, e-post, konton och enklare felsökning. Nätverk, hårdvara och installationer kan ibland kräva besök eller inlämning.",
   },
   {
     q: "Vad händer med uppgifterna i formuläret?",
-    a: "I den här demon skickas formuläret inte till någon server. Det visar validering, tillgänglighet och ett tänkt flöde för en framtida integration.",
+    a: "Formuläret hjälper dig formulera ett tydligt underlag. Inför publicering kopplas det till vald kontaktlösning hos webbhotellet eller till ett e-postflöde.",
   },
   {
-    q: "Kan supportguiden ersätta en tekniker?",
-    a: "Nej. Guiden är en demo med fördefinierade svar. Den hjälper besökaren att sortera ärendet, men gör inga AI-anrop och tar inga beslut.",
+    q: "Kan Nova-guiden ersätta en tekniker?",
+    a: "Nej. Nova-guiden hjälper dig beskriva problemet och välja rätt tjänsteområde. Den ersätter inte teknisk bedömning, fjärrsupport eller service.",
   },
   {
     q: "Vilka kunder passar upplägget för?",
-    a: "Exemplet är skrivet för mindre företag, skolor och privatpersoner som behöver begriplig IT-hjälp utan en egen stor IT-avdelning.",
+    a: "Nova IT riktar sig till privatpersoner och mindre verksamheter som vill ha begriplig hjälp med datorer, nätverk, konton och säkerhet.",
   },
   {
     q: "Hur hanteras säkerhet och backup?",
-    a: "Sajten visar rekommenderade områden: tvåfaktor, behörighetsgenomgång, dokumenterade rutiner och testad återläsning. Det är exempel, inte en faktisk drifttjänst.",
+    a: "Säkerhet och backup behöver bedömas utifrån konton, behörigheter, viktig information och hur återställning fungerar vid ett avbrott.",
   },
 ];
 
@@ -243,16 +243,15 @@ export type AssistantAnswer = {
 };
 
 const fallbackAnswer: AssistantAnswer = {
-  title: "Bra att samla mer information",
-  summary:
-    "Den här guiden känner inte igen alla problem, men du kan ändå förbereda ett tydligt ärende.",
+  title: "Nova IT behöver lite mer information",
+  summary: "Problemet behöver sorteras innan rätt typ av support kan föreslås.",
   steps: [
-    "Skriv ner vad som inte fungerar och när det började.",
-    "Notera om felet gäller en person, en enhet eller alla.",
-    "Bifoga felmeddelanden eller skärmbilder i en verklig supportkanal.",
+    "Beskriv vad som inte fungerar och när det började.",
+    "Skriv om det gäller en person, en enhet eller flera.",
+    "Lägg till felmeddelanden eller skärmbilder när du kontaktar Nova IT.",
   ],
   escalation:
-    "Gå vidare till formuläret om problemet stoppar arbete, påverkar flera personer eller rör inloggning och säkerhet.",
+    "Kontakta Nova IT om problemet stoppar arbete, påverkar flera personer eller rör inloggning och säkerhet.",
   serviceSlug: "it-support",
 };
 
@@ -266,12 +265,11 @@ export function getAssistantAnswer(question: string): AssistantAnswer {
   if (q.includes("wi-fi") || q.includes("wifi") || q.includes("internet")) {
     return {
       title: "Första kontroll för nätverk",
-      summary:
-        "När uppkopplingen krånglar är målet att skilja på enhetsfel, täckningsproblem och leverantörsfel.",
+      summary: "När uppkopplingen krånglar behöver Nova IT veta omfattning, plats och påverkan.",
       steps: [
-        "Kontrollera om problemet gäller alla enheter eller bara en dator/mobil.",
-        "Starta om router eller accesspunkt och vänta tills lamporna är stabila.",
-        "Testa nära utrustningen. Fungerar det där, pekar det på täckning eller placering.",
+        "Skriv om problemet gäller alla enheter eller bara en dator/mobil.",
+        "Notera var uppkopplingen är sämst och när avbrotten händer.",
+        "Beskriv hur problemet påverkar arbete, möten eller vardagsanvändning.",
       ],
       escalation:
         "Gå vidare till formuläret om felet återkommer, påverkar möten eller om gästnät/säkerhet behöver ses över.",
@@ -283,14 +281,14 @@ export function getAssistantAnswer(question: string): AssistantAnswer {
     return {
       title: "Sortera långsam dator",
       summary:
-        "Långsamhet beror ofta på lagring, uppstartsprogram, uppdateringar eller hårdvara som behöver ses över.",
+        "En långsam dator behöver bedömas efter symptom, ålder, användning och hur akut problemet är.",
       steps: [
-        "Starta om datorn och kontrollera om problemet finns direkt efter omstart.",
-        "Se om disken nästan är full och stäng program som startar automatiskt.",
-        "Notera om felet gäller ett specifikt program eller hela datorn.",
+        "Skriv när datorn känns långsam och om det gäller ett program eller allt.",
+        "Ta fram modell och ungefärlig ålder om du känner till det.",
+        "Beskriv om problemet stoppar arbete eller kan planeras in.",
       ],
       escalation:
-        "Gå vidare till formuläret om datorn fortsätter vara seg efter omstart, om den blir varm eller om felmeddelanden visas.",
+        "Gå vidare till formuläret om datorn är seg, blir varm, visar fel eller används i arbete.",
       serviceSlug: "felsokning",
     };
   }
@@ -305,13 +303,13 @@ export function getAssistantAnswer(question: string): AssistantAnswer {
     q.includes("behörighet")
   ) {
     return {
-      title: "Kontrollera konto och åtkomst",
+      title: "Beskriv konto och åtkomst",
       summary:
         "Problem med Microsoft 365 handlar ofta om lösenord, tvåfaktor, licens eller behörighet.",
       steps: [
-        "Testa inloggning i webbläsaren via Microsofts portal.",
-        "Kontrollera om tvåfaktorkoden kommer fram och om kontot är låst.",
-        "Se om fler användare har samma problem eller om det gäller en person.",
+        "Skriv vilken tjänst eller app det gäller.",
+        "Notera om kontot är låst, MFA saknas eller lösenordet inte fungerar.",
+        "Skriv om fler användare är påverkade eller bara en person.",
       ],
       escalation:
         "Gå vidare till formuläret om konton, licenser, delade postlådor eller behörigheter behöver gås igenom.",
@@ -324,9 +322,9 @@ export function getAssistantAnswer(question: string): AssistantAnswer {
       title: "Backup behöver testas, inte bara finnas",
       summary: "En trygg backup är automatisk, skyddad och regelbundet testad med återläsning.",
       steps: [
-        "Kontrollera när senaste backupen kördes och om den rapporterade fel.",
-        "Verifiera att viktiga mappar, e-post och system faktiskt omfattas.",
-        "Gör ett litet återläsningstest till separat plats.",
+        "Skriv vilka filer och system som är viktigast.",
+        "Notera var backupen finns och vem som brukar hantera den.",
+        "Låt Nova IT bedöma återställning innan viktiga filer skrivs över.",
       ],
       escalation:
         "Gå vidare till formuläret om ni saknar testad återläsning eller om bara en person vet hur backupen fungerar.",

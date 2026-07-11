@@ -15,6 +15,7 @@ import { Route as KontaktRouteImport } from './routes/kontakt'
 import { Route as FaqRouteImport } from './routes/faq'
 import { Route as CaseStudyRouteImport } from './routes/case-study'
 import { Route as AssistentRouteImport } from './routes/assistent'
+import { Route as ArbetssattRouteImport } from './routes/arbetssatt'
 import { Route as IndexRouteImport } from './routes/index'
 
 const TjansterRoute = TjansterRouteImport.update({
@@ -47,6 +48,11 @@ const AssistentRoute = AssistentRouteImport.update({
   path: '/assistent',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ArbetssattRoute = ArbetssattRouteImport.update({
+  id: '/arbetssatt',
+  path: '/arbetssatt',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -55,6 +61,7 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/arbetssatt': typeof ArbetssattRoute
   '/assistent': typeof AssistentRoute
   '/case-study': typeof CaseStudyRoute
   '/faq': typeof FaqRoute
@@ -64,6 +71,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/arbetssatt': typeof ArbetssattRoute
   '/assistent': typeof AssistentRoute
   '/case-study': typeof CaseStudyRoute
   '/faq': typeof FaqRoute
@@ -74,6 +82,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/arbetssatt': typeof ArbetssattRoute
   '/assistent': typeof AssistentRoute
   '/case-study': typeof CaseStudyRoute
   '/faq': typeof FaqRoute
@@ -85,6 +94,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/arbetssatt'
     | '/assistent'
     | '/case-study'
     | '/faq'
@@ -94,6 +104,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/arbetssatt'
     | '/assistent'
     | '/case-study'
     | '/faq'
@@ -103,6 +114,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/arbetssatt'
     | '/assistent'
     | '/case-study'
     | '/faq'
@@ -113,6 +125,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ArbetssattRoute: typeof ArbetssattRoute
   AssistentRoute: typeof AssistentRoute
   CaseStudyRoute: typeof CaseStudyRoute
   FaqRoute: typeof FaqRoute
@@ -165,6 +178,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AssistentRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/arbetssatt': {
+      id: '/arbetssatt'
+      path: '/arbetssatt'
+      fullPath: '/arbetssatt'
+      preLoaderRoute: typeof ArbetssattRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -177,6 +197,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ArbetssattRoute: ArbetssattRoute,
   AssistentRoute: AssistentRoute,
   CaseStudyRoute: CaseStudyRoute,
   FaqRoute: FaqRoute,

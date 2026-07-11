@@ -1,6 +1,6 @@
-# Promptindex och projektläge
+# Projektläge och historik
 
-Det här dokumentet är projektets gemensamma karta. Syftet är att undvika att gamla chattar eller lösa promptfiler blir den enda källan till vad som redan har gjorts.
+Det här dokumentet är projektets gemensamma karta. Syftet är att hålla nuläge, historik och nästa tekniska beslut samlade i projektet.
 
 ## Verifierat nuläge
 
@@ -9,26 +9,26 @@ Det här dokumentet är projektets gemensamma karta. Syftet är att undvika att 
 | Lovable-export           | Genomförd     | Första committen `3340de8` finns kvar som projektets historiska startpunkt. Ingen separat Lovable-branch används. |
 | Codex förbättringspass 1 | Genomfört     | Commits `d8e0803` och `ae1911f`; senaste stabila kod ligger på `main`.                                            |
 | GitHub-grund             | Genomförd     | Privat repo `supern0van/Nova-IT`, standardbranch `main`.                                                          |
-| Visuell redesign         | Genomförd     | Nytt designsystem, omarbetade sidor och `/case-study`; se `docs/visual-redesign-report.md`.                       |
+| Visuell redesign         | Genomförd     | Nytt designsystem, omarbetade sidor och `/arbetssatt`; se `docs/visual-redesign-report.md`.                       |
 | Supportbot i React       | Genomförd     | Gemensam motor på `/assistent` och i global widget; se `docs/supportbot-integration-report.md`.                   |
-| Riktig backend/AI        | Inte påbörjad | Ska inte byggas innan frontend, säkerhet och databehandling är beslutade.                                         |
+| Backend/ärendesystem     | Inte påbörjad | Kopplas först i samband med webbhotell, kontaktlösning och databehandling.                                        |
 
 ## Vad första Codex-passet redan förbättrade
 
 - svensk lokalisering och `lang="sv"`
 - svensk 404- och fel-UI
-- demo-säkra formuleringar
+- skarpa formuleringar utan obekräftade påståenden
 - borttagning av falska bolagsuppgifter
 - bättre tjänstestruktur
 - tjänsteförval via `/kontakt?service=<slug>`
 - bättre formulärvalidering och tillgänglighetsattribut
-- frontend-only supportguide med tydlig avgränsning
+- regelbaserad Nova-guide med tydlig kontaktinriktning
 
 ## Ordning framåt
 
 1. Behåll `main` som stabil bas och dokumentera nya avgränsade mål innan nästa kodpass.
 2. Utvärdera databehandling, samtycke och drift innan backend eller ticketing byggs.
-3. Utvärdera riktig AI separat; den nuvarande Nova-guiden ska fortsätta vara tydligt regelbaserad tills ett sådant beslut tas.
+3. Utvärdera eventuell AI eller ärendeintegration separat; Nova-guiden ska vara regelbaserad tills drift, databehandling och supportansvar är beslutade.
 
 ## Branchregler
 

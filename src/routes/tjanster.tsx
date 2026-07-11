@@ -113,7 +113,7 @@ function ServicesPage() {
             </div>
             <Button asChild variant="outline">
               <Link to="/assistent">
-                Osäker? Öppna Frågeguiden <ArrowRight className="h-4 w-4" />
+                Osäker? Öppna Nova-guiden <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
           </div>
@@ -127,7 +127,7 @@ function ServicesPage() {
 
       <CTASection
         title="Osäker på vilket område som passar?"
-        text="Börja i Frågeguiden eller välj närmaste tjänst. Valet går att ändra i kontaktformuläret."
+        text="Börja i Nova-guiden eller välj närmaste tjänst. Valet går att ändra i kontaktformuläret."
       />
     </>
   );

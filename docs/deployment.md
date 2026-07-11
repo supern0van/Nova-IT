@@ -1,6 +1,6 @@
 # Deploy och publicering
 
-Projektet är redo att byggas, men ska inte publiceras som skarp webbplats förrän innehåll, kontaktuppgifter och ägarbeslut är klara.
+Projektet är redo att byggas, men ska inte publiceras på webbhotell förrän kontaktuppgifter, formulärhantering och publiceringsbeslut är klara.
 
 ## Lokal build
 
@@ -15,7 +15,7 @@ Build-output skapas i `.output` och ska inte commitas.
 
 Utgå från `.env.example`.
 
-Regel: frontendvariabler kan läsas av besökaren. Lägg därför aldrig API-nycklar, GitHub-tokens, ärendesystemsnycklar eller privata kunduppgifter i Vite-variabler.
+Regel: frontendvariabler kan läsas av besökaren. Lägg därför aldrig API-nycklar, GitHub-tokens, ärendesystemsnycklar eller privata kunduppgifter i Vite-variabler. `VITE_NOVA_CONTACT_EMAIL` får innehålla en publik kontaktadress och används för att skapa ett e-postutkast från kontaktformuläret.
 
 ## GitHub Actions
 
@@ -35,6 +35,6 @@ Innan live-deploy behövs beslut om:
 
 - domän
 - riktig kontaktinformation
-- om webbplatsen fortfarande ska vara demo-säker
+- om formuläret ska gå till e-post, ärendesystem eller annan backend
 - hostingplattform
 - eventuell backend för kontaktformulär och supportbot

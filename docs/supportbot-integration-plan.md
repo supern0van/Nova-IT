@@ -19,11 +19,11 @@ De två implementationerna ska inte köras parallellt. Prototypens användbara l
 
 ## Delar som inte ska kopieras in rått
 
-- demo-sidans `index.html` och `demo-site.css`
+- den fristående prototypsidans `index.html` och dess fristående CSS
 - globala `window.*`-skript som permanent arkitektur
 - fejkad `.se`-adress, telefonnummer och `mailto:`
 - texten `Support online`
-- skrivindikator som antyder riktig AI eller liveoperatör
+- skrivindikator som antyder AI eller liveoperatör
 - ett andra kontaktformulär som konkurrerar med `/kontakt`
 - rå `innerHTML` när innehållet kan renderas som React-noder
 
@@ -73,4 +73,4 @@ Botens CTA ska använda `/kontakt?service=<slug>`. Kontaktuppgifter och fritext 
 4. Lägg till robotwidgeten i appskalet.
 5. Koppla CTA till befintligt kontaktformulär.
 6. Smoke-testa alla routes, mobil, tangentbord och tjänsteförval.
-7. Bygg ingen backend eller riktig AI i detta steg.
+7. Håll kontakt- och AI-integration bakom tydliga gränssnitt tills drift, samtycke och säkerhet är beslutade.

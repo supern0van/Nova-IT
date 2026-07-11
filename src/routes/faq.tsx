@@ -6,7 +6,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { faqs } from "@/lib/nova-data";
-import { Container, CTASection, DemoNotice, PageHeader } from "@/components/design-system";
+import { Container, CTASection, TrustNotice, PageHeader } from "@/components/design-system";
 
 export const Route = createFileRoute("/faq")({
   head: () => ({
@@ -14,8 +14,7 @@ export const Route = createFileRoute("/faq")({
       { title: "Vanliga frågor – Nova IT" },
       {
         name: "description",
-        content:
-          "Demo-säkra svar om tjänster, formulär, Frågeguiden, datahantering och en möjlig framtida skarp version.",
+        content: "Svar om Nova IT:s support, tjänster, distanshjälp, säkerhet och bokning.",
       },
     ],
   }),
@@ -27,15 +26,15 @@ function FaqPage() {
     <>
       <PageHeader
         eyebrow="Vanliga frågor"
-        title="Tydliga svar om demon och tjänsteupplägget."
-        intro="Här skiljer vi på vad frontend-demon faktiskt gör och vad som skulle kräva riktiga avtal, kontaktvägar, dataskydd och supportprocesser."
+        title="Tydliga svar innan du bokar IT-hjälp."
+        intro="Här finns korta svar om hur Nova IT kan hjälpa, vad som passar för distanssupport och när ärendet bör prioriteras."
       />
       <Container className="grid gap-10 py-14 lg:grid-cols-[0.68fr_1.32fr]">
         <div>
-          <DemoNotice />
+          <TrustNotice />
           <p className="mt-6 text-sm leading-6 text-muted-foreground">
-            Frågorna undviker bindande priser och servicenivåer. De visar i stället vilken
-            information en skarp sida behöver göra tydlig.
+            Hittar du inte rätt svar är det bättre att beskriva problemet än att lägga tid på egen
+            felsökning. Nova IT kan hjälpa dig välja rätt väg.
           </p>
         </div>
         <Accordion
@@ -55,7 +54,7 @@ function FaqPage() {
       </Container>
       <CTASection
         title="Hittar du inte rätt fråga? Börja med problemet."
-        text="Frågeguiden hjälper dig välja område och kontaktformuläret visar vilken information som normalt behövs."
+        text="Nova-guiden hjälper dig välja område och kontaktformuläret samlar informationen som behövs för nästa steg."
       />
     </>
   );

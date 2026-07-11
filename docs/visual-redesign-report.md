@@ -2,28 +2,28 @@
 
 ## Syfte
 
-Det här passet förde Nova IT från en tekniskt förbättrad men visuellt generisk demo till en mer sammanhållen, tydlig och professionell frontend. Arbetet gjordes utan att skriva om applikationen eller ta bort fungerande flöden.
+Det här passet förde Nova IT från en tekniskt förbättrad men visuellt generisk webb till en mer sammanhållen, tydlig och professionell förlanseringssajt. Arbetet gjordes utan att skriva om applikationen eller ta bort fungerande flöden.
 
 ## Genomförda förändringar
 
-- nytt gemensamt designsystem med återanvändbara sidhuvuden, sektioner, demo-notiser, statuspaneler och CTA-block
+- nytt gemensamt designsystem med återanvändbara sidhuvuden, sektioner, trygghetsnotiser, statuspaneler och CTA-block
 - ny färg-, typografi- och ytriktning med off-white, grafit och djup teal
 - omarbetad startsida med tydligare hero, driftpanel, tjänstekarta, process och slut-CTA
 - tydligare tjänstekort och en mer operativ tjänstesida
 - omarbetad frågeguide med valbara kategorier, strukturerade svar och koppling till rätt tjänst
 - förbättrat kontaktformulär med tydliga steg, synligt tjänsteval, svensk samtyckesvalidering och förbättrad success-vy
-- ny `/case-study` som dokumenterar projektets utvecklingsstege
+- ny `/arbetssatt` som beskriver hur Nova IT tar ett ärende från symptom till nästa steg
 - uppdaterad navigation, mobilmeny och footer
 - visuellt uppdaterade FAQ- och Om oss-sidor
 
 ## Bevarat för att undvika regression
 
 - svensk lokalisering och svenska systemtexter
-- demo-säkra formuleringar utan falska bolagsuppgifter
+- skarpa formuleringar utan obekräftade bolagsuppgifter
 - tjänsteförval via `/kontakt?service=<slug>`
 - formulärvalidering och tillgänglighetsattribut
 - tangentbords- och fokuslägen
-- frontend-only-positioneringen för frågeguiden
+- regelbaserad och kontaktinriktad positionering för Nova-guiden
 - befintliga routes och TanStack-projektstruktur
 
 ## Verifiering
@@ -34,7 +34,7 @@ Det här passet förde Nova IT från en tekniskt förbättrad men visuellt gener
 - samtliga routes kontrollerade i mobil vy, inklusive svensk 404
 - mobilnavigation öppnad och kontrollerad
 - kontaktformulärets tjänsteförval och svenska felmeddelanden kontrollerade
-- frågeguidens val, svar och kontakt-CTA kontrollerade
+- Nova-guidens val, svar och kontakt-CTA kontrollerade
 - horisontell mobil overflow på kontaktsidan hittades och åtgärdades
 
 ## Efterföljande steg

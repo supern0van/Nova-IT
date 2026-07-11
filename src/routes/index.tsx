@@ -16,18 +16,18 @@ import {
 } from "lucide-react";
 import { credibilityItems, faqs, processSteps, serviceCategories, services } from "@/lib/nova-data";
 import { ServiceCard } from "@/components/service-card";
-import { Container, CTASection, DemoNotice, StatusPanel } from "@/components/design-system";
+import { Container, CTASection, TrustNotice, StatusPanel } from "@/components/design-system";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Nova IT – tydlig svensk IT-supportdemo" },
+      { title: "Nova IT – IT-support, nätverk och säkerhet" },
       {
         name: "description",
         content:
-          "Fiktivt svenskt IT-supportdemo med praktiska tjänster, Frågeguiden och ett tillgängligt kontaktflöde.",
+          "Svensk IT-support för datorproblem, Wi-Fi, installationer, säkerhet, backup och konton.",
       },
-      { property: "og:title", content: "Nova IT – tydlig svensk IT-supportdemo" },
+      { property: "og:title", content: "Nova IT – IT-support, nätverk och säkerhet" },
       {
         property: "og:description",
         content: "Från otydligt IT-problem till ett begripligt nästa steg.",
@@ -45,13 +45,13 @@ function Home() {
       <section className="tech-grid relative overflow-hidden border-b border-border bg-secondary/35">
         <Container className="grid gap-12 py-14 lg:grid-cols-[0.92fr_1.08fr] lg:items-center lg:py-20">
           <div>
-            <p className="eyebrow">Svensk IT-support · frontend-demo</p>
+            <p className="eyebrow">Svensk IT-support · nätverk · säkerhet</p>
             <h1 className="mt-5 max-w-3xl text-5xl font-semibold leading-[0.98] tracking-[-0.055em] text-balance sm:text-6xl lg:text-7xl">
               IT-hjälp som börjar med att reda ut läget.
             </h1>
             <p className="mt-6 max-w-2xl text-lg leading-8 text-muted-foreground">
-              Nova IT visar hur support, nätverk och säkerhet kan presenteras med konkreta nästa
-              steg—utan fejkade kundsiffror eller överdrivna löften.
+              Nova IT hjälper dig ringa in problemet, prioritera rätt och få hjälp med datorer,
+              nätverk, installationer, konton och säkerhet.
             </p>
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
@@ -61,12 +61,12 @@ function Home() {
                 </Link>
               </Button>
               <Button asChild size="lg" variant="outline" className="bg-background/70">
-                <Link to="/assistent">Starta Frågeguiden</Link>
+                <Link to="/assistent">Starta Nova-guiden</Link>
               </Button>
             </div>
 
             <p className="mt-4 text-xs font-medium text-muted-foreground">
-              Frontend-demo. Inga uppgifter skickas till en server.
+              Beskriv problemet så återkommer Nova IT med rätt nästa steg.
             </p>
           </div>
 
@@ -79,17 +79,15 @@ function Home() {
 
       <section className="border-b border-border bg-card">
         <Container className="grid gap-0 sm:grid-cols-2 lg:grid-cols-4">
-          {["Problem först", "Tydlig prioritet", "Förvalt nästa steg", "Ingen låtsasdata"].map(
-            (item, index) => (
-              <div
-                key={item}
-                className="flex items-center gap-3 border-b border-border px-4 py-4 last:border-b-0 sm:border-r sm:[&:nth-child(2)]:border-r-0 lg:border-b-0 lg:[&:nth-child(2)]:border-r lg:last:border-r-0"
-              >
-                <span className="text-xs font-semibold text-primary">0{index + 1}</span>
-                <span className="text-sm font-medium">{item}</span>
-              </div>
-            ),
-          )}
+          {["Problem först", "Tydlig prioritet", "Rätt tjänst", "Nästa steg"].map((item, index) => (
+            <div
+              key={item}
+              className="flex items-center gap-3 border-b border-border px-4 py-4 last:border-b-0 sm:border-r sm:[&:nth-child(2)]:border-r-0 lg:border-b-0 lg:[&:nth-child(2)]:border-r lg:last:border-r-0"
+            >
+              <span className="text-xs font-semibold text-primary">0{index + 1}</span>
+              <span className="text-sm font-medium">{item}</span>
+            </div>
+          ))}
         </Container>
       </section>
 
@@ -214,17 +212,17 @@ function Home() {
 
       <Container className="grid gap-10 py-18 lg:grid-cols-[0.8fr_1.2fr] lg:items-center">
         <div>
-          <p className="eyebrow">Frågeguiden</p>
+          <p className="eyebrow">Nova-guiden</p>
           <h2 className="mt-3 text-3xl font-semibold tracking-[-0.035em] text-balance sm:text-4xl">
             Sortera problemet innan du beskriver det.
           </h2>
           <p className="mt-4 leading-7 text-muted-foreground">
-            Fördefinierade svar hjälper dig skilja på nätverk, dator, konto och backup. Guiden är
-            ingen AI och gör ingen riktig diagnostik.
+            Guiden hjälper dig skilja på nätverk, dator, konto och backup. Den ger inte en full
+            lösning, utan förbereder ett tydligt ärende till Nova IT.
           </p>
           <Button asChild className="mt-6">
             <Link to="/assistent">
-              Starta Frågeguiden <ArrowRight className="h-4 w-4" />
+              Starta Nova-guiden <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>
         </div>
@@ -234,9 +232,9 @@ function Home() {
           </p>
           <div className="mt-5 space-y-3">
             {[
-              "Kontrollera ledigt diskutrymme",
-              "Jämför före och efter omstart",
-              "Notera om ett program eller hela datorn påverkas",
+              "När märks problemet mest?",
+              "Gäller det ett program eller hela datorn?",
+              "Hur påverkar det arbete, studier eller vardag?",
             ].map((item) => (
               <div
                 key={item}
@@ -281,11 +279,11 @@ function Home() {
           <div>
             <p className="eyebrow">FAQ</p>
             <h2 className="mt-3 text-3xl font-semibold tracking-[-0.035em]">
-              Vad är demo—och vad återstår?
+              Vanliga frågor innan du bokar.
             </h2>
             <p className="mt-4 leading-7 text-muted-foreground">
-              Vanliga frågor förklarar avgränsningar, datahantering och hur en skarp version skulle
-              skilja sig.
+              Här hittar du korta svar om tjänster, distanssupport, säkerhet och hur ärenden brukar
+              förberedas.
             </p>
             <Button asChild variant="outline" className="mt-6">
               <Link to="/faq">Se alla frågor</Link>
@@ -305,11 +303,11 @@ function Home() {
       </section>
 
       <Container className="pt-16">
-        <DemoNotice />
+        <TrustNotice />
       </Container>
       <CTASection
         title="Beskriv vad som stoppar arbetet—så blir nästa steg lättare att välja."
-        text="Formuläret samlar tjänst, brådska och ärendebeskrivning utan att skicka data vidare i den här demon."
+        text="Formuläret hjälper dig samla tjänst, brådska och ärendebeskrivning så Nova IT kan bedöma nästa steg."
       />
     </>
   );

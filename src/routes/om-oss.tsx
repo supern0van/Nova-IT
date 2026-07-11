@@ -1,16 +1,16 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, Building2, HeartHandshake, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Container, CTASection, DemoNotice, PageHeader } from "@/components/design-system";
+import { Container, CTASection, TrustNotice, PageHeader } from "@/components/design-system";
 
 export const Route = createFileRoute("/om-oss")({
   head: () => ({
     meta: [
-      { title: "Om Nova IT – fiktivt demo-case" },
+      { title: "Om Nova IT – praktisk IT-support" },
       {
         name: "description",
         content:
-          "Nova IT är ett fiktivt svenskt IT-supportdemo med tydliga avgränsningar, ärlig copy och dokumenterad utvecklingsprocess.",
+          "Nova IT hjälper privatpersoner och mindre verksamheter med datorer, nätverk, installationer, säkerhet och backup.",
       },
     ],
   }),
@@ -20,18 +20,18 @@ export const Route = createFileRoute("/om-oss")({
 const principles = [
   {
     icon: Building2,
-    title: "Fiktivt bolag",
-    text: "Ingen adress, inget organisationsnummer och inga kundsiffror som kan misstas för verkliga.",
+    title: "Praktisk hjälp",
+    text: "Fokus ligger på konkreta datorproblem, nätverk, konton, installationer och vardaglig IT som behöver fungera.",
   },
   {
     icon: ShieldCheck,
-    title: "Säkra avgränsningar",
-    text: "Tjänster och formulär visar ett möjligt arbetssätt utan att lova verklig drift eller databehandling.",
+    title: "Tydligt ansvar",
+    text: "Ärenden sorteras innan åtgärd så att rätt supportnivå, risk och brådska kan bedömas.",
   },
   {
     icon: HeartHandshake,
     title: "Praktisk svensk ton",
-    text: "Rak och begriplig text för mindre verksamheter, skolor och privatpersoner.",
+    text: "Rak och begriplig hjälp för mindre verksamheter, skolor och privatpersoner.",
   },
 ];
 
@@ -40,9 +40,9 @@ function About() {
     <>
       <PageHeader
         eyebrow="Om Nova IT"
-        title="Ett fiktivt supportbolag med verklighetstrogen struktur."
-        intro="Nova IT är byggt för att visa hur en snabb AI-prototyp kan granskas, förbättras och dokumenteras utan att låtsas vara ett etablerat företag."
-        aside={<DemoNotice className="mt-5" />}
+        title="IT-support med fokus på tydliga nästa steg."
+        intro="Nova IT hjälper dig beskriva problemet, välja rätt supportområde och få hjälp utan onödigt tekniskt brus."
+        aside={<TrustNotice className="mt-5" />}
       />
 
       <Container className="py-16">
@@ -63,24 +63,24 @@ function About() {
 
         <div className="mt-12 grid gap-8 rounded-lg border border-border bg-secondary/40 p-6 sm:p-8 lg:grid-cols-[1fr_auto] lg:items-center">
           <div>
-            <p className="eyebrow">Dokumenterad process</p>
+            <p className="eyebrow">Arbetssätt</p>
             <h2 className="mt-3 text-2xl font-semibold tracking-[-0.03em]">
-              Se vad Lovable gav, vad Codex förbättrade och vad som återstår.
+              Från oklart problem till planerad åtgärd.
             </h2>
           </div>
           <Button asChild variant="outline" className="bg-background">
-            <Link to="/case-study">
-              Öppna case study <ArrowRight className="h-4 w-4" />
+            <Link to="/arbetssatt">
+              Se arbetssätt <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>
         </div>
       </Container>
 
       <CTASection
-        title="Demon är en grund för beslut—inte ett påstående om ett färdigt företag."
-        text="Nästa nivå handlar om testad interaktion och en gemensam supportmotor, fortfarande utan att låtsas ha riktig drift."
-        secondaryTo="/case-study"
-        secondaryLabel="Följ utvecklingsstegen"
+        title="Beskriv problemet så tar Nova IT nästa steg."
+        text="Ju tydligare ärendet är från början, desto lättare blir det att välja fjärrsupport, service eller besök."
+        secondaryTo="/arbetssatt"
+        secondaryLabel="Se arbetssätt"
       />
     </>
   );

@@ -6,12 +6,11 @@ export const supportFlows: SupportFlow[] = [
     label: "Långsam dator",
     title: "Långsam dator",
     keywords: ["långsam", "seg", "trög", "hänger", "prestanda", "full disk"],
-    intro:
-      "Långsamhet beror ofta på full lagring, många autostartprogram, för lite minne eller en äldre disk.",
+    intro: "En långsam dator behöver bedömas utifrån symptom, ålder, lagring och hur den används.",
     firstSteps: [
-      "Starta om och testa med bara ett viktigt program öppet.",
-      "Kontrollera att minst 15 procent av lagringen är ledig.",
       "Notera om hela datorn eller bara ett program är långsamt.",
+      "Skriv när problemet märks mest: start, webbläsare, möten eller arbete i program.",
+      "Ta fram datorns modell och ungefärlig ålder om du känner till den.",
     ],
     escalation:
       "Be om hjälp om datorn fortfarande är seg, blir ovanligt varm, låter konstigt eller används i arbetet.",
@@ -20,22 +19,22 @@ export const supportFlows: SupportFlow[] = [
       {
         id: "slow-start",
         label: "Vid start",
-        reply: "Kontrollera autostart, uppdateringar och ledigt lagringsutrymme.",
+        reply: "Skriv hur lång starten brukar ta och om den nyligen blivit sämre.",
       },
       {
         id: "slow-browser",
         label: "I webbläsaren",
-        reply: "Testa färre flikar, inaktivera okända tillägg och jämför med en annan webbläsare.",
+        reply: "Notera vilken webbläsare som används och om problemet gäller vissa webbsidor.",
       },
       {
         id: "slow-always",
         label: "Hela tiden",
-        reply: "Då bör lagring, minne, temperatur och diskhälsa kontrolleras metodiskt.",
+        reply: "Det är ett bra läge att låta Nova IT kontrollera lagring, minne och diskhälsa.",
       },
       {
         id: "slow-hot",
         label: "Den blir varm",
-        reply: "Stäng av en stund, kontrollera fläktljud och undvik mjuka underlag.",
+        reply: "Skriv om datorn blir varm, låter mycket eller stänger av sig själv.",
       },
     ],
     serviceSlug: "felsokning",
@@ -45,11 +44,11 @@ export const supportFlows: SupportFlow[] = [
     label: "Wi-Fi och nätverk",
     title: "Wi-Fi och nätverk",
     keywords: ["wifi", "wi-fi", "internet", "nätverk", "router", "vpn", "uppkoppling"],
-    intro: "Skilj först på nätet, routern och den enhet som krånglar.",
+    intro: "Nätverksproblem behöver ringas in efter plats, antal enheter och hur ofta det händer.",
     firstSteps: [
-      "Testa om fler enheter har samma problem.",
-      "Starta om router och berörd enhet.",
-      "Testa nära routern och stäng tillfälligt av VPN.",
+      "Skriv om problemet gäller en enhet, flera enheter eller hela lokalen.",
+      "Notera var uppkopplingen fungerar sämst och när avbrotten händer.",
+      "Skriv om problemet påverkar möten, betalning, arbete eller flera användare.",
     ],
     escalation:
       "Gå vidare om flera enheter påverkas, anslutningen faller ofta eller nätet används för arbete.",
@@ -58,22 +57,22 @@ export const supportFlows: SupportFlow[] = [
       {
         id: "wifi-hidden",
         label: "Inget nät syns",
-        reply: "Kontrollera flygplansläge, Wi-Fi-knapp och om routern visar normal drift.",
+        reply: "Notera om nätet saknas på alla enheter eller bara på en specifik dator/mobil.",
       },
       {
         id: "wifi-drop",
         label: "Tappar anslutning",
-        reply: "Svag signal, störningar eller en drivrutin kan orsaka återkommande avbrott.",
+        reply: "Skriv var avbrotten sker och om de påverkar samtal eller möten.",
       },
       {
         id: "wifi-slow",
         label: "Det är långsamt",
-        reply: "Jämför nära routern och med kabel om möjligt för att avgränsa felet.",
+        reply: "Notera om det är långsamt överallt eller bara i vissa rum.",
       },
       {
         id: "wifi-one",
         label: "Bara en enhet",
-        reply: "Fokusera på den enhetens sparade nätverk, uppdateringar och nätverksinställningar.",
+        reply: "Skriv vilken enhet det gäller och om andra enheter fungerar normalt.",
       },
     ],
     serviceSlug: "natverk",
@@ -83,11 +82,11 @@ export const supportFlows: SupportFlow[] = [
     label: "Windowsproblem",
     title: "Windowsproblem",
     keywords: ["windows", "uppdatering", "felkod", "blå skärm", "startar inte", "drivrutin"],
-    intro: "Ett exakt felmeddelande och vad som hände precis innan gör felsökningen säkrare.",
+    intro: "Ett exakt felmeddelande och vad som hände precis innan gör supporten säkrare.",
     firstSteps: [
       "Skriv av felkoden eller ta en bild.",
-      "Koppla ur onödiga USB-enheter och starta om.",
       "Notera om felet började efter en uppdatering.",
+      "Skriv om filer, program eller inloggning påverkas.",
     ],
     escalation:
       "Be om hjälp om Windows inte startar, blå skärm återkommer eller filer riskerar att påverkas.",
@@ -96,7 +95,7 @@ export const supportFlows: SupportFlow[] = [
       {
         id: "win-update",
         label: "Uppdatering fastnar",
-        reply: "Notera procent och tid. Stäng inte av medan installationen fortfarande arbetar.",
+        reply: "Notera procent, tid och om datorn behövs akut i arbete.",
       },
       {
         id: "win-code",
@@ -121,11 +120,11 @@ export const supportFlows: SupportFlow[] = [
     label: "ChromeOS Flex",
     title: "ChromeOS Flex",
     keywords: ["chromeos", "chrome os", "flex", "chromebook", "usb-start"],
-    intro: "Kompatibilitet och backup måste kontrolleras innan Windows ersätts.",
+    intro: "ChromeOS Flex kräver planering eftersom installation kan påverka filer och Windows.",
     firstSteps: [
       "Ta fram datorns exakta modell.",
-      "Testa systemet från USB före installation.",
-      "Kontrollera Wi-Fi, ljud, kamera och pekplatta i testläget.",
+      "Skriv om Windows ska ersättas eller om du bara vill undersöka alternativ.",
+      "Notera om filer, e-post eller program behöver flyttas först.",
     ],
     escalation: "Be om hjälp före permanent installation eller om hårdvara saknas i testläget.",
     question: "Vad gäller frågan?",
@@ -133,12 +132,12 @@ export const supportFlows: SupportFlow[] = [
       {
         id: "flex-install",
         label: "Installera",
-        reply: "Säkerhetskopiera först; permanent installation kan radera hela disken.",
+        reply: "Nova IT bör kontrollera modell, backup och om installationen passar behovet.",
       },
       {
         id: "flex-boot",
         label: "USB-start fungerar inte",
-        reply: "Startmeny eller BIOS behöver väljas med rätt tangent för datormodellen.",
+        reply: "Nova IT behöver datorns modell och hur långt starten kommer innan den fastnar.",
       },
       {
         id: "flex-wifi",
@@ -162,7 +161,7 @@ export const supportFlows: SupportFlow[] = [
     firstSteps: [
       "Ta fram modell och ungefärlig ålder.",
       "Bestäm om problemet är hastighet, lagring eller batteri.",
-      "Säkerhetskopiera viktiga filer före service.",
+      "Notera vilka filer och program som behöver följa med vid service.",
     ],
     escalation: "Be om råd om modellen är okänd, svår att öppna eller data behöver flyttas.",
     question: "Vad vill du förbättra?",
@@ -170,7 +169,8 @@ export const supportFlows: SupportFlow[] = [
       {
         id: "up-ssd",
         label: "Snabbare lagring",
-        reply: "En SSD ger ofta störst effekt på äldre datorer.",
+        reply:
+          "Nova IT kan bedöma om SSD, minne eller en annan åtgärd ger bäst effekt för modellen.",
       },
       {
         id: "up-ram",
@@ -195,11 +195,11 @@ export const supportFlows: SupportFlow[] = [
     label: "Virus eller intrång",
     title: "Virus eller skadlig aktivitet",
     keywords: ["virus", "malware", "hack", "phishing", "popup", "kapat", "ransom", "bedrägeri"],
-    intro: "Begränsa risken, spara bevis och undvik att klicka vidare.",
+    intro: "Vid misstänkt intrång är det viktigaste att minska risken och få hjälp snabbt.",
     firstSteps: [
-      "Koppla bort internet om något pågår just nu.",
-      "Byt lösenord från en annan säker enhet om ett konto kan vara påverkat.",
+      "Skriv vad som hänt: länk, popup, fil, konto eller betalningskrav.",
       "Spara felmeddelanden och skärmbilder.",
+      "Kontakta Nova IT snabbt om konto, filer eller flera enheter kan vara påverkade.",
     ],
     escalation: "Sök hjälp direkt vid krypterade filer, betalningskrav eller kapade konton.",
     question: "Vad har du märkt?",
@@ -207,22 +207,24 @@ export const supportFlows: SupportFlow[] = [
       {
         id: "virus-popup",
         label: "Konstiga popups",
-        reply: "Stäng sidan och kontrollera webbläsartillägg och notisbehörigheter.",
+        reply: "Beskriv popupen och ta gärna en skärmbild innan du gör fler ändringar.",
       },
       {
         id: "virus-link",
         label: "Klickat på länk",
-        reply: "Byt berörda lösenord och aktivera flerfaktorsinloggning från säker enhet.",
+        reply: "Skriv vilken tjänst länken gällde och om inloggning eller betalning skedde.",
       },
       {
         id: "virus-files",
         label: "Filer är ändrade",
-        reply: "Sluta använda datorn; snabb isolering är viktigare än vanlig felsökning.",
+        reply:
+          "Kontakta Nova IT direkt och beskriv vilka filer som ändrats samt när det upptäcktes.",
       },
       {
         id: "virus-account",
         label: "Konto kan vara kapat",
-        reply: "Logga ut aktiva sessioner och kontrollera MFA och e-postregler.",
+        reply:
+          "Kontakta Nova IT direkt och beskriv vilken tjänst det gäller, när det upptäcktes och om inloggning eller betalning berörs.",
       },
     ],
     serviceSlug: "sakerhet-backup",
@@ -234,9 +236,9 @@ export const supportFlows: SupportFlow[] = [
     keywords: ["skrivare", "utskrift", "offline", "toner", "bläck", "scanner", "skanner"],
     intro: "Vanliga orsaker är anslutning, utskriftskö, drivrutin eller förbrukningsmaterial.",
     firstSteps: [
-      "Kontrollera papper, toner och skrivarens felmeddelande.",
-      "Starta om skrivare och dator.",
-      "Kontrollera standardskrivare och töm fastnade utskriftsjobb.",
+      "Skriv skrivarmodell och om den är USB, nätverk eller Wi-Fi.",
+      "Notera felmeddelande, om den är offline och om fler användare påverkas.",
+      "Skriv om problemet gäller utskrift, skanning eller kvalitet.",
     ],
     escalation: "Be om hjälp om skrivaren används av flera eller fortsätter vara offline.",
     question: "Vad händer?",
@@ -244,17 +246,19 @@ export const supportFlows: SupportFlow[] = [
       {
         id: "print-offline",
         label: "Offline",
-        reply: "Kontrollera kabel/Wi-Fi och om skrivaren fått en ny nätverksadress.",
+        reply: "Nova IT behöver veta anslutningstyp, placering och om fler datorer påverkas.",
       },
       {
         id: "print-queue",
         label: "Jobb fastnar",
-        reply: "Töm kön och prova en enkel testsida först.",
+        reply:
+          "Nova IT behöver skrivarmodell, anslutningstyp, felmeddelande och om fler användare påverkas.",
       },
       {
         id: "print-quality",
         label: "Dålig kvalitet",
-        reply: "Kör skrivarens testsida och kontrollera toner, bläck och papperstyp.",
+        reply:
+          "Beskriv utskriftsfelet och vilken typ av dokument, papper och förbrukningsmaterial som används.",
       },
       {
         id: "print-add",
@@ -271,9 +275,9 @@ export const supportFlows: SupportFlow[] = [
     keywords: ["e-post", "mail", "mejl", "konto", "inlogg", "lösenord", "mfa", "outlook", "gmail"],
     intro: "Kontoproblem ska hanteras säkert, särskilt när e-post eller kunddata berörs.",
     firstSteps: [
-      "Kontrollera rätt konto, tangentbordslayout och Caps Lock.",
-      "Använd tjänstens ordinarie återställningsflöde.",
-      "Kontrollera MFA och aktiva sessioner om något verkar fel.",
+      "Skriv vilken tjänst det gäller: Microsoft 365, Google, e-post eller annat konto.",
+      "Notera om kontot är låst, lösenordet glömt eller MFA inte fungerar.",
+      "Skriv om problemet påverkar en person eller flera.",
     ],
     escalation: "Sök hjälp om kontot är låst, MFA saknas eller e-post verkar kapad.",
     question: "Vad gäller kontot?",
@@ -281,7 +285,7 @@ export const supportFlows: SupportFlow[] = [
       {
         id: "account-password",
         label: "Glömt lösenord",
-        reply: "Kontrollera om du når tjänstens återställningsmejl eller andra återställningssätt.",
+        reply: "Nova IT behöver veta tjänst, konto och om återställningsvägar finns kvar.",
       },
       {
         id: "account-mfa",
@@ -291,7 +295,8 @@ export const supportFlows: SupportFlow[] = [
       {
         id: "account-locked",
         label: "Kontot är låst",
-        reply: "Undvik många nya försök och kontrollera appar med sparade gamla lösenord.",
+        reply:
+          "Nova IT behöver veta tjänst, konto och om felet påverkar fler användare eller bara en person.",
       },
       {
         id: "account-mail",
@@ -306,11 +311,11 @@ export const supportFlows: SupportFlow[] = [
     label: "Backup och filer",
     title: "Backup och filåterställning",
     keywords: ["backup", "säkerhetskopia", "återställa", "fil", "onedrive", "raderad"],
-    intro: "Återställning blir tryggast när kopians plats och senaste korrekta version är kända.",
+    intro: "Backup och återställning bör hanteras försiktigt så att data inte skrivs över.",
     firstSteps: [
-      "Sluta spara på samma plats om något raderats.",
-      "Kontrollera papperskorg och molntjänstens versionshistorik.",
-      "Återställ aldrig över den enda kvarvarande kopian.",
+      "Skriv vilka filer eller mappar som är viktigast.",
+      "Notera var filerna brukar ligga: dator, OneDrive, Google Drive, extern disk eller server.",
+      "Kontakta Nova IT innan du gör större återställningar om filerna är viktiga.",
     ],
     escalation:
       "Sök hjälp om filerna är kritiska, disken låter konstigt eller backupstatus är oklar.",
@@ -323,8 +328,8 @@ export const supportFlows: SupportFlow[] = [
       },
       {
         id: "backup-check",
-        label: "Kontrollera backup",
-        reply: "En backup är inte verifierad förrän en återställning har testats.",
+        label: "Backupstatus",
+        reply: "Nova IT behöver veta var backupen finns och när den senast fungerade.",
       },
       {
         id: "backup-restore",
@@ -346,9 +351,9 @@ export const supportFlows: SupportFlow[] = [
     keywords: ["begagnad", "refurbished", "rekonditionerad", "köpa dator", "renoverad"],
     intro: "Skick, garanti, batteri, lagring och uppdateringsstöd bör kontrolleras före köp.",
     firstSteps: [
-      "Kontrollera modell, processor, RAM, lagring och batterihälsa.",
-      "Säkerställ giltig licens och säkerhetsuppdateringar.",
-      "Kontrollera garanti och returvillkor.",
+      "Skriv modell, budget och vad datorn ska användas till.",
+      "Notera krav på program, skärmstorlek, batteri och lagring.",
+      "Låt Nova IT bedöma om köp, uppgradering eller annan lösning är rimlig.",
     ],
     escalation: "Be om kontroll om datorn ska användas i arbete eller priset verkar avvikande.",
     question: "Vad vill du ha hjälp med?",
@@ -361,12 +366,13 @@ export const supportFlows: SupportFlow[] = [
       {
         id: "ref-setup",
         label: "Ställa in",
-        reply: "Uppdatera system, rensa gamla konton och aktivera säkerhet och backup.",
+        reply:
+          "Nova IT behöver modell, användning och vilka konton, program och filer som ska finnas på datorn.",
       },
       {
         id: "ref-check",
-        label: "Kontrollera skick",
-        reply: "Kontrollera batteri, SSD, skärm, portar, Wi-Fi och fläktljud.",
+        label: "Bedöma skick",
+        reply: "Nova IT kan kontrollera batteri, SSD, skärm, portar, Wi-Fi och fläktljud.",
       },
       {
         id: "ref-transfer",
@@ -384,8 +390,8 @@ export const supportFlows: SupportFlow[] = [
     intro: "Data, konton, licenser och kringutrustning bör planeras innan installationen börjar.",
     firstSteps: [
       "Skriv vilken enhet och vilket system eller program det gäller.",
-      "Kontrollera att licenser och konton finns tillgängliga.",
-      "Säkerhetskopiera före ominstallation eller större ändringar.",
+      "Ta fram licenser, konton och eventuella installationsuppgifter.",
+      "Notera vilka filer, program och inställningar som behöver bevaras vid större ändringar.",
     ],
     escalation:
       "Be om hjälp när installationen påverkar filer, licenser, e-post eller flera användare.",
@@ -404,12 +410,12 @@ export const supportFlows: SupportFlow[] = [
       {
         id: "install-flex",
         label: "ChromeOS Flex",
-        reply: "Testa från USB och gör backup före permanent installation.",
+        reply: "Nova IT bör kontrollera backup, modell och om ChromeOS Flex passar behovet.",
       },
       {
         id: "install-app",
         label: "E-post eller program",
-        reply: "Kontrollera konto, MFA, licens och vilken app som ska användas.",
+        reply: "Nova IT behöver konto, MFA-läge, licens och vilken app som ska användas.",
       },
     ],
     serviceSlug: "datorinstallation",
@@ -419,7 +425,7 @@ export const supportFlows: SupportFlow[] = [
     label: "Förbered support",
     title: "Förbered ett supportärende",
     keywords: ["boka", "support", "hjälp", "tid", "fjärrhjälp", "service", "kontakt"],
-    intro: "Guiden kan samla ett tydligt underlag, men skickar inget i den här demon.",
+    intro: "Guiden hjälper dig samla ett tydligt underlag innan Nova IT kontaktas.",
     firstSteps: [
       "Beskriv problemet kort.",
       "Notera enhetens modell om du känner till den.",
@@ -483,7 +489,7 @@ export const supportFlows: SupportFlow[] = [
       {
         id: "gen-contact",
         label: "Gå vidare",
-        reply: "Kontaktformuläret kan förbereda ett ärende utan att något skickas i demon.",
+        reply: "Kontaktformuläret hjälper dig samla uppgifter så Nova IT kan återkomma rätt.",
       },
     ],
     serviceSlug: "it-support",

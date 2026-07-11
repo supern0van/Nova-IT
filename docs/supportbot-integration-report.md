@@ -2,7 +2,7 @@
 
 ## Resultat
 
-Den fristående vanilla JavaScript-prototypens användbara delar har portats till projektets befintliga React/TypeScript-arkitektur. Den gamla demosidan och dess globala skript har inte kopierats in.
+Den fristående vanilla JavaScript-prototypens användbara delar har portats till projektets befintliga React/TypeScript-arkitektur. Den gamla fristående prototypsidan och dess globala skript har inte kopierats in.
 
 ## Implementerat
 
@@ -12,14 +12,14 @@ Den fristående vanilla JavaScript-prototypens användbara delar har portats til
 - full Nova-guide på `/assistent`
 - global robotwidget som kan öppnas från alla routes
 - tillgänglig Radix-dialog med Escape-stängning och fokusåterställning
-- frivillig kopiering av en demo-säker ärendesammanfattning
+- frivillig kopiering av en kontaktinriktad ärendesammanfattning
 - tjänstemappad CTA till `/kontakt?service=<slug>`
 - tydlig omstart av ett pågående guidesteg
 - teal/mint-robotidentitet med hänsyn till reduced motion
 
 ## Medvetet utelämnat
 
-- backend, databas, ärendesystem och riktig AI
+- backend, databas, ärendesystem och eventuell AI
 - fejkad onlinestatus eller skrivindikator
 - falska telefonnummer, e-postadresser och `mailto:`-flöden
 - ett konkurrerande kontaktformulär i widgeten
@@ -43,4 +43,4 @@ Den fristående vanilla JavaScript-prototypens användbara delar har portats til
 
 ## Nästa beslutspunkt
 
-Frontend-etappen är komplett. Innan någon backend, ticketing eller riktig AI läggs till behövs separata beslut om databehandling, samtycke, säkerhet, driftansvar och vilka uppgifter som faktiskt ska skickas.
+Det lokala kontakt- och kunskapsflödet är komplett. Innan ärendehantering eller eventuell AI läggs till behövs separata beslut om databehandling, samtycke, säkerhet, driftansvar och vilka uppgifter som faktiskt ska skickas.

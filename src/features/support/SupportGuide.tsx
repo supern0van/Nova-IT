@@ -80,7 +80,7 @@ export function SupportGuide({ compact = false, onNavigate }: SupportGuideProps)
             <RobotMascot />
             <div>
               <h2 className="font-semibold">Välj ett område</h2>
-              <p className="text-sm text-muted-foreground">13 förskrivna felsökningsspår</p>
+              <p className="text-sm text-muted-foreground">13 spår för att förbereda ärendet</p>
             </div>
           </div>
         )}
@@ -144,7 +144,9 @@ export function SupportGuide({ compact = false, onNavigate }: SupportGuideProps)
         {!compact && (
           <div className="mt-5 flex gap-3 rounded-md border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950">
             <Info className="mt-0.5 h-4 w-4 shrink-0" />
-            <p className="leading-6">Guiden gör inga AI-anrop och skickar inga uppgifter.</p>
+            <p className="leading-6">
+              Guiden ersätter inte support. Den hjälper dig samla rätt underlag till Nova IT.
+            </p>
           </div>
         )}
       </aside>
@@ -160,8 +162,8 @@ export function SupportGuide({ compact = false, onNavigate }: SupportGuideProps)
             <RobotMascot className="mx-auto h-14 w-14" />
             <h2 className="mt-4 text-xl font-semibold">Vad behöver sorteras?</h2>
             <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-muted-foreground">
-              Välj ett område eller beskriv problemet. Guiden visar säkra första kontroller och när
-              det är klokt att gå vidare.
+              Välj ett område eller beskriv problemet. Guiden hjälper dig formulera ärendet och
+              visar när Nova IT bör ta över.
             </p>
           </div>
         ) : (
@@ -189,7 +191,7 @@ export function SupportGuide({ compact = false, onNavigate }: SupportGuideProps)
             <div className={cn("grid gap-px bg-border", compact ? "" : "md:grid-cols-2")}>
               <div className="bg-card p-5">
                 <h3 className="text-xs font-semibold uppercase tracking-[0.15em] text-muted-foreground">
-                  Kontrollera först
+                  Uppgifter att samla
                 </h3>
                 <ol className="mt-3 space-y-3">
                   {flow.firstSteps.map((step, index) => (
@@ -234,7 +236,7 @@ export function SupportGuide({ compact = false, onNavigate }: SupportGuideProps)
             {option && (
               <div className="border-t border-border bg-secondary/45 p-5">
                 <p className="flex items-center gap-2 text-sm font-semibold text-primary">
-                  <Check className="h-4 w-4" /> Nästa rimliga kontroll
+                  <Check className="h-4 w-4" /> Bra underlag till Nova IT
                 </p>
                 <p className="mt-2 text-sm leading-6 text-muted-foreground">{option.reply}</p>
               </div>

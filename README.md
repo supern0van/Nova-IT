@@ -1,8 +1,8 @@
 # Nova IT
 
-Nova IT är ett fiktivt svenskt demo-case för IT-support, nätverk, säkerhet och tydliga kontaktflöden. Projektet började som en Lovable-export och har därefter förbättrats i Codex.
+Nova IT är en svensk IT-supportwebb för datorproblem, nätverk, installationer, säkerhet, backup och tydliga kontaktflöden. Projektet är i förlanseringsläge inför kommande migrering till webbhotell.
 
-Projektet ska förbli demo-säkert tills ett uttryckligt beslut tas om en verklig lansering. Lägg inte in påhittade kundsiffror, organisationsnummer, adresser, telefonnummer, omdömen eller servicenivåer. Riktiga hemligheter och API-nycklar får aldrig ligga i frontend-kod.
+Lägg inte in påhittade kundsiffror, organisationsnummer, adresser, telefonnummer, omdömen eller servicenivåer. Riktiga hemligheter och API-nycklar får aldrig ligga i frontend-kod.
 
 ## Teknik
 
@@ -19,7 +19,7 @@ Projektet ska förbli demo-säkert tills ett uttryckligt beslut tas om en verkli
 - `/tjanster`
 - `/assistent`
 - `/kontakt`
-- `/case-study`
+- `/arbetssatt`
 - `/faq`
 - `/om-oss`
 
@@ -51,7 +51,7 @@ bun run ci
 
 `main` ska alltid vara den senaste stabila versionen. Större förändringar görs på en separat branch och granskas i en pull request innan de går in i `main`.
 
-Den visuella redesignen och supportbotens React-integration är genomförda. `/assistent` och den globala Nova-guiden använder samma regelbaserade motor med 13 ärendespår. Backend, ticketing och riktig AI är uttryckligen inte del av den här frontend-etappen.
+Den visuella redesignen och supportbotens React-integration är genomförda. `/assistent` och den globala Nova-guiden använder samma regelbaserade motor med 13 ärendespår. Nästa större steg är att koppla kontaktflödet till vald lösning hos webbhotell eller ärendehantering.
 
 ## Dokumentation
 

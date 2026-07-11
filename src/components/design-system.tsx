@@ -37,7 +37,7 @@ export function PageHeader({
   );
 }
 
-export function DemoNotice({ className }: { className?: string }) {
+export function TrustNotice({ className }: { className?: string }) {
   return (
     <div
       className={cn(
@@ -47,8 +47,8 @@ export function DemoNotice({ className }: { className?: string }) {
     >
       <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
       <p className="leading-6 text-muted-foreground">
-        <strong className="font-semibold text-foreground">Fiktivt demo-case.</strong> Inga uppgifter
-        skickas till en server och inga siffror beskriver ett verkligt företag.
+        <strong className="font-semibold text-foreground">Trygg ärendestart.</strong> Beskriv
+        problemet, välj brådska och låt Nova IT bedöma rätt nästa steg innan större ändringar görs.
       </p>
     </div>
   );
@@ -118,11 +118,11 @@ export function CTASection({
   title,
   text,
   secondaryTo = "/assistent",
-  secondaryLabel = "Öppna Frågeguiden",
+  secondaryLabel = "Öppna Nova-guiden",
 }: {
   title: string;
   text: string;
-  secondaryTo?: "/assistent" | "/tjanster" | "/case-study";
+  secondaryTo?: "/assistent" | "/tjanster" | "/arbetssatt";
   secondaryLabel?: string;
 }) {
   return (

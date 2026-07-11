@@ -23,11 +23,11 @@ describe("support engine", () => {
     expect(flow.serviceSlug).toBe(expectedService);
   });
 
-  test("creates a demo-safe summary", () => {
+  test("creates a support summary", () => {
     const flow = getSupportFlow("wifi");
     expect(flow).toBeDefined();
     const summary = createSupportSummary({ flow: flow!, option: flow!.options[1] });
-    expect(summary).toContain("Inga kontaktuppgifter");
+    expect(summary).toContain("förberett supportärende");
     expect(summary).toContain("Föreslagen tjänst: natverk");
   });
 });

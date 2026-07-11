@@ -14,9 +14,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
-import { CheckCircle2, Clock, Mail, ShieldCheck, Sparkles } from "lucide-react";
-import { contactChannels, demoNotice, getServiceBySlug, services } from "@/lib/nova-data";
-import { Container, DemoNotice } from "@/components/design-system";
+import { CheckCircle2, Mail, ShieldCheck, Sparkles } from "lucide-react";
+import { contactChannels, contactNotice, getServiceBySlug, services } from "@/lib/nova-data";
+import { Container, TrustNotice } from "@/components/design-system";
+import { createContactEmailDraft } from "@/features/contact/contact-submission";
 
 export const Route = createFileRoute("/kontakt")({
   validateSearch: (search: Record<string, unknown>) => ({
@@ -27,14 +28,13 @@ export const Route = createFileRoute("/kontakt")({
       { title: "Beskriv ärende – Nova IT" },
       {
         name: "description",
-        content:
-          "Tillgängligt demoformulär för IT-support med tydlig validering, tjänsteval och ärendebeskrivning.",
+        content: "Beskriv ditt IT-ärende till Nova IT och välj tjänst, brådska och kontaktväg.",
       },
       { property: "og:title", content: "Beskriv ärende – Nova IT" },
       {
         property: "og:description",
         content:
-          "Frontend-only kontaktflöde som visar hur en svensk IT-supportsajt kan samla rätt information.",
+          "Förbered ett tydligt supportärende för datorproblem, nätverk, installationer eller konton.",
       },
     ],
   }),
@@ -65,7 +65,7 @@ const schema = z.object({
     .min(10, "Beskriv ärendet med minst 10 tecken")
     .max(MESSAGE_MAX, `Beskrivningen får vara högst ${MESSAGE_MAX} tecken`),
   consent: z.boolean().refine((value) => value, {
-    message: "Bekräfta att du förstår att detta är ett demoformulär",
+    message: "Bekräfta att Nova IT får använda uppgifterna för att återkomma om ärendet",
   }),
 });
 
@@ -131,6 +131,11 @@ function ContactPage() {
     setValues(createInitialValues(selectedServiceTitle));
   }
 
+  function openEmailDraft() {
+    if (!contactChannels.email) return;
+    window.location.assign(createContactEmailDraft(values, contactChannels.email));
+  }
+
   function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const parsed = schema.safeParse(values);
@@ -161,11 +166,12 @@ function ContactPage() {
           <span className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-emerald-100 text-emerald-700">
             <CheckCircle2 className="h-7 w-7" />
           </span>
-          <p className="eyebrow mt-6">Frontend-demo</p>
-          <h1 className="mt-3 text-4xl font-semibold tracking-[-0.04em]">Demoärendet är klart</h1>
+          <p className="eyebrow mt-6">Ärendeunderlag</p>
+          <h1 className="mt-3 text-4xl font-semibold tracking-[-0.04em]">
+            Underlaget är förberett
+          </h1>
           <p className="mt-3 text-muted-foreground">
-            I en skarp version skulle ärendet skickas till supporten och följas av en bekräftelse.
-            Här visas bara frontend-flödet och inga uppgifter skickas vidare.
+            Ärendet är sammanställt med informationen som Nova IT behöver för en första bedömning.
           </p>
           <div className="mt-7 grid gap-px overflow-hidden rounded-lg border border-border bg-border text-left sm:grid-cols-2">
             <div className="bg-card p-5">
@@ -191,9 +197,12 @@ function ContactPage() {
               {values.phone ? ` · ${values.phone}` : ""}
             </p>
           </div>
-          <Button className="mt-8" onClick={resetForm}>
-            Skicka ny demoförfrågan
-          </Button>
+          <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
+            {contactChannels.email && <Button onClick={openEmailDraft}>Kontakta Nova IT</Button>}
+            <Button variant={contactChannels.email ? "outline" : "default"} onClick={resetForm}>
+              Förbered ett nytt ärende
+            </Button>
+          </div>
         </Container>
       </section>
     );
@@ -213,7 +222,7 @@ function ContactPage() {
             </h1>
             <p className="mt-4 leading-7 text-muted-foreground">
               Formuläret hjälper dig välja rätt kategori och visar vilken information en tekniker
-              normalt behöver. {demoNotice}
+              normalt behöver. {contactNotice}
             </p>
 
             {selectedService && (
@@ -229,16 +238,13 @@ function ContactPage() {
             )}
 
             <div className="mt-8 space-y-4 text-sm">
-              <ContactFact icon={Mail} title="Demo-adress" text={contactChannels.email} />
-              <ContactFact
-                icon={Clock}
-                title="Exempel på öppettid"
-                text={contactChannels.availability}
-              />
+              {contactChannels.email && (
+                <ContactFact icon={Mail} title="E-post" text={contactChannels.email} />
+              )}
               <ContactFact
                 icon={ShieldCheck}
-                title="Ingen backend"
-                text="Validering sker i webbläsaren och data skickas inte vidare."
+                title="Trygg första kontakt"
+                text="Skicka aldrig lösenord, bankuppgifter eller andra känsliga uppgifter i ett nytt ärende."
               />
             </div>
             <div className="mt-7 rounded-lg border border-border bg-background/80 p-5">
@@ -255,7 +261,7 @@ function ContactPage() {
                 ))}
               </ul>
             </div>
-            <DemoNotice className="mt-7 bg-background/70" />
+            <TrustNotice className="mt-7 bg-background/70" />
           </div>
 
           <Card className="min-w-0 border-border operational-shadow">
@@ -267,7 +273,7 @@ function ContactPage() {
                   className="mb-5 rounded-md border border-destructive/30 bg-destructive/10 p-4 text-sm"
                 >
                   <p className="font-medium text-destructive">
-                    Kontrollera {errorEntries.length} fält innan du skickar.
+                    Granska {errorEntries.length} fält innan du går vidare.
                   </p>
                   <ul className="mt-2 list-disc space-y-1 pl-5 text-muted-foreground">
                     {errorEntries.map(([key, message]) => (
@@ -437,10 +443,11 @@ function ContactPage() {
                       />
                       <div>
                         <Label htmlFor="consent" className="text-sm font-medium">
-                          Jag förstår att detta är ett demoformulär.
+                          Nova IT får använda uppgifterna för att återkomma om ärendet.
                         </Label>
                         <p id="consent-hint" className="mt-1 text-sm text-muted-foreground">
-                          Uppgifterna används bara för att visa formulärets flöde i webbläsaren.
+                          Skicka inte lösenord, bankuppgifter eller annan känslig information i
+                          första kontakten.
                         </p>
                       </div>
                     </div>
@@ -452,7 +459,7 @@ function ContactPage() {
                   </div>
 
                   <Button type="submit" size="lg" className="mt-5 w-full sm:w-auto">
-                    Kontrollera och visa sammanfattning
+                    Visa ärendesammanfattning
                   </Button>
                 </fieldset>
               </form>

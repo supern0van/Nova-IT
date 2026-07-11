@@ -8,8 +8,8 @@ const nav = [
   { to: "/", label: "Hem" },
   { to: "/tjanster", label: "Tjänster" },
   { to: "/assistent", label: "Nova-guiden" },
-  { to: "/case-study", label: "Case study" },
   { to: "/faq", label: "FAQ" },
+  { to: "/om-oss", label: "Om oss" },
   { to: "/kontakt", label: "Kontakt" },
 ] as const;
 
@@ -33,7 +33,7 @@ export function SiteHeader() {
           <span>
             <span className="block text-base font-semibold tracking-[-0.02em]">Nova IT</span>
             <span className="block text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-              Fiktivt demo-case
+              IT-support och nätverk
             </span>
           </span>
         </Link>
@@ -110,7 +110,8 @@ export function SiteFooter() {
             <span className="font-semibold text-white">Nova IT</span>
           </div>
           <p className="mt-4 text-sm leading-6 text-slate-400">
-            Ett fiktivt svenskt demo-case för tydlig IT-support, nätverk och säkerhet.
+            Praktisk IT-support, nätverk, installationer och säkerhet för när tekniken behöver
+            fungera utan krångel.
           </p>
         </div>
 
@@ -121,25 +122,24 @@ export function SiteFooter() {
         </FooterColumn>
 
         <FooterColumn title="Projektet">
-          <FooterLink to="/case-study">Utvecklingsstegen</FooterLink>
-          <FooterLink to="/om-oss">Om demo-caset</FooterLink>
+          <FooterLink to="/om-oss">Om Nova IT</FooterLink>
           <FooterLink to="/faq">Vanliga frågor</FooterLink>
         </FooterColumn>
 
         <div>
           <h2 className="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-200">
-            Demo
+            Nästa steg
           </h2>
           <p className="mt-4 text-sm leading-6 text-slate-400">
-            Inga formuläruppgifter skickas vidare. Sidan representerar inget registrerat företag
-            eller verklig supportkanal.
+            Beskriv problemet, välj brådska och låt Nova IT hjälpa dig avgöra om ärendet passar
+            fjärrsupport, service eller besök.
           </p>
         </div>
       </Container>
       <div className="border-t border-white/10">
         <Container className="flex flex-col gap-2 py-5 text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between">
-          <span>© {new Date().getFullYear()} Nova IT · Frontend-demo</span>
-          <span>Byggd för granskning, lärande och fortsatt utveckling.</span>
+          <span>© {new Date().getFullYear()} Nova IT</span>
+          <span>IT-support med tydliga nästa steg.</span>
         </Container>
       </div>
     </footer>
@@ -161,7 +161,7 @@ function FooterLink({
   to,
   children,
 }: {
-  to: "/tjanster" | "/kontakt" | "/assistent" | "/case-study" | "/om-oss" | "/faq";
+  to: "/tjanster" | "/kontakt" | "/assistent" | "/arbetssatt" | "/om-oss" | "/faq";
   children: React.ReactNode;
 }) {
   return (

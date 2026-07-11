@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Container, CTASection, DemoNotice, PageHeader } from "@/components/design-system";
+import { Container, CTASection, TrustNotice, PageHeader } from "@/components/design-system";
 import { SupportGuide } from "@/features/support/SupportGuide";
 
 export const Route = createFileRoute("/assistent")({
@@ -8,8 +8,7 @@ export const Route = createFileRoute("/assistent")({
       { title: "Nova-guiden – Nova IT" },
       {
         name: "description",
-        content:
-          "Regelbaserad frontendguide med 13 spår för vanliga IT-problem och rätt tjänsteområde.",
+        content: "Nova-guiden hjälper dig beskriva IT-problemet och välja rätt supportområde.",
       },
     ],
   }),
@@ -22,8 +21,8 @@ function GuidePage() {
       <PageHeader
         eyebrow="Nova-guiden"
         title="Sortera problemet innan du beskriver ärendet."
-        intro="Tretton regelbaserade spår hjälper dig välja säkra första kontroller och rätt tjänstekategori. Guiden gör inga AI-anrop, ingen diagnostik och skickar inga uppgifter."
-        aside={<DemoNotice className="mt-5" />}
+        intro="Nova-guiden hjälper dig välja rätt supportområde och sammanfatta problemet. Den ersätter inte teknisk bedömning, utan gör kontakten med Nova IT tydligare."
+        aside={<TrustNotice className="mt-5" />}
       />
 
       <Container className="py-14">
@@ -32,7 +31,7 @@ function GuidePage() {
 
       <CTASection
         title="Guiden förbereder ärendet. Formuläret samlar resten."
-        text="Du kan kopiera en sammanfattning och ta med den vidare. Inga personuppgifter lagras eller skickas av guiden."
+        text="Använd sammanfattningen som underlag när du kontaktar Nova IT. Det gör det lättare att avgöra om ärendet passar fjärrsupport, service eller besök."
         secondaryTo="/tjanster"
         secondaryLabel="Jämför tjänster"
       />

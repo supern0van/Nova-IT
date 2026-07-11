@@ -1,6 +1,6 @@
 # Supportbot 3D-polish
 
-Den befintliga React-supportboten har fått ett visuellt lyft utan att byta arkitektur eller lägga in API-nycklar i frontend.
+Den befintliga React-supportboten har fått ett visuellt lyft utan att byta arkitektur eller lägga in hemligheter i webbläsarkoden.
 
 ## Ändrat
 

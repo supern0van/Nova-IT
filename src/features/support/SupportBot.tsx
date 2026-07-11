@@ -26,7 +26,7 @@ export function SupportBot({ open, onOpenChange }: SupportBotProps) {
             <div>
               <DialogTitle>Nova-guiden</DialogTitle>
               <DialogDescription className="mt-1 text-emerald-100/75">
-                Fördefinierade råd, ingen AI och inget skickas.
+                Förbered ärendet så Nova IT kan hjälpa snabbare.
               </DialogDescription>
             </div>
           </div>
