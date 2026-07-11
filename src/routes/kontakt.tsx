@@ -16,7 +16,7 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { CheckCircle2, Mail, ShieldCheck, Sparkles } from "lucide-react";
 import { contactChannels, contactNotice, getServiceBySlug, services } from "@/lib/nova-data";
-import { Container, TrustNotice } from "@/components/design-system";
+import { Container } from "@/components/design-system";
 import { createContactEmailDraft } from "@/features/contact/contact-submission";
 
 export const Route = createFileRoute("/kontakt")({
@@ -212,262 +212,276 @@ function ContactPage() {
   const messageLength = values.message.length;
 
   return (
-    <section className="tech-grid border-b border-border bg-secondary/35">
-      <Container className="py-14 lg:py-18">
-        <div className="grid min-w-0 gap-10 lg:grid-cols-[0.72fr_1.28fr] lg:items-start">
-          <div className="min-w-0 lg:sticky lg:top-28">
-            <p className="eyebrow">Kontaktflöde</p>
-            <h1 className="mt-3 text-4xl font-semibold tracking-[-0.04em] text-balance sm:text-5xl">
-              Beskriv ärendet i lugn och ro.
-            </h1>
-            <p className="mt-4 leading-7 text-muted-foreground">
-              Formuläret hjälper dig välja rätt kategori och visar vilken information en tekniker
-              normalt behöver. {contactNotice}
-            </p>
+    <>
+      <section className="tech-grid-dark border-b border-[#235451] bg-[#102b2c] text-white">
+        <Container className="py-14 lg:py-18">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-sky-200">Kontakt</p>
+          <h1 className="mt-4 max-w-3xl text-4xl font-semibold tracking-[-0.04em] text-balance sm:text-5xl lg:text-6xl">
+            Berätta vad som händer.
+          </h1>
+          <p className="mt-5 max-w-2xl text-lg leading-8 text-slate-300">{contactNotice}</p>
+        </Container>
+      </section>
 
-            {selectedService && (
-              <div className="mt-7 rounded-lg border border-primary/20 bg-primary/5 p-5">
-                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
-                  Förvald tjänst
-                </p>
-                <p className="mt-2 font-semibold">{selectedService.title}</p>
-                <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                  {selectedService.outcome}
-                </p>
-              </div>
-            )}
+      <section className="border-b border-border bg-background">
+        <Container className="py-14 lg:py-18">
+          <div className="grid min-w-0 gap-10 lg:grid-cols-[0.72fr_1.28fr] lg:items-start">
+            <div className="min-w-0 lg:sticky lg:top-28">
+              <p className="eyebrow">Inför kontakten</p>
+              <h2 className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-balance sm:text-4xl">
+                Rätt underlag. Rätt hjälp.
+              </h2>
+              <p className="mt-4 leading-7 text-muted-foreground">
+                Svara på det du vet. Det räcker för att Nova IT ska kunna börja på rätt ställe.
+              </p>
 
-            <div className="mt-8 space-y-4 text-sm">
-              {contactChannels.email && (
-                <ContactFact icon={Mail} title="E-post" text={contactChannels.email} />
-              )}
-              <ContactFact
-                icon={ShieldCheck}
-                title="Trygg första kontakt"
-                text="Skicka aldrig lösenord, bankuppgifter eller andra känsliga uppgifter i ett nytt ärende."
-              />
-            </div>
-            <div className="mt-7 rounded-lg border border-border bg-background/80 p-5">
-              <div className="flex items-center gap-2">
-                <Sparkles className="h-4 w-4 text-primary" />
-                <h2 className="text-sm font-semibold">Bra att ha med</h2>
-              </div>
-              <ul className="mt-4 space-y-3 text-sm text-muted-foreground">
-                {preparationTips.map((tip) => (
-                  <li key={tip} className="flex gap-2">
-                    <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                    <span>{tip}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <TrustNotice className="mt-7 bg-background/70" />
-          </div>
-
-          <Card className="min-w-0 border-border operational-shadow">
-            <CardContent className="p-5 sm:p-7">
-              {errorEntries.length > 0 && (
-                <div
-                  role="alert"
-                  aria-live="assertive"
-                  className="mb-5 rounded-md border border-destructive/30 bg-destructive/10 p-4 text-sm"
-                >
-                  <p className="font-medium text-destructive">
-                    Granska {errorEntries.length} fält innan du går vidare.
+              {selectedService && (
+                <div className="mt-7 rounded-lg border border-primary/20 bg-primary/5 p-5">
+                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
+                    Förvald tjänst
                   </p>
-                  <ul className="mt-2 list-disc space-y-1 pl-5 text-muted-foreground">
-                    {errorEntries.map(([key, message]) => (
-                      <li key={key}>{message}</li>
-                    ))}
-                  </ul>
+                  <p className="mt-2 font-semibold">{selectedService.title}</p>
+                  <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                    {selectedService.outcome}
+                  </p>
                 </div>
               )}
 
-              <form onSubmit={onSubmit} noValidate className="grid gap-5">
-                <fieldset className="min-w-0 rounded-lg border border-border p-5">
-                  <legend className="px-2 text-sm font-semibold">1. Dina uppgifter</legend>
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <Field label="Namn" name="name" error={errors.name}>
-                      {(fieldProps) => (
-                        <Input
-                          {...fieldProps}
-                          value={values.name}
-                          onChange={(event) => update("name", event.target.value)}
-                          autoComplete="name"
-                          required
-                        />
-                      )}
-                    </Field>
-                    <Field label="E-post" name="email" error={errors.email}>
-                      {(fieldProps) => (
-                        <Input
-                          {...fieldProps}
-                          type="email"
-                          value={values.email}
-                          onChange={(event) => update("email", event.target.value)}
-                          autoComplete="email"
-                          required
-                        />
-                      )}
-                    </Field>
-                  </div>
+              <div className="mt-8 space-y-4 text-sm">
+                {contactChannels.email && (
+                  <ContactFact icon={Mail} title="E-post" text={contactChannels.email} />
+                )}
+                <ContactFact
+                  icon={ShieldCheck}
+                  title="Trygg första kontakt"
+                  text="Skicka aldrig lösenord, bankuppgifter eller andra känsliga uppgifter i ett nytt ärende."
+                />
+              </div>
+              <div className="mt-7 rounded-lg border border-border bg-background/80 p-5">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="h-4 w-4 text-primary" />
+                  <h2 className="text-sm font-semibold">Bra att ha med</h2>
+                </div>
+                <ul className="mt-4 space-y-3 text-sm text-muted-foreground">
+                  {preparationTips.map((tip) => (
+                    <li key={tip} className="flex gap-2">
+                      <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                      <span>{tip}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
 
-                  <div className="mt-4 grid gap-4 sm:grid-cols-2">
-                    <Field
-                      label="Telefon eller annan kontaktväg"
-                      name="phone"
-                      error={errors.phone}
-                      hint="Valfritt. Skriv telefonnummer, Teams eller annan kontaktväg."
-                    >
-                      {(fieldProps) => (
-                        <Input
-                          {...fieldProps}
-                          type="tel"
-                          value={values.phone}
-                          onChange={(event) => update("phone", event.target.value)}
-                          autoComplete="tel"
-                        />
-                      )}
-                    </Field>
-                    <Field label="Kundtyp" name="customerType" error={errors.customerType}>
-                      {(fieldProps) => (
-                        <Select
-                          value={values.customerType}
-                          onValueChange={(value) =>
-                            update("customerType", value as FormValues["customerType"])
-                          }
-                        >
-                          <SelectTrigger {...fieldProps}>
-                            <SelectValue placeholder="Välj kundtyp" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {customerTypes.map((option) => (
-                              <SelectItem key={option} value={option}>
-                                {option}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      )}
-                    </Field>
+            <Card className="min-w-0 border-border operational-shadow">
+              <CardContent className="p-5 sm:p-7">
+                {errorEntries.length > 0 && (
+                  <div
+                    role="alert"
+                    aria-live="assertive"
+                    className="mb-5 rounded-md border border-destructive/30 bg-destructive/10 p-4 text-sm"
+                  >
+                    <p className="font-medium text-destructive">
+                      Granska {errorEntries.length} fält innan du går vidare.
+                    </p>
+                    <ul className="mt-2 list-disc space-y-1 pl-5 text-muted-foreground">
+                      {errorEntries.map(([key, message]) => (
+                        <li key={key}>{message}</li>
+                      ))}
+                    </ul>
                   </div>
-                </fieldset>
+                )}
 
-                <fieldset className="min-w-0 rounded-lg border border-border p-5">
-                  <legend className="px-2 text-sm font-semibold">2. Ärendet</legend>
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <Field
-                      label="Tjänst"
-                      name="service"
-                      error={errors.service}
-                      hint={
-                        selectedService
-                          ? `Förvalt från länken: ${selectedService.title}.`
-                          : "Välj den tjänst som ligger närmast problemet."
-                      }
-                    >
-                      {(fieldProps) => (
-                        <Select
-                          value={values.service}
-                          onValueChange={(value) => update("service", value)}
-                        >
-                          <SelectTrigger {...fieldProps}>
-                            <SelectValue placeholder="Välj tjänst" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {services.map((service) => (
-                              <SelectItem key={service.slug} value={service.title}>
-                                {service.title}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      )}
-                    </Field>
-                    <Field label="Brådska" name="urgency" error={errors.urgency}>
-                      {(fieldProps) => (
-                        <Select
-                          value={values.urgency}
-                          onValueChange={(value) =>
-                            update("urgency", value as FormValues["urgency"])
-                          }
-                        >
-                          <SelectTrigger {...fieldProps}>
-                            <SelectValue placeholder="Välj brådska" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {urgencyLevels.map((option) => (
-                              <SelectItem key={option} value={option}>
-                                {option}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      )}
-                    </Field>
-                  </div>
-
-                  <div className="mt-4">
-                    <Field
-                      label="Beskriv ärendet"
-                      name="message"
-                      error={errors.message}
-                      hint={`Minst 10 tecken. ${messageLength}/${MESSAGE_MAX} tecken använda.`}
-                    >
-                      {(fieldProps) => (
-                        <Textarea
-                          {...fieldProps}
-                          rows={6}
-                          value={values.message}
-                          onChange={(event) => update("message", event.target.value)}
-                          maxLength={MESSAGE_MAX}
-                          required
-                        />
-                      )}
-                    </Field>
-                  </div>
-                </fieldset>
-
-                <fieldset className="min-w-0 rounded-lg border border-border p-5">
-                  <legend className="px-2 text-sm font-semibold">3. Bekräfta</legend>
-                  <div>
-                    <div className="flex items-start gap-3">
-                      <Checkbox
-                        id="consent"
-                        checked={values.consent}
-                        onCheckedChange={(checked) => update("consent", checked === true)}
-                        aria-invalid={errors.consent ? true : undefined}
-                        aria-describedby={
-                          errors.consent ? "consent-hint consent-error" : "consent-hint"
-                        }
-                      />
-                      <div>
-                        <Label htmlFor="consent" className="text-sm font-medium">
-                          Nova IT får använda uppgifterna för att återkomma om ärendet.
-                        </Label>
-                        <p id="consent-hint" className="mt-1 text-sm text-muted-foreground">
-                          Skicka inte lösenord, bankuppgifter eller annan känslig information i
-                          första kontakten.
-                        </p>
-                      </div>
+                <form onSubmit={onSubmit} noValidate className="grid gap-5">
+                  <fieldset className="min-w-0 rounded-lg border border-border p-5">
+                    <legend className="px-2 text-sm font-semibold">1. Dina uppgifter</legend>
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <Field label="Namn" name="name" error={errors.name}>
+                        {(fieldProps) => (
+                          <Input
+                            {...fieldProps}
+                            value={values.name}
+                            onChange={(event) => update("name", event.target.value)}
+                            autoComplete="name"
+                            required
+                          />
+                        )}
+                      </Field>
+                      <Field label="E-post" name="email" error={errors.email}>
+                        {(fieldProps) => (
+                          <Input
+                            {...fieldProps}
+                            type="email"
+                            value={values.email}
+                            onChange={(event) => update("email", event.target.value)}
+                            autoComplete="email"
+                            required
+                          />
+                        )}
+                      </Field>
                     </div>
-                    {errors.consent && (
-                      <p id="consent-error" role="alert" className="mt-1 text-sm text-destructive">
-                        {errors.consent}
-                      </p>
-                    )}
-                  </div>
 
-                  <Button type="submit" size="lg" className="mt-5 w-full sm:w-auto">
-                    Visa ärendesammanfattning
-                  </Button>
-                </fieldset>
-              </form>
-            </CardContent>
-          </Card>
-        </div>
-      </Container>
-    </section>
+                    <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                      <Field
+                        label="Telefon eller annan kontaktväg"
+                        name="phone"
+                        error={errors.phone}
+                        hint="Valfritt. Skriv telefonnummer, Teams eller annan kontaktväg."
+                      >
+                        {(fieldProps) => (
+                          <Input
+                            {...fieldProps}
+                            type="tel"
+                            value={values.phone}
+                            onChange={(event) => update("phone", event.target.value)}
+                            autoComplete="tel"
+                          />
+                        )}
+                      </Field>
+                      <Field label="Kundtyp" name="customerType" error={errors.customerType}>
+                        {(fieldProps) => (
+                          <Select
+                            value={values.customerType}
+                            onValueChange={(value) =>
+                              update("customerType", value as FormValues["customerType"])
+                            }
+                          >
+                            <SelectTrigger {...fieldProps}>
+                              <SelectValue placeholder="Välj kundtyp" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {customerTypes.map((option) => (
+                                <SelectItem key={option} value={option}>
+                                  {option}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        )}
+                      </Field>
+                    </div>
+                  </fieldset>
+
+                  <fieldset className="min-w-0 rounded-lg border border-border p-5">
+                    <legend className="px-2 text-sm font-semibold">2. Ärendet</legend>
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <Field
+                        label="Tjänst"
+                        name="service"
+                        error={errors.service}
+                        hint={
+                          selectedService
+                            ? `Förvalt från länken: ${selectedService.title}.`
+                            : "Välj den tjänst som ligger närmast problemet."
+                        }
+                      >
+                        {(fieldProps) => (
+                          <Select
+                            value={values.service}
+                            onValueChange={(value) => update("service", value)}
+                          >
+                            <SelectTrigger {...fieldProps}>
+                              <SelectValue placeholder="Välj tjänst" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {services.map((service) => (
+                                <SelectItem key={service.slug} value={service.title}>
+                                  {service.title}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        )}
+                      </Field>
+                      <Field label="Brådska" name="urgency" error={errors.urgency}>
+                        {(fieldProps) => (
+                          <Select
+                            value={values.urgency}
+                            onValueChange={(value) =>
+                              update("urgency", value as FormValues["urgency"])
+                            }
+                          >
+                            <SelectTrigger {...fieldProps}>
+                              <SelectValue placeholder="Välj brådska" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {urgencyLevels.map((option) => (
+                                <SelectItem key={option} value={option}>
+                                  {option}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        )}
+                      </Field>
+                    </div>
+
+                    <div className="mt-4">
+                      <Field
+                        label="Beskriv ärendet"
+                        name="message"
+                        error={errors.message}
+                        hint={`Minst 10 tecken. ${messageLength}/${MESSAGE_MAX} tecken använda.`}
+                      >
+                        {(fieldProps) => (
+                          <Textarea
+                            {...fieldProps}
+                            rows={6}
+                            value={values.message}
+                            onChange={(event) => update("message", event.target.value)}
+                            maxLength={MESSAGE_MAX}
+                            required
+                          />
+                        )}
+                      </Field>
+                    </div>
+                  </fieldset>
+
+                  <fieldset className="min-w-0 rounded-lg border border-border p-5">
+                    <legend className="px-2 text-sm font-semibold">3. Bekräfta</legend>
+                    <div>
+                      <div className="flex items-start gap-3">
+                        <Checkbox
+                          id="consent"
+                          checked={values.consent}
+                          onCheckedChange={(checked) => update("consent", checked === true)}
+                          aria-invalid={errors.consent ? true : undefined}
+                          aria-describedby={
+                            errors.consent ? "consent-hint consent-error" : "consent-hint"
+                          }
+                        />
+                        <div>
+                          <Label htmlFor="consent" className="text-sm font-medium">
+                            Nova IT får använda uppgifterna för att återkomma om ärendet.
+                          </Label>
+                          <p id="consent-hint" className="mt-1 text-sm text-muted-foreground">
+                            Skicka inte lösenord, bankuppgifter eller annan känslig information i
+                            första kontakten.
+                          </p>
+                        </div>
+                      </div>
+                      {errors.consent && (
+                        <p
+                          id="consent-error"
+                          role="alert"
+                          className="mt-1 text-sm text-destructive"
+                        >
+                          {errors.consent}
+                        </p>
+                      )}
+                    </div>
+
+                    <Button type="submit" size="lg" className="mt-5 w-full sm:w-auto">
+                      Visa ärendesammanfattning
+                    </Button>
+                  </fieldset>
+                </form>
+              </CardContent>
+            </Card>
+          </div>
+        </Container>
+      </section>
+    </>
   );
 }
 

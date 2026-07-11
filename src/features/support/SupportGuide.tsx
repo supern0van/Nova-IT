@@ -168,10 +168,10 @@ export function SupportGuide({ compact = false, onNavigate }: SupportGuideProps)
           </div>
         ) : (
           <article className="overflow-hidden rounded-lg border border-border bg-card operational-shadow">
-            <div className="bg-[#102724] px-5 py-5 text-white">
+            <div className="bg-[#102b2c] px-5 py-5 text-white">
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-200">
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-sky-200">
                     Första bedömning
                   </p>
                   <h2 className="mt-2 text-xl font-semibold tracking-[-0.03em]">{flow.title}</h2>
@@ -179,13 +179,13 @@ export function SupportGuide({ compact = false, onNavigate }: SupportGuideProps)
                 <button
                   type="button"
                   onClick={reset}
-                  className="rounded-md p-2 text-emerald-100 hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                  className="rounded-md p-2 text-sky-100 hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
                   aria-label="Börja om"
                 >
                   <RotateCcw className="h-4 w-4" />
                 </button>
               </div>
-              <p className="mt-3 text-sm leading-6 text-emerald-50/80">{flow.intro}</p>
+              <p className="mt-3 text-sm leading-6 text-sky-50/80">{flow.intro}</p>
             </div>
 
             <div className={cn("grid gap-px bg-border", compact ? "" : "md:grid-cols-2")}>

@@ -27,7 +27,7 @@ export function SiteHeader() {
           className="flex items-center gap-3 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           onClick={() => setOpen(false)}
         >
-          <span className="grid h-10 w-10 place-items-center rounded-md bg-[#102724] text-emerald-200 shadow-sm">
+          <span className="grid h-10 w-10 place-items-center rounded-md bg-[#102b2c] text-sky-200 shadow-sm">
             <ShieldCheck className="h-5 w-5" />
           </span>
           <span>
@@ -100,11 +100,11 @@ export function SiteHeader() {
 
 export function SiteFooter() {
   return (
-    <footer className="mt-20 border-t border-border bg-[#102724] text-slate-200">
+    <footer className="mt-20 border-t border-border bg-[#102b2c] text-slate-200">
       <Container className="grid gap-10 py-12 sm:grid-cols-2 lg:grid-cols-4">
         <div>
           <div className="flex items-center gap-3">
-            <span className="grid h-9 w-9 place-items-center rounded-md bg-emerald-300 text-slate-950">
+            <span className="grid h-9 w-9 place-items-center rounded-md bg-sky-300 text-slate-950">
               <ShieldCheck className="h-4 w-4" />
             </span>
             <span className="font-semibold text-white">Nova IT</span>
@@ -126,7 +126,7 @@ export function SiteFooter() {
         </FooterColumn>
 
         <div>
-          <h2 className="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-200">
+          <h2 className="text-xs font-semibold uppercase tracking-[0.16em] text-sky-200">
             Nästa steg
           </h2>
           <p className="mt-4 text-sm leading-6 text-slate-400">
@@ -148,9 +148,7 @@ export function SiteFooter() {
 function FooterColumn({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div>
-      <h2 className="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-200">
-        {title}
-      </h2>
+      <h2 className="text-xs font-semibold uppercase tracking-[0.16em] text-sky-200">{title}</h2>
       <ul className="mt-4 space-y-3 text-sm text-slate-400">{children}</ul>
     </div>
   );

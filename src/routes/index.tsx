@@ -32,16 +32,16 @@ export const Route = createFileRoute("/")({
 function Home() {
   return (
     <>
-      <section className="relative isolate min-h-[680px] overflow-hidden bg-[#102724] text-white sm:min-h-[720px]">
+      <section className="relative isolate min-h-[680px] overflow-hidden bg-[#102b2c] text-white sm:min-h-[720px]">
         <img
           src="/nova-it-workspace.png"
           alt="Arbetsplats med dator och nätverksutrustning"
           className="absolute inset-0 -z-20 h-full w-full object-cover object-[66%_center]"
         />
-        <div className="absolute inset-0 -z-10 bg-[#102724]/78" />
+        <div className="absolute inset-0 -z-10 bg-[#102b2c]/78" />
         <Container className="flex min-h-[680px] items-end py-14 sm:min-h-[720px] sm:py-18">
           <div className="max-w-3xl">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-200">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-sky-200">
               Datorer · Nätverk · Säkerhet
             </p>
             <h1 className="mt-5 text-5xl font-semibold leading-[0.94] tracking-[-0.055em] text-balance sm:text-6xl lg:text-8xl">
@@ -52,11 +52,7 @@ function Home() {
               Rakt, tryggt och utan onödigt krångel.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <Button
-                asChild
-                size="lg"
-                className="bg-emerald-300 text-slate-950 hover:bg-emerald-200"
-              >
+              <Button asChild size="lg" className="bg-sky-300 text-slate-950 hover:bg-sky-200">
                 <Link to="/kontakt" search={{ service: undefined }}>
                   Få hjälp nu <ArrowRight className="h-4 w-4" />
                 </Link>
@@ -114,10 +110,10 @@ function Home() {
         </div>
       </Container>
 
-      <section className="border-y border-border bg-[#102724] text-white">
+      <section className="border-y border-border bg-[#102b2c] text-white">
         <Container className="grid gap-10 py-16 lg:grid-cols-[0.7fr_1.3fr] lg:items-start">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-200">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-sky-200">
               Så arbetar vi
             </p>
             <h2 className="mt-3 text-3xl font-semibold tracking-[-0.035em] text-balance sm:text-4xl">
@@ -130,7 +126,7 @@ function Home() {
           <ol className="grid gap-7 sm:grid-cols-3">
             {processSteps.map((step, index) => (
               <li key={step.title}>
-                <span className="text-xs font-semibold text-emerald-300">0{index + 1}</span>
+                <span className="text-xs font-semibold text-sky-300">0{index + 1}</span>
                 <h3 className="mt-4 font-semibold">{step.title}</h3>
                 <p className="mt-2 text-sm leading-6 text-slate-400">{step.text}</p>
               </li>
