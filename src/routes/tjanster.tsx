@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { services, serviceCategories } from "@/lib/nova-data";
 import { ServiceCard } from "@/components/service-card";
@@ -20,6 +20,21 @@ export const Route = createFileRoute("/tjanster")({
 });
 
 function ServicesPage() {
+  const choiceSignals = [
+    {
+      title: "Välj support",
+      text: "När något stoppar arbetsdagen just nu: konto, skrivare, program eller dator.",
+    },
+    {
+      title: "Välj felsökning",
+      text: "När felet återkommer, är oklart eller behöver testas metodiskt.",
+    },
+    {
+      title: "Välj säkerhet",
+      text: "När det handlar om kontoangrepp, backup, åtkomst eller risk för dataförlust.",
+    },
+  ];
+
   return (
     <>
       <PageHeader
@@ -60,6 +75,32 @@ function ServicesPage() {
           ))}
         </div>
       </Container>
+
+      <section className="border-y border-border bg-card">
+        <Container className="grid gap-8 py-14 lg:grid-cols-[0.7fr_1.3fr] lg:items-start">
+          <div>
+            <p className="eyebrow">Snabbval</p>
+            <h2 className="mt-3 text-3xl font-semibold tracking-[-0.035em] text-balance">
+              Osäker på var ärendet hör hemma?
+            </h2>
+            <p className="mt-4 leading-7 text-muted-foreground">
+              Börja med effekten av problemet. Det går snabbare än att gissa teknisk orsak.
+            </p>
+          </div>
+          <div className="grid gap-4 md:grid-cols-3">
+            {choiceSignals.map((signal) => (
+              <article
+                key={signal.title}
+                className="rounded-lg border border-border bg-secondary/35 p-5"
+              >
+                <CheckCircle2 className="h-5 w-5 text-primary" />
+                <h3 className="mt-4 font-semibold">{signal.title}</h3>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">{signal.text}</p>
+              </article>
+            ))}
+          </div>
+        </Container>
+      </section>
 
       <section className="border-y border-border bg-secondary/35">
         <Container className="py-16">

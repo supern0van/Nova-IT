@@ -251,6 +251,32 @@ function Home() {
       </Container>
 
       <section className="border-y border-border bg-card">
+        <Container className="grid gap-8 py-14 lg:grid-cols-[0.72fr_1.28fr] lg:items-center">
+          <div>
+            <p className="eyebrow">Innan du bokar</p>
+            <h2 className="mt-3 text-3xl font-semibold tracking-[-0.035em] text-balance">
+              Tre saker gör supportärendet lättare att lösa.
+            </h2>
+            <p className="mt-4 leading-7 text-muted-foreground">
+              Den bästa hjälpen börjar med rätt symptom, rätt omfattning och ett tydligt mål.
+            </p>
+          </div>
+          <div className="grid gap-4 md:grid-cols-3">
+            {[
+              ["Omfattning", "Gäller det en person, en dator eller flera enheter?"],
+              ["Tidpunkt", "När började det och är problemet återkommande?"],
+              ["Konsekvens", "Stoppar det arbete, möten, inloggning eller filer?"],
+            ].map(([title, text]) => (
+              <article key={title} className="rounded-lg border border-border bg-secondary/35 p-5">
+                <h3 className="font-semibold">{title}</h3>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">{text}</p>
+              </article>
+            ))}
+          </div>
+        </Container>
+      </section>
+
+      <section className="border-y border-border bg-card">
         <Container className="grid gap-10 py-16 lg:grid-cols-[0.72fr_1.28fr]">
           <div>
             <p className="eyebrow">FAQ</p>

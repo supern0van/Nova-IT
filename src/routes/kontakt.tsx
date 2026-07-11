@@ -14,7 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
-import { CheckCircle2, Clock, Mail, ShieldCheck } from "lucide-react";
+import { CheckCircle2, Clock, Mail, ShieldCheck, Sparkles } from "lucide-react";
 import { contactChannels, demoNotice, getServiceBySlug, services } from "@/lib/nova-data";
 import { Container, DemoNotice } from "@/components/design-system";
 
@@ -44,6 +44,11 @@ export const Route = createFileRoute("/kontakt")({
 const MESSAGE_MAX = 1000;
 const customerTypes = ["Privatperson", "Företag", "Skola", "Annat"] as const;
 const urgencyLevels = ["Planerat", "Normal", "Akut"] as const;
+const preparationTips = [
+  "Vilken enhet, användare eller plats gäller det?",
+  "När började problemet och händer det hela tiden?",
+  "Vad har redan testats: omstart, annan kabel, annan plats eller webbläsare?",
+];
 
 const schema = z.object({
   name: z.string().trim().min(2, "Ange ditt namn med minst två tecken").max(100),
@@ -176,6 +181,16 @@ function ContactPage() {
               <p className="mt-2 font-medium">{values.urgency || "Ej vald"}</p>
             </div>
           </div>
+          <div className="mt-4 rounded-lg border border-border bg-card p-5 text-left">
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+              Sammanfattning
+            </p>
+            <p className="mt-2 text-sm leading-6 text-muted-foreground">{values.message}</p>
+            <p className="mt-3 text-sm text-muted-foreground">
+              Kontaktväg: {values.email}
+              {values.phone ? ` · ${values.phone}` : ""}
+            </p>
+          </div>
           <Button className="mt-8" onClick={resetForm}>
             Skicka ny demoförfrågan
           </Button>
@@ -225,6 +240,20 @@ function ContactPage() {
                 title="Ingen backend"
                 text="Validering sker i webbläsaren och data skickas inte vidare."
               />
+            </div>
+            <div className="mt-7 rounded-lg border border-border bg-background/80 p-5">
+              <div className="flex items-center gap-2">
+                <Sparkles className="h-4 w-4 text-primary" />
+                <h2 className="text-sm font-semibold">Bra att ha med</h2>
+              </div>
+              <ul className="mt-4 space-y-3 text-sm text-muted-foreground">
+                {preparationTips.map((tip) => (
+                  <li key={tip} className="flex gap-2">
+                    <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                    <span>{tip}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
             <DemoNotice className="mt-7 bg-background/70" />
           </div>

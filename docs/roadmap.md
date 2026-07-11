@@ -12,10 +12,10 @@ Den här listan ska hålla fokus på hemsidan och undvika att projektet sprids �
 
 ## Nästa hemsidepass
 
-- [ ] Granska startsidan visuellt på desktop och mobil.
-- [ ] Kontrollera att alla tjänstekort leder rätt.
-- [ ] Gå igenom `/kontakt` och gör bokningsflödet tydligare.
-- [ ] Se över `/tjanster` så varje tjänst känns konkret och säljbar utan att bli överdriven.
+- [x] Granska startsidan och förstärka nästa-steg-innehåll.
+- [x] Kontrollera att alla tjänstekort leder rätt.
+- [x] Gå igenom `/kontakt` och gör bokningsflödet tydligare.
+- [x] Se över `/tjanster` så varje tjänst känns konkret och säljbar utan att bli överdriven.
 - [ ] Kontrollera `/assistent` och den flytande Nova-guiden mot verkliga användarfrågor.
 - [ ] Förbättra SEO metadata och social preview-texter.
 - [ ] Göra en tillgänglighetsrunda: fokus, kontrast, labels och tangentbord.
