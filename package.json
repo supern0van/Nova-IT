@@ -9,6 +9,8 @@
     "build": "vite build",
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
+    "deploy": "bun run build && bunx wrangler deploy",
+    "deploy:preview": "bun run build && bunx wrangler deploy --temporary",
     "test": "bun test src/features",
     "typecheck": "tsc --noEmit --pretty false",
     "ci": "bun run test && bun run lint && bun run typecheck && bun run build",

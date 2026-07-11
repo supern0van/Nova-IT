@@ -1,6 +1,6 @@
 # Deploy och publicering
 
-Projektet är redo att byggas, men ska inte publiceras på webbhotell förrän kontaktuppgifter, formulärhantering och publiceringsbeslut är klara.
+Projektet byggs för Cloudflare Workers. En första extern förhandsdrift kan göras utan kontoanslutning; permanent publicering kräver ett Cloudflare-konto och en domän när sådan är klar.
 
 ## Lokal build
 
@@ -10,6 +10,24 @@ bun run ci
 ```
 
 Build-output skapas i `.output` och ska inte commitas.
+
+## Cloudflare Workers
+
+För extern förhandsvisning utan inloggning:
+
+```bash
+bun run deploy:preview
+```
+
+Cloudflare visar då en anspråkslänk. Öppna den inom den angivna tiden och koppla förhandsdriften till rätt Cloudflare-konto.
+
+För permanent deploy efter `wrangler login` eller med `CLOUDFLARE_API_TOKEN`:
+
+```bash
+bun run deploy
+```
+
+Den genererade konfigurationen i `.wrangler/deploy/config.json` pekar på `.output/server/wrangler.json`. Ändra inte den genererade filen manuellt.
 
 ## Miljövariabler
 
@@ -29,9 +47,9 @@ Verifieringen kör:
 - `bun run typecheck`
 - `bun run build`
 
-## Publiceringsbeslut
+## Kvar inför egen domän
 
-Innan live-deploy behövs beslut om:
+Innan egen domän och fullt kontaktflöde kopplas behövs:
 
 - domän
 - riktig kontaktinformation
