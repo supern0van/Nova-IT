@@ -1,4 +1,3 @@
-import { Bot } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function RobotMascot({ className }: { className?: string }) {
@@ -6,13 +5,22 @@ export function RobotMascot({ className }: { className?: string }) {
     <span
       aria-hidden="true"
       className={cn(
-        "relative grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-emerald-200/70 bg-emerald-100 text-[#0d5b4f] shadow-sm",
+        "nova-robot relative grid h-12 w-12 shrink-0 place-items-center rounded-[1.15rem]",
         className,
       )}
     >
-      <span className="absolute -top-1 h-2.5 w-px bg-emerald-700" />
-      <span className="absolute -top-1.5 h-1.5 w-1.5 rounded-full bg-emerald-500 motion-safe:animate-pulse" />
-      <Bot className="h-6 w-6" />
+      <span className="nova-robot__shadow" />
+      <span className="nova-robot__antenna" />
+      <span className="nova-robot__head">
+        <span className="nova-robot__shine" />
+        <span className="nova-robot__ear nova-robot__ear--left" />
+        <span className="nova-robot__ear nova-robot__ear--right" />
+        <span className="nova-robot__visor">
+          <span className="nova-robot__eye" />
+          <span className="nova-robot__eye" />
+        </span>
+        <span className="nova-robot__mouth" />
+      </span>
     </span>
   );
 }

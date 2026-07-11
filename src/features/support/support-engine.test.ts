@@ -1,6 +1,15 @@
 import { describe, expect, test } from "bun:test";
 import { supportFlows } from "./support-data";
 import { createSupportSummary, getSupportFlow, matchSupportFlow } from "./support-engine";
+import type { SupportServiceSlug } from "./support-types";
+
+const flowMatches: Array<[query: string, expectedId: string, expectedService: SupportServiceSlug]> =
+  [
+    ["Wi-Fi tappar anslutningen", "wifi", "natverk"],
+    ["Skrivaren är offline", "printer", "it-support"],
+    ["Jag misstänker phishing", "virus", "sakerhet-backup"],
+    ["Outlook och MFA fungerar inte", "account", "microsoft-google"],
+  ];
 
 describe("support engine", () => {
   test("contains the thirteen planned flows", () => {
@@ -8,12 +17,7 @@ describe("support engine", () => {
     expect(new Set(supportFlows.map((flow) => flow.id)).size).toBe(13);
   });
 
-  test.each([
-    ["Wi-Fi tappar anslutningen", "wifi", "natverk"],
-    ["Skrivaren är offline", "printer", "it-support"],
-    ["Jag misstänker phishing", "virus", "sakerhet-backup"],
-    ["Outlook och MFA fungerar inte", "account", "microsoft-google"],
-  ])("matches %s", (query, expectedId, expectedService) => {
+  test.each(flowMatches)("matches %s", (query, expectedId, expectedService) => {
     const flow = matchSupportFlow(query);
     expect(flow.id).toBe(expectedId);
     expect(flow.serviceSlug).toBe(expectedService);

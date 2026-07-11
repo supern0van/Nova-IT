@@ -11,10 +11,10 @@ export function SupportBotLauncher() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="fixed right-4 bottom-4 z-40 flex items-center gap-3 rounded-xl border border-emerald-900/15 bg-[#102724] p-2 pr-4 text-left text-white shadow-xl transition-transform hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 motion-reduce:transform-none sm:right-6 sm:bottom-6"
+        className="nova-support-launcher fixed right-4 bottom-4 z-40 flex items-center gap-3 rounded-2xl border border-white/15 bg-[#102724] p-2 pr-4 text-left text-white shadow-2xl transition-transform hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 motion-reduce:transform-none sm:right-6 sm:bottom-6"
         aria-label="Öppna Nova-guiden"
       >
-        <RobotMascot className="h-10 w-10" />
+        <RobotMascot className="h-12 w-12" />
         <span className="hidden sm:block">
           <span className="block text-xs font-semibold uppercase tracking-[0.12em] text-emerald-200">
             Behöver du hjälp?
