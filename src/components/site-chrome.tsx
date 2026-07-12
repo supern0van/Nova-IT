@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { Menu, X, ShieldCheck, ArrowUpRight } from "lucide-react";
+import { Menu, X, ArrowUpRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Container } from "@/components/design-system";
 
@@ -27,8 +27,8 @@ export function SiteHeader() {
           className="flex items-center gap-3 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           onClick={() => setOpen(false)}
         >
-          <span className="grid h-10 w-10 place-items-center rounded-md bg-[#102b2c] text-sky-200 shadow-sm">
-            <ShieldCheck className="h-5 w-5" />
+          <span className="grid h-10 w-10 place-items-center overflow-hidden rounded-md shadow-sm shadow-sky-950/15">
+            <img src="/nova-it-mark.svg" alt="" className="h-full w-full" />
           </span>
           <span>
             <span className="block text-base font-semibold tracking-[-0.02em]">Nova IT</span>
@@ -104,8 +104,8 @@ export function SiteFooter() {
       <Container className="grid overflow-hidden lg:grid-cols-[1.45fr_0.8fr_0.8fr_1fr]">
         <div className="border-b border-white/10 py-10 lg:border-r lg:pr-10">
           <div className="flex items-center gap-3">
-            <span className="grid h-10 w-10 place-items-center rounded-md border border-sky-200/20 bg-sky-300/10 text-sky-200">
-              <ShieldCheck className="h-4 w-4" />
+            <span className="grid h-10 w-10 place-items-center overflow-hidden rounded-md border border-sky-200/20 bg-sky-300/10">
+              <img src="/nova-it-mark-inverse.svg" alt="" className="h-full w-full" />
             </span>
             <span>
               <span className="block font-semibold text-white">Nova IT</span>
