@@ -26,7 +26,7 @@ export function PageHeader({
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
             {eyebrow}
           </p>
-          <h1 className="mt-4 max-w-3xl text-4xl font-semibold tracking-[-0.04em] text-balance sm:text-5xl lg:text-6xl">
+          <h1 className="mt-4 max-w-3xl text-4xl font-semibold tracking-normal text-balance sm:text-5xl lg:text-6xl">
             {title}
           </h1>
         </div>
@@ -68,32 +68,36 @@ export function CTASection({
   secondaryLabel?: string;
 }) {
   return (
-    <Container className="py-16">
-      <div className="overflow-hidden rounded-lg border border-sky-200 bg-[#eef7fb] px-6 py-10 text-foreground sm:px-10">
-        <div className="grid gap-7 lg:grid-cols-[1fr_auto] lg:items-center">
-          <div>
-            <p className="eyebrow">Tydligt nästa steg</p>
-            <h2 className="mt-3 max-w-2xl text-3xl font-semibold tracking-[-0.03em] text-balance">
-              {title}
-            </h2>
-            <p className="mt-3 max-w-2xl leading-7 text-muted-foreground">{text}</p>
-          </div>
-          <div className="flex flex-col gap-3 sm:flex-row">
-            <Button asChild>
-              <Link to="/kontakt" search={{ service: undefined }}>
-                Beskriv ärende <ArrowRight className="h-4 w-4" />
-              </Link>
-            </Button>
-            <Button
-              asChild
-              variant="outline"
-              className="border-sky-300 bg-white text-foreground hover:bg-sky-50 hover:text-foreground"
-            >
-              <Link to={secondaryTo}>{secondaryLabel}</Link>
-            </Button>
+    <section className="border-y border-white/10 bg-[#090f15] text-white">
+      <Container className="py-16">
+        <div className="border-l border-sky-300 px-6 py-5 sm:px-10">
+          <div className="grid gap-7 lg:grid-cols-[1fr_auto] lg:items-center">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-sky-300">
+                Nästa steg
+              </p>
+              <h2 className="mt-3 max-w-2xl text-3xl font-semibold tracking-normal text-balance">
+                {title}
+              </h2>
+              <p className="mt-3 max-w-2xl leading-7 text-slate-300">{text}</p>
+            </div>
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <Button asChild>
+                <Link to="/kontakt" search={{ service: undefined }}>
+                  Beskriv ärende <ArrowRight className="h-4 w-4" />
+                </Link>
+              </Button>
+              <Button
+                asChild
+                variant="outline"
+                className="border-white/30 bg-white/5 text-white hover:bg-white/10 hover:text-white"
+              >
+                <Link to={secondaryTo}>{secondaryLabel}</Link>
+              </Button>
+            </div>
           </div>
         </div>
-      </div>
-    </Container>
+      </Container>
+    </section>
   );
 }

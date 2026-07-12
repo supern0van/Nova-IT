@@ -14,13 +14,13 @@ const nav = [
 ] as const;
 
 const linkClass =
-  "rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
+  "rounded-md px-3 py-2 text-sm font-medium text-slate-300 transition-colors hover:bg-white/8 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300";
 
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-border/80 bg-background/92 backdrop-blur-xl">
+    <header className="sticky top-0 z-40 w-full border-b border-white/10 bg-[#090f15]/94 text-white backdrop-blur-xl">
       <Container className="flex h-18 items-center justify-between">
         <Link
           to="/"
@@ -31,8 +31,8 @@ export function SiteHeader() {
             <img src="/nova-it-mark.svg" alt="" className="h-full w-full" />
           </span>
           <span>
-            <span className="block text-base font-semibold tracking-[-0.02em]">Nova IT</span>
-            <span className="block text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+            <span className="block text-base font-semibold tracking-normal">Nova IT</span>
+            <span className="block text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">
               IT-support och nätverk
             </span>
           </span>
@@ -44,7 +44,7 @@ export function SiteHeader() {
               key={item.to}
               to={item.to}
               className={linkClass}
-              activeProps={{ className: "bg-accent text-foreground" }}
+              activeProps={{ className: "bg-white/10 text-white" }}
               activeOptions={{ exact: item.to === "/" }}
             >
               {item.label}
@@ -63,14 +63,14 @@ export function SiteHeader() {
           aria-expanded={open}
           aria-controls="mobile-navigation"
           onClick={() => setOpen((value) => !value)}
-          className="grid h-10 w-10 place-items-center rounded-md border border-border bg-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring lg:hidden"
+          className="grid h-10 w-10 place-items-center rounded-md border border-white/15 bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 lg:hidden"
         >
           {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </button>
       </Container>
 
       {open && (
-        <div id="mobile-navigation" className="border-t border-border bg-background lg:hidden">
+        <div id="mobile-navigation" className="border-t border-white/10 bg-[#090f15] lg:hidden">
           <Container>
             <nav className="flex flex-col gap-1 py-4" aria-label="Mobilnavigering">
               {nav.map((item) => (
@@ -79,7 +79,7 @@ export function SiteHeader() {
                   to={item.to}
                   onClick={() => setOpen(false)}
                   className={linkClass}
-                  activeProps={{ className: "bg-accent text-foreground" }}
+                  activeProps={{ className: "bg-white/10 text-white" }}
                   activeOptions={{ exact: item.to === "/" }}
                 >
                   {item.label}

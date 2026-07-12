@@ -7,7 +7,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { ServiceCard } from "@/components/service-card";
+import { ServiceCatalog } from "@/components/service-catalog";
 import { Container, CTASection } from "@/components/design-system";
 import { faqs, processSteps, services } from "@/lib/nova-data";
 
@@ -32,29 +32,29 @@ export const Route = createFileRoute("/")({
 function Home() {
   return (
     <>
-      <section className="relative isolate min-h-[680px] overflow-hidden bg-[#102b2c] text-white sm:min-h-[720px]">
+      <section className="relative isolate min-h-[690px] overflow-hidden bg-[#090f15] text-white sm:min-h-[760px]">
         <img
           src="/nova-it-workspace.png"
           alt="Arbetsplats med dator och nätverksutrustning"
-          className="absolute inset-0 -z-20 h-full w-full object-cover object-[66%_center]"
+          className="absolute inset-0 -z-20 h-full w-full object-cover object-[62%_center]"
         />
-        <div className="absolute inset-0 -z-10 bg-[#102b2c]/78" />
-        <Container className="flex min-h-[680px] items-end py-14 sm:min-h-[720px] sm:py-18">
-          <div className="max-w-3xl">
+        <div className="absolute inset-0 -z-10 bg-[#090f15]/76" />
+        <Container className="flex min-h-[690px] items-end py-14 sm:min-h-[760px] sm:py-20">
+          <div className="max-w-3xl border-l border-sky-300/70 pl-5 sm:pl-7">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-sky-200">
-              Datorer · Nätverk · Säkerhet
+              Praktisk IT-support
             </p>
-            <h1 className="mt-5 text-5xl font-semibold leading-[0.94] tracking-[-0.055em] text-balance sm:text-6xl lg:text-8xl">
+            <h1 className="mt-5 text-5xl font-semibold leading-[0.94] tracking-normal text-balance sm:text-6xl lg:text-8xl">
               IT som bara fungerar.
             </h1>
-            <p className="mt-6 max-w-xl text-lg leading-8 text-slate-200 sm:text-xl">
-              När teknik bromsar vardagen tar Nova IT hand om datorer, nätverk, konton och säkerhet.
-              Rakt, tryggt och utan onödigt krångel.
+            <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-200 sm:text-xl">
+              Stöd för datorer, nätverk, konton och säkerhet när tekniken bromsar vardagen. Tydligt
+              nästa steg, utan onödigt krångel.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <Button asChild size="lg" className="bg-sky-300 text-slate-950 hover:bg-sky-200">
+              <Button asChild size="lg" className="bg-sky-400 text-slate-950 hover:bg-sky-300">
                 <Link to="/kontakt" search={{ service: undefined }}>
-                  Få hjälp nu <ArrowRight className="h-4 w-4" />
+                  Beskriv ärende <ArrowRight className="h-4 w-4" />
                 </Link>
               </Button>
               <Button
@@ -70,53 +70,30 @@ function Home() {
         </Container>
       </section>
 
-      <section className="border-b border-border bg-card">
-        <Container className="grid gap-0 md:grid-cols-3">
-          {[
-            ["Datorer och support", "När en dator, skrivare eller ett program sätter stopp."],
-            ["Nätverk som håller", "När Wi-Fi, uppkoppling eller arbetsplatsen behöver fungera."],
-            ["Skydd för det viktiga", "När konton, backup eller data behöver hanteras rätt."],
-          ].map(([title, text], index) => (
-            <article
-              key={title}
-              className="border-b border-border px-0 py-7 last:border-b-0 md:border-r md:px-7 md:first:pl-0 md:last:border-r-0"
-            >
-              <span className="text-xs font-semibold text-primary">0{index + 1}</span>
-              <h2 className="mt-3 text-xl font-semibold tracking-[-0.02em]">{title}</h2>
-              <p className="mt-2 max-w-sm text-sm leading-6 text-muted-foreground">{text}</p>
-            </article>
-          ))}
+      <section className="bg-[#090f15] text-white">
+        <Container className="py-16 sm:py-20">
+          <div className="flex flex-col gap-4 border-b border-white/12 pb-8 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-sky-300">
+                Tjänstekatalog
+              </p>
+              <h2 className="mt-3 max-w-2xl text-3xl font-semibold tracking-normal text-balance sm:text-4xl">
+                Rätt hjälp för problemet du faktiskt har.
+              </h2>
+            </div>
+            <p className="text-sm text-slate-400">{services.length} områden för vardagens IT.</p>
+          </div>
+          <ServiceCatalog services={services} />
         </Container>
       </section>
 
-      <Container className="py-18">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <p className="eyebrow">När tekniken krånglar</p>
-            <h2 className="mt-3 text-3xl font-semibold tracking-[-0.035em] text-balance sm:text-4xl">
-              Rätt hjälp för problemet du faktiskt har.
-            </h2>
-          </div>
-          <Button asChild variant="ghost" className="w-fit">
-            <Link to="/tjanster">
-              Alla tjänster <ArrowRight className="h-4 w-4" />
-            </Link>
-          </Button>
-        </div>
-        <div className="mt-8 grid gap-5 md:auto-rows-fr md:grid-cols-3">
-          {services.slice(0, 3).map((service) => (
-            <ServiceCard key={service.slug} service={service} compact />
-          ))}
-        </div>
-      </Container>
-
-      <section className="border-y border-sky-100 bg-[#eef7fb] text-foreground">
+      <section className="border-y border-sky-100 bg-[#f4f8fb] text-foreground">
         <Container className="grid gap-10 py-16 lg:grid-cols-[0.7fr_1.3fr] lg:items-start">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
               Så arbetar vi
             </p>
-            <h2 className="mt-3 text-3xl font-semibold tracking-[-0.035em] text-balance sm:text-4xl">
+            <h2 className="mt-3 text-3xl font-semibold tracking-normal text-balance sm:text-4xl">
               Mindre gissningar. Mer kontroll.
             </h2>
             <p className="mt-4 max-w-md leading-7 text-muted-foreground">
@@ -125,9 +102,9 @@ function Home() {
           </div>
           <ol className="grid gap-7 sm:grid-cols-3">
             {processSteps.map((step, index) => (
-              <li key={step.title}>
-                <span className="text-xs font-semibold text-primary">0{index + 1}</span>
-                <h3 className="mt-4 font-semibold">{step.title}</h3>
+              <li key={step.title} className="border-t border-sky-200 pt-4">
+                <span className="text-3xl font-semibold text-sky-900/20">0{index + 1}</span>
+                <h3 className="mt-3 font-semibold">{step.title}</h3>
                 <p className="mt-2 text-sm leading-6 text-muted-foreground">{step.text}</p>
               </li>
             ))}
@@ -138,7 +115,7 @@ function Home() {
       <Container className="grid gap-10 py-18 lg:grid-cols-[0.78fr_1.22fr] lg:items-start">
         <div>
           <p className="eyebrow">Vanliga frågor</p>
-          <h2 className="mt-3 text-3xl font-semibold tracking-[-0.035em] text-balance sm:text-4xl">
+          <h2 className="mt-3 text-3xl font-semibold tracking-normal text-balance sm:text-4xl">
             Kort om hur Nova IT hjälper.
           </h2>
           <p className="mt-4 max-w-md leading-7 text-muted-foreground">
