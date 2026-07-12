@@ -1,6 +1,15 @@
 import { Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { ArrowRight, Check, Clipboard, Info, RotateCcw, Search, ShieldAlert } from "lucide-react";
+import {
+  ArrowRight,
+  Check,
+  Clipboard,
+  Info,
+  MessageCircleQuestion,
+  RotateCcw,
+  Search,
+  ShieldAlert,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -8,7 +17,6 @@ import { getServiceBySlug } from "@/lib/nova-data";
 import { createSupportSummary, matchSupportFlow } from "./support-engine";
 import { supportFlows } from "./support-data";
 import type { SupportFlow, SupportOption } from "./support-types";
-import { RobotMascot } from "./RobotMascot";
 
 type SupportGuideProps = {
   compact?: boolean;
@@ -76,12 +84,14 @@ export function SupportGuide({ compact = false, onNavigate }: SupportGuideProps)
         )}
       >
         {!compact && (
-          <div className="mb-5 flex items-center gap-3">
-            <RobotMascot />
-            <div>
-              <h2 className="font-semibold">Vad behöver du hjälp med?</h2>
-              <p className="text-sm text-muted-foreground">Välj område eller beskriv problemet.</p>
-            </div>
+          <div className="mb-5">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">
+              Nova support
+            </p>
+            <h2 className="mt-2 font-semibold">Vad behöver du hjälp med?</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Välj område eller beskriv problemet.
+            </p>
           </div>
         )}
 
@@ -160,21 +170,23 @@ export function SupportGuide({ compact = false, onNavigate }: SupportGuideProps)
               compact ? "p-6" : "p-10",
             )}
           >
-            <RobotMascot className="mx-auto h-14 w-14" />
-            <h2 className="mt-4 text-xl font-semibold">Vad behöver sorteras?</h2>
+            <span className="mx-auto grid h-12 w-12 place-items-center border border-sky-300/40 bg-white text-primary shadow-sm">
+              <MessageCircleQuestion className="h-5 w-5" />
+            </span>
+            <h2 className="mt-4 text-xl font-semibold">Var börjar vi?</h2>
             <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-muted-foreground">
               Välj ett område eller beskriv problemet. Nova hjälper dig sätta ord på ärendet.
             </p>
           </div>
         ) : (
           <article className="overflow-hidden rounded-lg border border-border bg-card operational-shadow">
-            <div className="bg-[#102b2c] px-5 py-5 text-white">
+            <div className="bg-[#090f15] px-5 py-5 text-white">
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-[0.16em] text-sky-200">
                     Första bedömning
                   </p>
-                  <h2 className="mt-2 text-xl font-semibold tracking-[-0.03em]">{flow.title}</h2>
+                  <h2 className="mt-2 text-xl font-semibold tracking-normal">{flow.title}</h2>
                 </div>
                 <button
                   type="button"

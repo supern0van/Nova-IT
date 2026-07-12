@@ -1,7 +1,6 @@
 import { useState } from "react";
-import { MessageCircleQuestion } from "lucide-react";
+import { ArrowUpRight, MessageCircleQuestion } from "lucide-react";
 import { SupportBot } from "./SupportBot";
-import { RobotMascot } from "./RobotMascot";
 
 export function SupportBotLauncher() {
   const [open, setOpen] = useState(false);
@@ -11,16 +10,18 @@ export function SupportBotLauncher() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="nova-support-launcher fixed right-4 bottom-4 z-40 flex items-center gap-3 rounded-2xl border border-white/15 bg-[#102b2c] p-2 pr-4 text-left text-white shadow-2xl transition-transform hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 motion-reduce:transform-none sm:right-6 sm:bottom-6"
+        className="nova-support-launcher fixed right-4 bottom-4 z-40 flex items-center gap-3 rounded-md border border-white/15 bg-[#090f15] p-2 pr-3 text-left text-white shadow-2xl transition-transform hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 focus-visible:ring-offset-2 motion-reduce:transform-none sm:right-6 sm:bottom-6"
         aria-label="Öppna Nova IT-assistenten"
       >
-        <RobotMascot className="h-12 w-12" />
+        <span className="grid h-11 w-11 shrink-0 place-items-center border border-sky-300/35 bg-sky-300 text-slate-950 shadow-[0_10px_24px_-14px_rgba(125,211,252,0.9)]">
+          <MessageCircleQuestion className="h-5 w-5" />
+        </span>
         <span className="hidden sm:block">
-          <span className="block text-xs font-semibold uppercase tracking-[0.12em] text-sky-200">
-            Behöver du hjälp?
+          <span className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-sky-300">
+            Nova support <span className="h-1.5 w-1.5 rounded-full bg-sky-300" />
           </span>
-          <span className="mt-0.5 flex items-center gap-1.5 text-sm font-semibold">
-            Fråga Nova <MessageCircleQuestion className="h-4 w-4" />
+          <span className="mt-1 flex items-center gap-1.5 text-sm font-semibold">
+            Beskriv problemet <ArrowUpRight className="h-4 w-4" />
           </span>
         </span>
       </button>
