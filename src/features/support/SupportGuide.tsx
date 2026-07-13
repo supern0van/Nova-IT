@@ -29,6 +29,7 @@ export function SupportGuide({ compact = false, onNavigate }: SupportGuideProps)
   const [query, setQuery] = useState("");
   const [submittedQuery, setSubmittedQuery] = useState("");
   const [copyState, setCopyState] = useState<"idle" | "copied" | "error">("idle");
+  const [showAllTopics, setShowAllTopics] = useState(false);
   const service = getServiceBySlug(flow?.serviceSlug);
   const summary = useMemo(
     () => (flow ? createSupportSummary({ flow, option, query: submittedQuery }) : ""),
@@ -48,6 +49,7 @@ export function SupportGuide({ compact = false, onNavigate }: SupportGuideProps)
     setQuery("");
     setSubmittedQuery("");
     setCopyState("idle");
+    setShowAllTopics(false);
   }
 
   async function copySummary() {
@@ -79,8 +81,10 @@ export function SupportGuide({ compact = false, onNavigate }: SupportGuideProps)
     >
       <aside
         className={cn(
-          "min-w-0 rounded-lg border border-border bg-card",
-          compact ? "p-3" : "p-5 lg:sticky lg:top-28",
+          "min-w-0 rounded-lg border",
+          compact
+            ? "border-slate-700 bg-[#101a24] p-3 text-slate-100"
+            : "border-border bg-card p-5 lg:sticky lg:top-28",
         )}
       >
         {!compact && (
@@ -118,7 +122,11 @@ export function SupportGuide({ compact = false, onNavigate }: SupportGuideProps)
               placeholder={
                 compact ? "Exempel: skrivaren är offline" : "Exempel: Wi-Fi tappar anslutningen"
               }
-              className="min-w-0"
+              className={cn(
+                "min-w-0",
+                compact &&
+                  "border-slate-700 bg-[#0a1118] text-slate-100 placeholder:text-slate-500 focus-visible:ring-sky-300",
+              )}
             />
             <Button type="submit" size="icon" aria-label="Sortera problemet">
               <Search className="h-4 w-4" />
@@ -132,7 +140,7 @@ export function SupportGuide({ compact = false, onNavigate }: SupportGuideProps)
               compact ? "grid grid-cols-2 gap-2" : "grid gap-2 sm:grid-cols-2 lg:grid-cols-1",
             )}
           >
-            {supportFlows.map((item) => (
+            {(compact && !showAllTopics ? supportFlows.slice(0, 6) : supportFlows).map((item) => (
               <button
                 key={item.id}
                 type="button"
@@ -141,14 +149,25 @@ export function SupportGuide({ compact = false, onNavigate }: SupportGuideProps)
                 className={cn(
                   "rounded-md border px-3 py-2.5 text-left text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                   flow?.id === item.id
-                    ? "border-primary bg-primary text-primary-foreground"
-                    : "border-border bg-background hover:border-primary/35 hover:bg-primary/5",
+                    ? "border-sky-300 bg-sky-300 text-slate-950"
+                    : compact
+                      ? "border-slate-700 bg-[#0a1118] text-slate-200 hover:border-sky-300/60 hover:bg-slate-800"
+                      : "border-border bg-background hover:border-primary/35 hover:bg-primary/5",
                 )}
               >
                 {item.label}
               </button>
             ))}
           </div>
+          {compact && supportFlows.length > 6 && (
+            <button
+              type="button"
+              onClick={() => setShowAllTopics((value) => !value)}
+              className="mt-2 text-xs font-semibold uppercase tracking-[0.14em] text-sky-300 hover:text-sky-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
+            >
+              {showAllTopics ? "Visa färre områden" : "Fler områden"}
+            </button>
+          )}
         </div>
 
         {!compact && (
@@ -166,15 +185,27 @@ export function SupportGuide({ compact = false, onNavigate }: SupportGuideProps)
         {!flow ? (
           <div
             className={cn(
-              "rounded-lg border border-dashed border-primary/35 bg-primary/5 text-center",
-              compact ? "p-6" : "p-10",
+              "rounded-lg border border-dashed text-center",
+              compact
+                ? "border-slate-700 bg-[#101a24] p-6 text-slate-100"
+                : "border-primary/35 bg-primary/5 p-10",
             )}
           >
-            <span className="mx-auto grid h-12 w-12 place-items-center border border-sky-300/40 bg-white text-primary shadow-sm">
+            <span
+              className={cn(
+                "mx-auto grid h-12 w-12 place-items-center border border-sky-300/40 text-primary shadow-sm",
+                compact ? "bg-[#0a1118] text-sky-300" : "bg-white",
+              )}
+            >
               <MessageCircleQuestion className="h-5 w-5" />
             </span>
             <h2 className="mt-4 text-xl font-semibold">Var börjar vi?</h2>
-            <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-muted-foreground">
+            <p
+              className={cn(
+                "mx-auto mt-2 max-w-xl text-sm leading-6",
+                compact ? "text-slate-400" : "text-muted-foreground",
+              )}
+            >
               Välj ett område eller beskriv problemet. Nova hjälper dig sätta ord på ärendet.
             </p>
           </div>
