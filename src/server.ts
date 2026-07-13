@@ -9,6 +9,9 @@ type ServerEntry = {
 
 let serverEntryPromise: Promise<ServerEntry> | undefined;
 
+const CANONICAL_HOST = "nova-it.se";
+const REDIRECT_HOSTS = new Set(["novait.se", "www.novait.se", "www.nova-it.se"]);
+
 async function getServerEntry(): Promise<ServerEntry> {
   if (!serverEntryPromise) {
     serverEntryPromise = import("@tanstack/react-start/server-entry").then(
@@ -47,6 +50,14 @@ function isH3SwallowedErrorBody(body: string): boolean {
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
+      const url = new URL(request.url);
+      if (REDIRECT_HOSTS.has(url.hostname)) {
+        url.protocol = "https:";
+        url.hostname = CANONICAL_HOST;
+        url.port = "";
+        return Response.redirect(url, 308);
+      }
+
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
       return await normalizeCatastrophicSsrResponse(response);
