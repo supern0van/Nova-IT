@@ -15,6 +15,7 @@ export const contactChannels = {
   contact: "kontakt@nova-it.se",
   support: "support@nova-it.se",
   general: "info@nova-it.se",
+  showOnContactPage: false,
 };
 
 export type Service = {

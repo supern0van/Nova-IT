@@ -247,24 +247,28 @@ function ContactPage() {
               )}
 
               <div className="mt-8 space-y-4 text-sm">
-                <ContactFact
-                  icon={Mail}
-                  title="Kontakt"
-                  text={contactChannels.contact}
-                  href={`mailto:${contactChannels.contact}`}
-                />
-                <ContactFact
-                  icon={Mail}
-                  title="Support"
-                  text={contactChannels.support}
-                  href={`mailto:${contactChannels.support}`}
-                />
-                <ContactFact
-                  icon={Mail}
-                  title="Allmänt"
-                  text={contactChannels.general}
-                  href={`mailto:${contactChannels.general}`}
-                />
+                {contactChannels.showOnContactPage && (
+                  <>
+                    <ContactFact
+                      icon={Mail}
+                      title="Kontakt"
+                      text={contactChannels.contact}
+                      href={`mailto:${contactChannels.contact}`}
+                    />
+                    <ContactFact
+                      icon={Mail}
+                      title="Support"
+                      text={contactChannels.support}
+                      href={`mailto:${contactChannels.support}`}
+                    />
+                    <ContactFact
+                      icon={Mail}
+                      title="Allmänt"
+                      text={contactChannels.general}
+                      href={`mailto:${contactChannels.general}`}
+                    />
+                  </>
+                )}
                 <ContactFact
                   icon={ShieldCheck}
                   title="Trygg första kontakt"

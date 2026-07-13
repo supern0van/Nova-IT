@@ -33,7 +33,7 @@ Senast uppdaterad: 2026-07-13
 - Tjänsteval förs vidare till kontaktformulär med rätt förval.
 - Supportassistenten använder en lokal, regelbaserad kunskapsmotor med trygg eskalering till kontaktformulär.
 - Kontaktflödet sammanställer ärendet och öppnar ett e-postutkast till `kontakt@nova-it.se`; det skickar inte data till ett externt ärendesystem eller en backend.
-- Publika kontaktadresser är `kontakt@nova-it.se`, `support@nova-it.se` och `info@nova-it.se`.
+- Kontaktadresserna `kontakt@nova-it.se`, `support@nova-it.se` och `info@nova-it.se` är förberedda i projektet. De visas inte publikt ännu.
 
 ## Nästa fokuserade steg
 
