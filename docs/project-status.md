@@ -32,12 +32,12 @@ Senast uppdaterad: 2026-07-13
 - Sidor för hem, tjänster, arbetssätt, FAQ, om Nova IT och kontakt.
 - Tjänsteval förs vidare till kontaktformulär med rätt förval.
 - Supportassistenten använder en lokal, regelbaserad kunskapsmotor med trygg eskalering till kontaktformulär.
-- Kontaktflödet skapar i dagsläget ett e-postutkast; det skickar inte data till ett externt ärendesystem eller en backend.
+- Kontaktflödet sammanställer ärendet och öppnar ett e-postutkast till `kontakt@nova-it.se`; det skickar inte data till ett externt ärendesystem eller en backend.
+- Publika kontaktadresser är `kontakt@nova-it.se`, `support@nova-it.se` och `info@nova-it.se`.
 
 ## Nästa fokuserade steg
 
 1. Gå igenom kundtext, tjänsteerbjudande och prioriteter för varje sida.
-2. Välj riktig kontaktadress och konfigurera e-postens SPF/DKIM/DMARC innan skarp e-post börjar användas.
+2. Lägg in Loopias exakta MX-, SPF-, DKIM- och DMARC-poster i Cloudflare innan skarp e-post börjar användas.
 3. Genomför tillgänglighets- och mobilrunda före presentation eller bredare lansering.
 4. Avgör om kontaktformulär och assistent ska kopplas till ett ärendesystem eller en backend.
-

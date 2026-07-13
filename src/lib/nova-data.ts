@@ -11,10 +11,10 @@ import {
 export const contactNotice =
   "Beskriv problemet kort, bifoga gärna felmeddelanden och välj hur brådskande ärendet är. Underlaget gör det enklare att ta rätt nästa steg.";
 
-const configuredContactEmail = import.meta.env.VITE_NOVA_CONTACT_EMAIL?.trim();
-
 export const contactChannels = {
-  email: configuredContactEmail || undefined,
+  contact: "kontakt@nova-it.se",
+  support: "support@nova-it.se",
+  general: "info@nova-it.se",
 };
 
 export type Service = {

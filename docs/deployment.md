@@ -42,7 +42,7 @@ Den genererade konfigurationen i `.wrangler/deploy/config.json` pekar på `.outp
 
 Utgå från `.env.example`.
 
-Regel: frontendvariabler kan läsas av besökaren. Lägg därför aldrig API-nycklar, GitHub-tokens, ärendesystemsnycklar eller privata kunduppgifter i Vite-variabler. `VITE_NOVA_CONTACT_EMAIL` får innehålla en publik kontaktadress och används för att skapa ett e-postutkast från kontaktformuläret.
+Regel: frontendvariabler kan läsas av besökaren. Lägg därför aldrig API-nycklar, GitHub-tokens, ärendesystemsnycklar eller privata kunduppgifter i Vite-variabler. Kontaktadresserna ligger medvetet som publika uppgifter i `src/lib/nova-data.ts`; kontaktformuläret skapar ett e-postutkast till `kontakt@nova-it.se`.
 
 ## GitHub Actions
 

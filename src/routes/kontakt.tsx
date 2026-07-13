@@ -132,8 +132,7 @@ function ContactPage() {
   }
 
   function openEmailDraft() {
-    if (!contactChannels.email) return;
-    window.location.assign(createContactEmailDraft(values, contactChannels.email));
+    window.location.assign(createContactEmailDraft(values, contactChannels.contact));
   }
 
   function onSubmit(event: FormEvent<HTMLFormElement>) {
@@ -198,8 +197,8 @@ function ContactPage() {
             </p>
           </div>
           <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
-            {contactChannels.email && <Button onClick={openEmailDraft}>Kontakta Nova IT</Button>}
-            <Button variant={contactChannels.email ? "outline" : "default"} onClick={resetForm}>
+            <Button onClick={openEmailDraft}>Öppna e-postutkast</Button>
+            <Button variant="outline" onClick={resetForm}>
               Förbered ett nytt ärende
             </Button>
           </div>
@@ -248,9 +247,24 @@ function ContactPage() {
               )}
 
               <div className="mt-8 space-y-4 text-sm">
-                {contactChannels.email && (
-                  <ContactFact icon={Mail} title="E-post" text={contactChannels.email} />
-                )}
+                <ContactFact
+                  icon={Mail}
+                  title="Kontakt"
+                  text={contactChannels.contact}
+                  href={`mailto:${contactChannels.contact}`}
+                />
+                <ContactFact
+                  icon={Mail}
+                  title="Support"
+                  text={contactChannels.support}
+                  href={`mailto:${contactChannels.support}`}
+                />
+                <ContactFact
+                  icon={Mail}
+                  title="Allmänt"
+                  text={contactChannels.general}
+                  href={`mailto:${contactChannels.general}`}
+                />
                 <ContactFact
                   icon={ShieldCheck}
                   title="Trygg första kontakt"
@@ -489,17 +503,28 @@ function ContactFact({
   icon: Icon,
   title,
   text,
+  href,
 }: {
   icon: typeof Mail;
   title: string;
   text: string;
+  href?: string;
 }) {
   return (
     <div className="flex items-start gap-3 text-muted-foreground">
       <Icon className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
       <span>
         <span className="block font-medium text-foreground">{title}</span>
-        {text}
+        {href ? (
+          <a
+            href={href}
+            className="font-medium text-primary underline decoration-primary/35 underline-offset-4 transition-colors hover:text-sky-800 hover:decoration-sky-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2"
+          >
+            {text}
+          </a>
+        ) : (
+          text
+        )}
       </span>
     </div>
   );
