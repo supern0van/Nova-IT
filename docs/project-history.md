@@ -25,10 +25,16 @@ Detta är en kort beslutshistorik för Nova IT. Den ersätter inte Git-historike
 
 - Lovable behålls som tydligt avgränsad ursprungs- och editorintegration, inte som publik hosting eller synligt beroende på sidan.
 - README och dokumentation gör nu projektets aktuella läge, drift och beslut enklare att följa direkt i GitHub.
+- Produktionsprincipen är att `main` motsvarar den godkända publika webbplatsen; arbetsbrancher får endast användas för lokala eller separata Cloudflare-förhandsvisningar.
+
+## 2026-07: E-post och framtida portal
+
+- `kontakt@nova-it.se`, `support@nova-it.se` och `info@nova-it.se` är förberedda i webbplatsens kontaktkonfiguration, men visas inte publikt ännu.
+- E-postens DNS flyttas inte förrän Loopias exakta poster har förts in i Cloudflare och verifierats.
+- `portal.nova-it.se` är reserverad för en framtida kund- och adminportal. Den ska ha egen Worker, databas, hemligheter och releasecykel.
 
 ## Nästa beslut
 
 - Formulera det slutliga kundbudskapet, tjänsterna och kontaktinformationen.
-- Välj när `codex/premium-service-system` ska granskas och föras in i `main`.
+- Håll produktionsgrenen och Cloudflare-deployen synkade vid varje godkänd release.
 - Bestäm om kontakt- och assistentflöden ska få backend eller ärendesystem.
-

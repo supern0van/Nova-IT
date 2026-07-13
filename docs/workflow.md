@@ -4,10 +4,21 @@ GitHub är projektets källa. `C:\Users\stefa\Documents\Nova IT` är den lokala 
 
 ## Branchar
 
-- `main` ska vara senaste stabila versionen.
+- `main` ska alltid motsvara den senast godkända produktionsversionen.
 - Större ändringar görs på en arbetsbranch, till exempel `feature/site-polish`, `fix/contact-flow` eller `codex/premium-service-system`.
-- Infrastruktur som CI, dokumentation och projektregler kan mergas till `main` när verifieringen passerar.
+- En arbetsbranch får granskas i lokal drift eller en Cloudflare-preview, men får inte publiceras som `nova-it.se`.
+- Infrastruktur, dokumentation och produktändringar förs in i `main` när verifieringen passerar och den visuella rundan är godkänd.
 - Skriv aldrig om pushad Git-historik med force push, rebase eller amend eftersom Lovable är anslutet till repot.
+
+## Publiceringsrutin
+
+1. Arbeta på branch och kör `bun run ci`.
+2. Granska den lokala sidan eller en Cloudflare-preview i desktop och mobil.
+3. För in den godkända ändringen i `main`.
+4. Kontrollera `main` igen och kör `bun run deploy:production`.
+5. Verifiera `https://nova-it.se` och den berörda funktionen efter deploy.
+
+Det gör att den publika sajten är stabil medan nästa hemsidepass kan utvecklas ostört.
 
 ## Lokal rutin
 

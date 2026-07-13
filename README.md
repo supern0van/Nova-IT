@@ -15,7 +15,7 @@ En svensk webbplats för praktisk IT-support, nätverk, installationer, säkerhe
 | Förstå viktiga beslut och historik | [Projekthistorik](docs/project-history.md) |
 | Starta sidan lokalt | `bun install --frozen-lockfile` och `bun run dev` |
 | Verifiera en ändring | `bun run ci` |
-| Publicera en verifierad build | [Deploy och drift](docs/deployment.md) |
+| Publicera en verifierad build från `main` | [Deploy och drift](docs/deployment.md) |
 
 ## Projektkarta
 
@@ -52,6 +52,8 @@ bun run ci
 - [Projekthistorik](docs/project-history.md)
 - [Deploy och drift](docs/deployment.md)
 - [Arbetsflöde](docs/workflow.md)
+- [E-post och DNS-handoff](docs/email-dns-handoff.md)
+- [Portalens startläge](docs/portal-readiness.md)
 - [Roadmap](docs/roadmap.md)
 - [Lovable-integrationen](docs/integrations/lovable.md)
 - [Design-QA](docs/quality/design-qa-premium-service-system.md)

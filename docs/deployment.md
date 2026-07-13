@@ -22,7 +22,9 @@ Build-output skapas i `.output` och ska inte commitas.
 
 ## Cloudflare Workers
 
-För extern förhandsvisning utan inloggning:
+### Förhandsgranskning
+
+Förhandsvisningar görs från arbetsbranch och får aldrig ersätta produktion. Kommandot nedan skapar en tillfällig Cloudflare-preview utan att ändra trafiken till `nova-it.se`:
 
 ```bash
 bun run deploy:preview
@@ -30,10 +32,12 @@ bun run deploy:preview
 
 Cloudflare visar då en anspråkslänk. Öppna den inom den angivna tiden och koppla förhandsdriften till rätt Cloudflare-konto.
 
-För permanent deploy efter `wrangler login` eller med `CLOUDFLARE_API_TOKEN`:
+### Produktion
+
+Produktion publiceras endast när ändringen finns i `main`, CI är grön och den har granskats i mobil och desktop. Efter `wrangler login` eller med `CLOUDFLARE_API_TOKEN`:
 
 ```bash
-bun run deploy
+bun run deploy:production
 ```
 
 Den genererade konfigurationen i `.wrangler/deploy/config.json` pekar på `.output/server/wrangler.json`. Ändra inte den genererade filen manuellt.
@@ -58,7 +62,8 @@ Verifieringen kör:
 
 ## Kvar för full kontakt- och e-postdrift
 
-- riktig kontaktadress, telefon och verksamhetsområde
-- SPF, DKIM och DMARC för den e-posttjänst som väljs
+- Loopias exakta MX-, SPF-, DKIM- och DMARC-poster i Cloudflare
+- verifiering av att `kontakt@nova-it.se` kan ta emot och skicka e-post
+- beslut om när kontaktadresserna ska visas publikt
 - beslut om formuläret ska gå till e-post, ärendesystem eller egen backend
 - eventuell backend eller AI-tjänst för supportassistenten

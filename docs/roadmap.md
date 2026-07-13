@@ -11,6 +11,8 @@ Den här listan ska hålla fokus på hemsidan och undvika att projektet sprids �
 - [x] CI verifierar test, lint, typecheck och build.
 - [x] Cloudflare Workers är kopplad till `nova-it.se` med HTTPS och aliasomdirigeringar.
 - [x] README, projektstatus och projekthistorik gör GitHub-repot lättare att navigera.
+- [x] Kontaktadresserna är förberedda i kod och hålls dolda tills de ska visas publikt.
+- [x] Produktions- och förhandsflöde är dokumenterat så att `main` kan hållas stabil.
 
 ## Nästa hemsidepass
 
@@ -23,6 +25,7 @@ Den här listan ska hålla fokus på hemsidan och undvika att projektet sprids �
 - [ ] Förbättra SEO metadata och social preview-texter.
 - [ ] Göra en tillgänglighetsrunda: fokus, kontrast, labels och tangentbord.
 - [ ] Göra en pre-deploy-runda med riktig mobil viewport.
+- [ ] Flytta e-postens DNS från tidigare Strato-poster till Loopias verifierade MX-, SPF-, DKIM- och DMARC-poster.
 
 ## Senare beslut som kräver ägarinput
 
@@ -30,3 +33,4 @@ Den här listan ska hålla fokus på hemsidan och undvika att projektet sprids �
 - Riktiga kontaktuppgifter, ort/område och eventuell juridisk bolagsinformation.
 - Om robotassistenten ska kopplas till backend, ärendesystem eller AI API.
 - Vilka kundcase, priser eller erbjudanden som faktiskt får visas.
+- När kundportalen ska få ett separat repo, Worker och databas.

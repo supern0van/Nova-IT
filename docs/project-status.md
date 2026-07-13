@@ -16,8 +16,8 @@ Senast uppdaterad: 2026-07-13
 ## Källa och brancher
 
 - GitHub är projektets källa.
-- `main` är den stabila releasegrenen.
-- Aktivt hemsidearbete ligger på `codex/premium-service-system` tills det är redo att gå in i `main`.
+- `main` ska motsvara den stabila produktionsversionen.
+- Arbetsbrancher granskas i lokal drift eller Cloudflare-preview innan de förs in i `main`.
 - Lovable är anslutet till Git, men är inte den publika hostingen.
 
 ## Kvalitetsläge
@@ -41,3 +41,4 @@ Senast uppdaterad: 2026-07-13
 2. Lägg in Loopias exakta MX-, SPF-, DKIM- och DMARC-poster i Cloudflare innan skarp e-post börjar användas.
 3. Genomför tillgänglighets- och mobilrunda före presentation eller bredare lansering.
 4. Avgör om kontaktformulär och assistent ska kopplas till ett ärendesystem eller en backend.
+5. Håll portalprojektet avskilt tills den publika webbplatsens designsystem och releaseflöde är etablerade.
