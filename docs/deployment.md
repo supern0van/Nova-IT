@@ -1,6 +1,15 @@
-# Deploy och publicering
+# Deploy och drift
 
-Projektet byggs för Cloudflare Workers. En första extern förhandsdrift kan göras utan kontoanslutning; permanent publicering kräver ett Cloudflare-konto och en domän när sådan är klar.
+Projektet drivs publikt på Cloudflare Workers.
+
+| Del | Värde |
+| --- | --- |
+| Publik adress | `https://nova-it.se` |
+| Worker | `supern0van-nova-it` |
+| Alias | `www.nova-it.se`, `novait.se`, `www.novait.se` |
+| HTTPS | Cloudflare Universal SSL och Always Use HTTPS |
+
+Aliasadresserna omdirigeras till `https://nova-it.se` i `src/server.ts`. Den filen är därför källan för canonical-domain-beteendet.
 
 ## Lokal build
 
@@ -47,12 +56,9 @@ Verifieringen kör:
 - `bun run typecheck`
 - `bun run build`
 
-## Kvar inför egen domän
+## Kvar för full kontakt- och e-postdrift
 
-Innan egen domän och fullt kontaktflöde kopplas behövs:
-
-- domän
-- riktig kontaktinformation
-- om formuläret ska gå till e-post, ärendesystem eller annan backend
-- hostingplattform
-- eventuell backend för kontaktformulär och supportbot
+- riktig kontaktadress, telefon och verksamhetsområde
+- SPF, DKIM och DMARC för den e-posttjänst som väljs
+- beslut om formuläret ska gå till e-post, ärendesystem eller egen backend
+- eventuell backend eller AI-tjänst för supportassistenten

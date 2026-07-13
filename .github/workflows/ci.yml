@@ -7,6 +7,7 @@ on:
       - site-foundation
       - "feature/**"
       - "fix/**"
+      - "codex/**"
   pull_request:
     branches:
       - main

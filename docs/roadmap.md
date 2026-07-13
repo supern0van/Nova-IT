@@ -9,6 +9,8 @@ Den här listan ska hålla fokus på hemsidan och undvika att projektet sprids �
 - [x] Supportboten är integrerad i React/TanStack-projektet.
 - [x] Ren leverans-zip kan skapas från Git.
 - [x] CI verifierar test, lint, typecheck och build.
+- [x] Cloudflare Workers är kopplad till `nova-it.se` med HTTPS och aliasomdirigeringar.
+- [x] README, projektstatus och projekthistorik gör GitHub-repot lättare att navigera.
 
 ## Nästa hemsidepass
 
@@ -17,6 +19,7 @@ Den här listan ska hålla fokus på hemsidan och undvika att projektet sprids �
 - [x] Gå igenom `/kontakt` och gör bokningsflödet tydligare.
 - [x] Se över `/tjanster` så varje tjänst känns konkret och säljbar utan att bli överdriven.
 - [x] Kontrollera den flytande robotassistenten mot skarpare ärendefokus.
+- [ ] Slutjustera kundtext, tjänstebeskrivningar och kontaktbudskap sida för sida.
 - [ ] Förbättra SEO metadata och social preview-texter.
 - [ ] Göra en tillgänglighetsrunda: fokus, kontrast, labels och tangentbord.
 - [ ] Göra en pre-deploy-runda med riktig mobil viewport.
@@ -25,6 +28,5 @@ Den här listan ska hålla fokus på hemsidan och undvika att projektet sprids �
 
 - Riktig kontaktmejl, telefon och geografiskt område.
 - Riktiga kontaktuppgifter, ort/område och eventuell juridisk bolagsinformation.
-- Publiceringsmål: Cloudflare, Vercel, Netlify eller annat.
 - Om robotassistenten ska kopplas till backend, ärendesystem eller AI API.
 - Vilka kundcase, priser eller erbjudanden som faktiskt får visas.

@@ -5,8 +5,9 @@ GitHub är projektets källa. `C:\Users\stefa\Documents\Nova IT` är den lokala 
 ## Branchar
 
 - `main` ska vara senaste stabila versionen.
-- Större ändringar görs på en arbetsbranch, till exempel `feature/site-polish` eller `fix/contact-flow`.
+- Större ändringar görs på en arbetsbranch, till exempel `feature/site-polish`, `fix/contact-flow` eller `codex/premium-service-system`.
 - Infrastruktur som CI, dokumentation och projektregler kan mergas till `main` när verifieringen passerar.
+- Skriv aldrig om pushad Git-historik med force push, rebase eller amend eftersom Lovable är anslutet till repot.
 
 ## Lokal rutin
 
@@ -49,3 +50,9 @@ En ändring är klar när:
 - `.codex`
 - `.agents`
 - riktiga API-nycklar, tokens eller kunduppgifter
+
+## Hitta i repot
+
+- Börja alltid i [README](../README.md).
+- Aktuell drift och tekniskt läge finns i [projektstatus](project-status.md).
+- Beslut som förklarar varför projektet ser ut som det gör finns i [projekthistorik](project-history.md).
