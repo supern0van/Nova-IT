@@ -1,3 +1,9 @@
+/**
+ * Optional bridge for Lovable's editor-side error collection.
+ *
+ * The public website does not load Lovable resources or depend on this bridge.
+ * It simply becomes a no-op unless the Lovable editor provides its event hook.
+ */
 type LovableErrorOptions = {
   mechanism?: "manual" | "onerror" | "unhandledrejection" | "react_error_boundary";
   handled?: boolean;
