@@ -17,7 +17,14 @@ export const contactChannels = {
   general: "info@nova-it.se",
   webmaster: "webmaster@nova-it.se",
   noReply: "no-reply@nova-it.se",
-  showOnContactPage: false,
+  showOnContactPage: true,
+};
+
+export const serviceRegion = {
+  base: "Hässelby",
+  primary: "Västerort",
+  description:
+    "Nova IT utgår från Hässelby och fokuserar på Västerort och närliggande områden. Exakt upplägg och plats bedöms utifrån ärendet.",
 };
 
 export type Service = {
@@ -71,9 +78,9 @@ export const services: Service[] = [
       "Nya datorer, användarkonton, e-post, säkerhetsinställningar och överflytt av filer.",
     outcome: "En dator som är klar att använda, med rätt program och inställningar på plats.",
     examples: [
-      "Ny laptop för medarbetare",
+      "Installation av ny dator",
       "Flytt av e-post och dokument",
-      "Standardiserad installation för team",
+      "Flera likadana arbetsplatser i en mindre verksamhet",
     ],
   },
   {
@@ -97,12 +104,12 @@ export const services: Service[] = [
     category: "Nätverk och säkerhet",
     icon: ShieldCheck,
     description:
-      "Grundläggande skydd, backup-rutiner och kontroll av behörigheter för mindre verksamheter.",
+      "Grundläggande skydd, backup-rutiner och kontroll av behörigheter för privatpersoner och mindre verksamheter.",
     outcome: "Bättre skydd mot misstag, kontoangrepp och dataförlust.",
     examples: [
       "Tvåfaktorsinloggning",
       "Automatiska säkerhetskopior",
-      "Genomgång av användarroller",
+      "Genomgång av konton och behörigheter",
     ],
   },
   {
