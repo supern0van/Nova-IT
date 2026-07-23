@@ -10,18 +10,6 @@ import { faqs } from "@/lib/nova-data";
 import { Container, TrustNotice, PageHeader } from "@/components/design-system";
 
 const faqUrl = "https://nova-it.se/faq";
-const faqStructuredData = {
-  "@context": "https://schema.org",
-  "@type": "FAQPage",
-  mainEntity: faqs.map((faq) => ({
-    "@type": "Question",
-    name: faq.q,
-    acceptedAnswer: {
-      "@type": "Answer",
-      text: faq.a,
-    },
-  })),
-};
 
 export const Route = createFileRoute("/faq")({
   head: () => ({
@@ -46,10 +34,6 @@ export const Route = createFileRoute("/faq")({
 function FaqPage() {
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqStructuredData) }}
-      />
       <PageHeader
         eyebrow="Vanliga frågor"
         title="Vanliga frågor, utan teknikspråk."
