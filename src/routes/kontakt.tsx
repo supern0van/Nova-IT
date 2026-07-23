@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
+import { LegalDialogTrigger } from "@/components/legal-dialog";
 import {
   Select,
   SelectContent,
@@ -14,27 +15,32 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
-import { CheckCircle2, Mail, ShieldCheck, Sparkles } from "lucide-react";
+import { AlertCircle, CheckCircle2, LockKeyhole, Mail, Sparkles } from "lucide-react";
 import { contactChannels, contactNotice, getServiceBySlug, services } from "@/lib/nova-data";
 import { Container } from "@/components/design-system";
-import { createContactEmailDraft } from "@/features/contact/contact-submission";
+import { submitContactRequest } from "@/features/contact/contact-server";
+import {
+  composeContactMessage,
+  type ContactAssistantContext,
+} from "@/features/contact/contact-submission";
+import { consumeSupportHandoff } from "@/features/support/support-handoff";
 
 export const Route = createFileRoute("/kontakt")({
-  validateSearch: (search: Record<string, unknown>) => ({
-    service: typeof search.service === "string" ? search.service : undefined,
-  }),
+  validateSearch: (search: Record<string, unknown>) => {
+    const service = typeof search.service === "string" ? search.service : undefined;
+    return search.form === "request" ? { service, form: "request" as const } : { service };
+  },
   head: () => ({
     meta: [
-      { title: "Beskriv ärende – Nova IT" },
+      { title: "Kontakta Nova IT" },
       {
         name: "description",
-        content: "Beskriv ditt IT-ärende till Nova IT och välj tjänst, brådska och kontaktväg.",
+        content: "Berätta vad som krånglar så återkommer Nova IT med en bra start.",
       },
-      { property: "og:title", content: "Beskriv ärende – Nova IT" },
+      { property: "og:title", content: "Kontakta Nova IT" },
       {
         property: "og:description",
-        content:
-          "Förbered ett tydligt supportärende för datorproblem, nätverk, installationer eller konton.",
+        content: "Berätta vad som krånglar med datorer, nätverk, installationer eller konton.",
       },
     ],
   }),
@@ -64,8 +70,8 @@ const schema = z.object({
     .trim()
     .min(10, "Beskriv ärendet med minst 10 tecken")
     .max(MESSAGE_MAX, `Beskrivningen får vara högst ${MESSAGE_MAX} tecken`),
-  consent: z.boolean().refine((value) => value, {
-    message: "Bekräfta att Nova IT får använda uppgifterna för att återkomma om ärendet",
+  privacyAcknowledged: z.boolean().refine((value) => value, {
+    message: "Bekräfta att du har tagit del av integritetspolicyn",
   }),
 });
 
@@ -77,10 +83,13 @@ type FormValues = {
   service: string;
   urgency: "" | (typeof urgencyLevels)[number];
   message: string;
-  consent: boolean;
+  privacyAcknowledged: boolean;
 };
 
 type FormErrors = Partial<Record<keyof FormValues, string>>;
+type AssistantContext = ContactAssistantContext & {
+  guidance: string;
+};
 type FieldControlProps = {
   id: string;
   "aria-invalid"?: true;
@@ -96,7 +105,7 @@ function createInitialValues(service = ""): FormValues {
     service,
     urgency: "",
     message: "",
-    consent: false,
+    privacyAcknowledged: false,
   };
 }
 
@@ -105,7 +114,12 @@ function ContactPage() {
   const selectedService = getServiceBySlug(search.service);
   const selectedServiceTitle = selectedService?.title ?? "";
   const [submitted, setSubmitted] = useState(false);
+  const [isSending, setIsSending] = useState(false);
+  const [sent, setSent] = useState(false);
+  const [sendError, setSendError] = useState<string | null>(null);
   const [errors, setErrors] = useState<FormErrors>({});
+  const [assistantHandoffApplied, setAssistantHandoffApplied] = useState(false);
+  const [assistantContext, setAssistantContext] = useState<AssistantContext | null>(null);
   const [values, setValues] = useState<FormValues>(() => createInitialValues(selectedServiceTitle));
 
   useEffect(() => {
@@ -114,6 +128,28 @@ function ContactPage() {
       current.service ? current : { ...current, service: selectedServiceTitle },
     );
   }, [selectedServiceTitle]);
+
+  useEffect(() => {
+    if (search.form !== "request") return;
+    const handoff = consumeSupportHandoff();
+    if (!handoff) return;
+    const handoffService = getServiceBySlug(handoff.serviceSlug);
+
+    setValues((current) => ({
+      ...current,
+      message: current.message || handoff.customerDescription,
+      service: current.service || handoffService?.title || "",
+      urgency:
+        current.urgency ||
+        (handoff.urgency === "urgent" || handoff.urgency === "priority" ? "Akut" : ""),
+    }));
+    setAssistantContext({
+      contactReason: handoff.contactReason,
+      context: handoff.context,
+      guidance: handoff.guidance,
+    });
+    setAssistantHandoffApplied(true);
+  }, [search.form]);
 
   function update<K extends keyof FormValues>(key: K, value: FormValues[K]) {
     setValues((current) => ({ ...current, [key]: value }));
@@ -127,12 +163,40 @@ function ContactPage() {
 
   function resetForm() {
     setSubmitted(false);
+    setIsSending(false);
+    setSent(false);
+    setSendError(null);
     setErrors({});
+    setAssistantContext(null);
+    setAssistantHandoffApplied(false);
     setValues(createInitialValues(selectedServiceTitle));
   }
 
-  function openEmailDraft() {
-    window.location.assign(createContactEmailDraft(values, contactChannels.contact));
+  async function sendContactRequest() {
+    setIsSending(true);
+    setSendError(null);
+
+    try {
+      await submitContactRequest({
+        data: {
+          name: values.name,
+          email: values.email,
+          phone: values.phone,
+          customerType: values.customerType as (typeof customerTypes)[number],
+          service: values.service,
+          urgency: values.urgency as (typeof urgencyLevels)[number],
+          message: composeContactMessage(values.message, assistantContext),
+        },
+      });
+      setSent(true);
+    } catch (error) {
+      console.error("Contact request submission failed.", error);
+      setSendError(
+        "Ärendet kunde inte skickas just nu. Försök igen om en stund eller skriv direkt till oss.",
+      );
+    } finally {
+      setIsSending(false);
+    }
   }
 
   function onSubmit(event: FormEvent<HTMLFormElement>) {
@@ -158,48 +222,87 @@ function ContactPage() {
     setSubmitted(true);
   }
 
+  if (search.form !== "request") {
+    return <ContactInformation />;
+  }
+
   if (submitted) {
     return (
       <section className="tech-grid border-b border-border bg-secondary/35">
         <Container className="max-w-2xl py-20 text-center">
-          <span className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-emerald-100 text-emerald-700">
+          <span className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-emerald-300/15 text-emerald-200">
             <CheckCircle2 className="h-7 w-7" />
           </span>
-          <p className="eyebrow mt-6">Ärendeunderlag</p>
+          <p className="eyebrow mt-6">Kontaktförfrågan</p>
           <h1 className="mt-3 text-4xl font-semibold tracking-[-0.04em]">
-            Underlaget är förberett
+            {sent ? "Ärendet är skickat" : "Granska innan du skickar"}
           </h1>
           <p className="mt-3 text-muted-foreground">
-            Ärendet är sammanställt med informationen som Nova IT behöver för en första bedömning.
+            {sent
+              ? `Tack. Nova IT återkommer till ${values.email} så snart vi kan.`
+              : "När du skickar går ärendet direkt till Nova IT. Vi svarar till den e-postadress du har angett."}
           </p>
           <div className="mt-7 grid gap-px overflow-hidden rounded-lg border border-border bg-border text-left sm:grid-cols-2">
             <div className="bg-card p-5">
               <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-                Tjänst
+                Område
               </p>
               <p className="mt-2 font-medium">{values.service || "Ej vald"}</p>
             </div>
             <div className="bg-card p-5">
               <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-                Brådska
+                Prioritet
               </p>
               <p className="mt-2 font-medium">{values.urgency || "Ej vald"}</p>
             </div>
           </div>
           <div className="mt-4 rounded-lg border border-border bg-card p-5 text-left">
             <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-              Sammanfattning
+              Din beskrivning
             </p>
-            <p className="mt-2 text-sm leading-6 text-muted-foreground">{values.message}</p>
+            {assistantContext && (
+              <div className="mt-3 rounded-md border border-border bg-secondary/35 px-4 py-3">
+                <p className="text-xs font-medium text-muted-foreground">Kontaktorsak</p>
+                <p className="mt-1 text-sm font-medium">{assistantContext.contactReason}</p>
+                {assistantContext.context && (
+                  <p className="mt-1 text-xs text-muted-foreground">{assistantContext.context}</p>
+                )}
+              </div>
+            )}
+            <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-muted-foreground">
+              {values.message}
+            </p>
             <p className="mt-3 text-sm text-muted-foreground">
               Kontaktväg: {values.email}
               {values.phone ? ` · ${values.phone}` : ""}
             </p>
           </div>
+          {sendError && (
+            <div
+              role="alert"
+              className="mt-4 flex gap-3 rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-left text-sm text-muted-foreground"
+            >
+              <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-destructive" />
+              <p>
+                {sendError}{" "}
+                <a
+                  className="font-medium text-primary underline-offset-4 hover:underline"
+                  href={`mailto:${contactChannels.contact}`}
+                >
+                  Skriv till {contactChannels.contact}
+                </a>
+                .
+              </p>
+            </div>
+          )}
           <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
-            <Button onClick={openEmailDraft}>Öppna e-postutkast</Button>
+            {!sent && (
+              <Button onClick={sendContactRequest} disabled={isSending}>
+                {isSending ? "Skickar..." : "Skicka ärendet"}
+              </Button>
+            )}
             <Button variant="outline" onClick={resetForm}>
-              Förbered ett nytt ärende
+              {sent ? "Skicka ett nytt ärende" : "Ändra uppgifter"}
             </Button>
           </div>
         </Container>
@@ -212,37 +315,38 @@ function ContactPage() {
 
   return (
     <>
-      <section className="border-b border-sky-100 bg-[#eef7fb] text-foreground">
+      <section className="nova-page-header">
         <Container className="py-14 lg:py-18">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">Kontakt</p>
-          <h1 className="mt-4 max-w-3xl text-4xl font-semibold tracking-[-0.04em] text-balance sm:text-5xl lg:text-6xl">
-            Berätta vad som händer.
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-sky-300">Kontakt</p>
+          <h1 className="mt-4 max-w-3xl text-4xl font-semibold tracking-normal text-balance sm:text-5xl lg:text-6xl">
+            Hur kan vi hjälpa dig?
           </h1>
-          <p className="mt-5 max-w-2xl text-lg leading-8 text-muted-foreground">{contactNotice}</p>
+          <p className="mt-5 max-w-2xl text-lg leading-8 text-slate-300">{contactNotice}</p>
         </Container>
       </section>
 
-      <section className="border-b border-border bg-background">
+      <section className="nova-section">
         <Container className="py-14 lg:py-18">
           <div className="grid min-w-0 gap-10 lg:grid-cols-[0.72fr_1.28fr] lg:items-start">
             <div className="min-w-0 lg:sticky lg:top-28">
-              <p className="eyebrow">Inför kontakten</p>
-              <h2 className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-balance sm:text-4xl">
-                Rätt underlag. Rätt hjälp.
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-sky-300">
+                Inför kontakten
+              </p>
+              <h2 className="mt-3 text-3xl font-semibold tracking-normal text-balance sm:text-4xl">
+                Du behöver inte ha alla svar.
               </h2>
-              <p className="mt-4 leading-7 text-muted-foreground">
-                Svara på det du vet. Det räcker för att Nova IT ska kunna börja på rätt ställe.
+              <p className="mt-4 leading-7 text-slate-300">
+                Berätta vad som krånglar och vad du redan har provat. Vi hjälper dig att reda ut
+                resten.
               </p>
 
               {selectedService && (
-                <div className="mt-7 rounded-lg border border-primary/20 bg-primary/5 p-5">
-                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
+                <div className="mt-7 rounded-md border border-sky-300/25 bg-sky-300/8 p-5">
+                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-sky-200">
                     Förvald tjänst
                   </p>
                   <p className="mt-2 font-semibold">{selectedService.title}</p>
-                  <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                    {selectedService.outcome}
-                  </p>
+                  <p className="mt-2 text-sm leading-6 text-slate-300">{selectedService.outcome}</p>
                 </div>
               )}
 
@@ -269,21 +373,16 @@ function ContactPage() {
                     />
                   </>
                 )}
-                <ContactFact
-                  icon={ShieldCheck}
-                  title="Trygg första kontakt"
-                  text="Skicka aldrig lösenord, bankuppgifter eller andra känsliga uppgifter i ett nytt ärende."
-                />
               </div>
-              <div className="mt-7 rounded-lg border border-border bg-background/80 p-5">
+              <div className="mt-7 rounded-md border border-white/10 bg-white/[0.035] p-5">
                 <div className="flex items-center gap-2">
-                  <Sparkles className="h-4 w-4 text-primary" />
+                  <Sparkles className="h-4 w-4 text-sky-300" />
                   <h2 className="text-sm font-semibold">Bra att ha med</h2>
                 </div>
-                <ul className="mt-4 space-y-3 text-sm text-muted-foreground">
+                <ul className="mt-4 space-y-3 text-sm text-slate-300">
                   {preparationTips.map((tip) => (
                     <li key={tip} className="flex gap-2">
-                      <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                      <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-sky-300" />
                       <span>{tip}</span>
                     </li>
                   ))}
@@ -291,7 +390,7 @@ function ContactPage() {
               </div>
             </div>
 
-            <Card className="min-w-0 border-border operational-shadow">
+            <Card className="min-w-0 border-white/10 bg-white/[0.035] shadow-[0_24px_70px_-44px_rgb(0_0_0_/_0.9)]">
               <CardContent className="p-5 sm:p-7">
                 {errorEntries.length > 0 && (
                   <div
@@ -312,7 +411,7 @@ function ContactPage() {
 
                 <form onSubmit={onSubmit} noValidate className="grid gap-5">
                   <fieldset className="min-w-0 rounded-lg border border-border p-5">
-                    <legend className="px-2 text-sm font-semibold">1. Dina uppgifter</legend>
+                    <legend className="px-2 text-sm font-semibold">Dina uppgifter</legend>
                     <div className="grid gap-4 sm:grid-cols-2">
                       <Field label="Namn" name="name" error={errors.name}>
                         {(fieldProps) => (
@@ -381,7 +480,9 @@ function ContactPage() {
                   </fieldset>
 
                   <fieldset className="min-w-0 rounded-lg border border-border p-5">
-                    <legend className="px-2 text-sm font-semibold">2. Ärendet</legend>
+                    <legend className="px-2 text-sm font-semibold">
+                      Vad behöver du hjälp med?
+                    </legend>
                     <div className="grid gap-4 sm:grid-cols-2">
                       <Field
                         label="Tjänst"
@@ -411,7 +512,7 @@ function ContactPage() {
                           </Select>
                         )}
                       </Field>
-                      <Field label="Brådska" name="urgency" error={errors.urgency}>
+                      <Field label="När behöver du hjälp?" name="urgency" error={errors.urgency}>
                         {(fieldProps) => (
                           <Select
                             value={values.urgency}
@@ -420,7 +521,7 @@ function ContactPage() {
                             }
                           >
                             <SelectTrigger {...fieldProps}>
-                              <SelectValue placeholder="Välj brådska" />
+                              <SelectValue placeholder="Välj ungefärlig tidsram" />
                             </SelectTrigger>
                             <SelectContent>
                               {urgencyLevels.map((option) => (
@@ -435,11 +536,37 @@ function ContactPage() {
                     </div>
 
                     <div className="mt-4">
+                      {assistantContext && (
+                        <div
+                          className="mb-4 rounded-md border border-sky-300/20 bg-sky-300/[0.045] px-4 py-3"
+                          aria-label="Kontaktorsak från den automatiska guiden"
+                        >
+                          <div className="flex items-center gap-2 text-xs font-medium text-slate-400">
+                            <LockKeyhole className="h-3.5 w-3.5 text-sky-300" aria-hidden="true" />
+                            Kontaktorsak från guiden
+                          </div>
+                          <p className="mt-2 text-sm font-medium text-slate-100">
+                            {assistantContext.contactReason}
+                          </p>
+                          {assistantContext.context && (
+                            <p className="mt-1 text-xs text-slate-400">
+                              {assistantContext.context}
+                            </p>
+                          )}
+                          <p className="mt-2 text-xs leading-5 text-slate-500">
+                            {assistantContext.guidance}
+                          </p>
+                        </div>
+                      )}
                       <Field
-                        label="Beskriv ärendet"
+                        label={assistantContext ? "Din beskrivning" : "Beskriv ärendet"}
                         name="message"
                         error={errors.message}
-                        hint={`Minst 10 tecken. ${messageLength}/${MESSAGE_MAX} tecken använda.`}
+                        hint={
+                          assistantHandoffApplied
+                            ? `Skriv med egna ord under den låsta kontaktorsaken. ${messageLength}/${MESSAGE_MAX} tecken använda.`
+                            : `Minst 10 tecken. ${messageLength}/${MESSAGE_MAX} tecken använda.`
+                        }
                       >
                         {(fieldProps) => (
                           <Textarea
@@ -447,6 +574,7 @@ function ContactPage() {
                             rows={6}
                             value={values.message}
                             onChange={(event) => update("message", event.target.value)}
+                            placeholder={assistantContext?.guidance}
                             maxLength={MESSAGE_MAX}
                             required
                           />
@@ -456,35 +584,47 @@ function ContactPage() {
                   </fieldset>
 
                   <fieldset className="min-w-0 rounded-lg border border-border p-5">
-                    <legend className="px-2 text-sm font-semibold">3. Bekräfta</legend>
+                    <legend className="px-2 text-sm font-semibold">Skicka förfrågan</legend>
                     <div>
                       <div className="flex items-start gap-3">
                         <Checkbox
-                          id="consent"
-                          checked={values.consent}
-                          onCheckedChange={(checked) => update("consent", checked === true)}
-                          aria-invalid={errors.consent ? true : undefined}
+                          id="privacyAcknowledged"
+                          checked={values.privacyAcknowledged}
+                          onCheckedChange={(checked) =>
+                            update("privacyAcknowledged", checked === true)
+                          }
+                          aria-invalid={errors.privacyAcknowledged ? true : undefined}
                           aria-describedby={
-                            errors.consent ? "consent-hint consent-error" : "consent-hint"
+                            errors.privacyAcknowledged
+                              ? "privacy-hint privacy-error"
+                              : "privacy-hint"
                           }
                         />
                         <div>
-                          <Label htmlFor="consent" className="text-sm font-medium">
-                            Nova IT får använda uppgifterna för att återkomma om ärendet.
+                          <Label htmlFor="privacyAcknowledged" className="text-sm font-medium">
+                            Jag har tagit del av informationen om hur Nova IT hanterar mina
+                            uppgifter.
                           </Label>
-                          <p id="consent-hint" className="mt-1 text-sm text-muted-foreground">
-                            Skicka inte lösenord, bankuppgifter eller annan känslig information i
-                            första kontakten.
+                          <p id="privacy-hint" className="mt-1 text-sm text-muted-foreground">
+                            Läs{" "}
+                            <LegalDialogTrigger
+                              document="privacy"
+                              className="underline underline-offset-4 hover:text-foreground"
+                            >
+                              integritetspolicyn
+                            </LegalDialogTrigger>
+                            . Skicka inte lösenord, bankuppgifter eller annan känslig information.
+                            Undvik uppgifter om andra personer om de inte behövs för ärendet.
                           </p>
                         </div>
                       </div>
-                      {errors.consent && (
+                      {errors.privacyAcknowledged && (
                         <p
-                          id="consent-error"
+                          id="privacy-error"
                           role="alert"
                           className="mt-1 text-sm text-destructive"
                         >
-                          {errors.consent}
+                          {errors.privacyAcknowledged}
                         </p>
                       )}
                     </div>
@@ -496,6 +636,53 @@ function ContactPage() {
                 </form>
               </CardContent>
             </Card>
+          </div>
+        </Container>
+      </section>
+    </>
+  );
+}
+
+function ContactInformation() {
+  return (
+    <>
+      <section className="nova-page-header">
+        <Container className="py-14 lg:py-18">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-sky-300">Kontakt</p>
+          <h1 className="mt-4 max-w-3xl text-4xl font-semibold tracking-normal text-balance sm:text-5xl lg:text-6xl">
+            Kontaktuppgifter
+          </h1>
+          <p className="mt-5 max-w-2xl text-lg leading-8 text-slate-300">
+            För en ny förfrågan använder du knappen Kontakta oss i sidhuvudet. Du kan också skriva
+            direkt till oss.
+          </p>
+        </Container>
+      </section>
+
+      <section className="nova-section">
+        <Container className="grid gap-10 py-14 lg:grid-cols-[0.72fr_1.28fr] lg:py-18">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-sky-300">
+              Skriv till oss
+            </p>
+            <h2 className="mt-3 text-3xl font-semibold tracking-normal text-balance">
+              Rätt väg från början.
+            </h2>
+            <p className="mt-4 max-w-md leading-7 text-slate-300">
+              Skriv kort vad det gäller. Skicka aldrig lösenord, bankuppgifter eller andra känsliga
+              uppgifter i ett första meddelande.
+            </p>
+          </div>
+
+          <div className="nova-panel divide-y divide-white/10 rounded-md">
+            <div className="p-6 sm:p-8">
+              <ContactFact
+                icon={Mail}
+                title="E-post"
+                text={contactChannels.contact}
+                href={`mailto:${contactChannels.contact}`}
+              />
+            </div>
           </div>
         </Container>
       </section>
@@ -522,7 +709,7 @@ function ContactFact({
         {href ? (
           <a
             href={href}
-            className="font-medium text-primary underline decoration-primary/35 underline-offset-4 transition-colors hover:text-sky-800 hover:decoration-sky-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2"
+            className="font-medium text-primary underline decoration-primary/35 underline-offset-4 transition-colors hover:text-sky-200 hover:decoration-sky-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0d151e]"
           >
             {text}
           </a>

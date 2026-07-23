@@ -14,6 +14,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../integrations/lovable/error-reporting";
 import { SiteHeader, SiteFooter } from "../components/site-chrome";
 import { SupportBotLauncher } from "../features/support/SupportBotLauncher";
+import { LegalDialogProvider } from "../components/legal-dialog";
 
 function NotFoundComponent() {
   return (
@@ -80,18 +81,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Nova IT – IT-support, nätverk och säkerhet" },
+      { title: "Nova IT – IT som bara fungerar" },
       {
         name: "description",
         content:
-          "Nova IT hjälper med datorproblem, nätverk, installationer, säkerhet, backup och tydliga supportärenden.",
+          "Praktisk hjälp med datorer, nätverk, installationer, konton och program som krånglar.",
       },
       { name: "author", content: "Nova IT" },
       { property: "og:locale", content: "sv_SE" },
-      { property: "og:title", content: "Nova IT – IT-support, nätverk och säkerhet" },
+      { property: "og:title", content: "Nova IT – IT som bara fungerar" },
       {
         property: "og:description",
-        content: "Praktisk IT-hjälp när datorer, Wi-Fi, konton eller backup behöver fungera.",
+        content: "Praktisk IT-hjälp när datorer, Wi-Fi, konton eller program behöver fungera.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -130,20 +131,22 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <div className="flex min-h-screen flex-col bg-background text-foreground">
-        <a
-          href="#main-content"
-          className="sr-only fixed left-4 top-4 z-50 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground focus:not-sr-only"
-        >
-          Hoppa till innehåll
-        </a>
-        <SiteHeader />
-        <main id="main-content" className="flex-1">
-          <Outlet />
-        </main>
-        <SiteFooter />
-        <SupportBotLauncher />
-      </div>
+      <LegalDialogProvider>
+        <div className="flex min-h-screen flex-col bg-background text-foreground">
+          <a
+            href="#main-content"
+            className="sr-only fixed left-4 top-4 z-50 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground focus:not-sr-only"
+          >
+            Hoppa till innehåll
+          </a>
+          <SiteHeader />
+          <main id="main-content" className="flex-1">
+            <Outlet />
+          </main>
+          <SiteFooter />
+          <SupportBotLauncher />
+        </div>
+      </LegalDialogProvider>
     </QueryClientProvider>
   );
 }

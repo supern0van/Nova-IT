@@ -8,9 +8,31 @@ export type ContactSubmission = {
   message: string;
 };
 
-export function createContactEmailDraft(submission: ContactSubmission, recipient: string) {
+export type ContactAssistantContext = {
+  contactReason: string;
+  context: string;
+};
+
+export function composeContactMessage(
+  message: string,
+  assistantContext: ContactAssistantContext | null,
+) {
+  if (!assistantContext) return message.trim();
+
+  return [
+    `Kontaktorsak: ${assistantContext.contactReason}`,
+    assistantContext.context ? `Omfattning: ${assistantContext.context}` : undefined,
+    "",
+    "Kundens beskrivning:",
+    message.trim(),
+  ]
+    .filter((line): line is string => line !== undefined)
+    .join("\n");
+}
+
+export function formatContactEmail(submission: ContactSubmission) {
   const subject = `Supportärende: ${submission.service} (${submission.urgency})`;
-  const body = [
+  const text = [
     "Nytt ärende till Nova IT",
     "",
     `Namn: ${submission.name}`,
@@ -24,5 +46,5 @@ export function createContactEmailDraft(submission: ContactSubmission, recipient
     submission.message,
   ].join("\n");
 
-  return `mailto:${encodeURIComponent(recipient)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  return { subject, text };
 }

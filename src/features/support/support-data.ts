@@ -1,4 +1,18 @@
-import type { SupportFlow } from "./support-types";
+import type { SupportDetailOption, SupportFlow } from "./support-types";
+
+export const supportImpactOptions: SupportDetailOption[] = [
+  { id: "one", label: "En person eller enhet" },
+  { id: "several", label: "Flera personer eller enheter" },
+  { id: "blocked", label: "Arbetet står still" },
+  { id: "planned", label: "Det kan planeras" },
+];
+
+export const supportTimingOptions: SupportDetailOption[] = [
+  { id: "recent", label: "Det började nyligen" },
+  { id: "recurring", label: "Det kommer och går" },
+  { id: "after-change", label: "Efter en ändring eller uppdatering" },
+  { id: "unknown", label: "Jag är osäker" },
+];
 
 export const supportFlows: SupportFlow[] = [
   {
@@ -81,7 +95,16 @@ export const supportFlows: SupportFlow[] = [
     id: "windows",
     label: "Windowsproblem",
     title: "Windowsproblem",
-    keywords: ["windows", "uppdatering", "felkod", "blå skärm", "startar inte", "drivrutin"],
+    keywords: [
+      "windows",
+      "uppdatering",
+      "felkod",
+      "blå skärm",
+      "svart skärm",
+      "skärmen är svart",
+      "startar inte",
+      "drivrutin",
+    ],
     intro: "Ett exakt felmeddelande och vad som hände precis innan gör supporten säkrare.",
     firstSteps: [
       "Skriv av felkoden eller ta en bild.",
@@ -114,43 +137,6 @@ export const supportFlows: SupportFlow[] = [
       },
     ],
     serviceSlug: "it-support",
-  },
-  {
-    id: "chromeos-flex",
-    label: "ChromeOS Flex",
-    title: "ChromeOS Flex",
-    keywords: ["chromeos", "chrome os", "flex", "chromebook", "usb-start"],
-    intro: "ChromeOS Flex kräver planering eftersom installation kan påverka filer och Windows.",
-    firstSteps: [
-      "Ta fram datorns exakta modell.",
-      "Skriv om Windows ska ersättas eller om du bara vill undersöka alternativ.",
-      "Notera om filer, e-post eller program behöver flyttas först.",
-    ],
-    escalation: "Be om hjälp före permanent installation eller om hårdvara saknas i testläget.",
-    question: "Vad gäller frågan?",
-    options: [
-      {
-        id: "flex-install",
-        label: "Installera",
-        reply: "Nova IT bör kontrollera modell, backup och om installationen passar behovet.",
-      },
-      {
-        id: "flex-boot",
-        label: "USB-start fungerar inte",
-        reply: "Nova IT behöver datorns modell och hur långt starten kommer innan den fastnar.",
-      },
-      {
-        id: "flex-wifi",
-        label: "Wi-Fi saknas",
-        reply: "Det kan tyda på ett inkompatibelt nätverkskort.",
-      },
-      {
-        id: "flex-limits",
-        label: "Begränsningar",
-        reply: "ChromeOS Flex fokuserar på webbappar och har inte samma appstöd som en Chromebook.",
-      },
-    ],
-    serviceSlug: "datorinstallation",
   },
   {
     id: "upgrade",
@@ -194,7 +180,24 @@ export const supportFlows: SupportFlow[] = [
     id: "virus",
     label: "Virus eller intrång",
     title: "Virus eller skadlig aktivitet",
-    keywords: ["virus", "malware", "hack", "phishing", "popup", "kapat", "ransom", "bedrägeri"],
+    keywords: [
+      "virus",
+      "malware",
+      "hack",
+      "phishing",
+      "misstänkt mejl",
+      "misstänkt mail",
+      "klickat på länk",
+      "okänd länk",
+      "popup",
+      "kapat",
+      "kapad",
+      "intrång",
+      "ransom",
+      "krypterade filer",
+      "betalningskrav",
+      "bedrägeri",
+    ],
     intro: "Vid misstänkt intrång är det viktigaste att minska risken och få hjälp snabbt.",
     firstSteps: [
       "Skriv vad som hänt: länk, popup, fil, konto eller betalningskrav.",
@@ -272,7 +275,20 @@ export const supportFlows: SupportFlow[] = [
     id: "account",
     label: "E-post och konto",
     title: "E-post, konto och inloggning",
-    keywords: ["e-post", "mail", "mejl", "konto", "inlogg", "lösenord", "mfa", "outlook", "gmail"],
+    keywords: [
+      "e-post",
+      "mail",
+      "mejl",
+      "konto",
+      "inlogg",
+      "inloggning",
+      "logga in",
+      "lösenord",
+      "mfa",
+      "outlook",
+      "gmail",
+      "teams",
+    ],
     intro: "Kontoproblem ska hanteras säkert, särskilt när e-post eller kunddata berörs.",
     firstSteps: [
       "Skriv vilken tjänst det gäller: Microsoft 365, Google, e-post eller annat konto.",
@@ -408,9 +424,9 @@ export const supportFlows: SupportFlow[] = [
         reply: "Samla modell, anslutningstyp och dator som ska använda den.",
       },
       {
-        id: "install-flex",
-        label: "ChromeOS Flex",
-        reply: "Nova IT bör kontrollera backup, modell och om ChromeOS Flex passar behovet.",
+        id: "install-other",
+        label: "Annan installation",
+        reply: "Skriv vad som ska installeras och på vilken enhet.",
       },
       {
         id: "install-app",
@@ -425,7 +441,7 @@ export const supportFlows: SupportFlow[] = [
     label: "Förbered support",
     title: "Förbered ett supportärende",
     keywords: ["boka", "support", "hjälp", "tid", "fjärrhjälp", "service", "kontakt"],
-    intro: "Nova hjälper dig samla ett tydligt underlag innan Nova IT kontaktas.",
+    intro: "Guiden hjälper dig samla ett tydligt underlag innan Nova IT kontaktas.",
     firstSteps: [
       "Beskriv problemet kort.",
       "Notera enhetens modell om du känner till den.",

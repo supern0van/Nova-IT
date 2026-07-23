@@ -46,7 +46,20 @@ Den genererade konfigurationen i `.wrangler/deploy/config.json` pekar på `.outp
 
 Utgå från `.env.example`.
 
-Regel: frontendvariabler kan läsas av besökaren. Lägg därför aldrig API-nycklar, GitHub-tokens, ärendesystemsnycklar eller privata kunduppgifter i Vite-variabler. Kontaktadresserna ligger medvetet som publika uppgifter i `src/lib/nova-data.ts`; kontaktformuläret skapar ett e-postutkast till `kontakt@nova-it.se`.
+Regel: frontendvariabler kan läsas av besökaren. Lägg därför aldrig API-nycklar, GitHub-tokens, ärendesystemsnycklar eller privata kunduppgifter i Vite-variabler. Kontaktadresserna ligger medvetet som publika uppgifter i `src/lib/nova-data.ts`.
+
+Kontaktformuläret skickar e-post server-side genom Resend. Det öppnar inte besökarens e-postapp och sparar inte ärenden i en databas. Se [kontaktformularets aktivering](contact-form-activation.md) för hela flödet och kontrollpunkterna.
+
+När en verifierad avsändare är klar i Resend läggs hemligheterna in i Cloudflare efter bygget:
+
+```powershell
+bun run build
+bunx wrangler secret put RESEND_API_KEY --config .output/server/wrangler.json
+bunx wrangler secret put CONTACT_FORM_FROM --config .output/server/wrangler.json
+bunx wrangler secret put CONTACT_FORM_TO --config .output/server/wrangler.json
+```
+
+Använd en Resend-nyckel med endast sändbehörighet. `CONTACT_FORM_FROM` kan exempelvis vara `Nova IT <no-reply@nova-it.se>` och `CONTACT_FORM_TO` ska vara `kontakt@nova-it.se`.
 
 ## GitHub Actions
 
@@ -62,8 +75,9 @@ Verifieringen kör:
 
 ## Kvar för full kontakt- och e-postdrift
 
-- Loopias exakta MX-, SPF-, DKIM- och DMARC-poster i Cloudflare
-- verifiering av att `kontakt@nova-it.se` kan ta emot och skicka e-post
-- beslut om när kontaktadresserna ska visas publikt
-- beslut om formuläret ska gå till e-post, ärendesystem eller egen backend
-- eventuell backend eller AI-tjänst för supportassistenten
+- alla fem Nova IT-adresser är skapade och testade hos Loopia
+- verifiera `nova-it.se` och avsändaren `no-reply@nova-it.se` i Resend
+- lägga in Cloudflare Worker-secrets för kontaktformuläret med `kontakt@nova-it.se` som mottagare och `no-reply@nova-it.se` som avsändare
+- skicka ett verkligt testärende från webbplatsen och svara på det via `Reply-To`
+- lägga till Turnstile och enkel begränsning av upprepade formulärskick före bred, öppen lansering
+- genomföra den administrativa ändringen av Cloudflare-kontots inloggningsadress till `webmaster@nova-it.se` när den blir tillgänglig

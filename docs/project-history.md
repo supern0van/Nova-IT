@@ -29,8 +29,9 @@ Detta är en kort beslutshistorik för Nova IT. Den ersätter inte Git-historike
 
 ## 2026-07: E-post och framtida portal
 
-- `kontakt@nova-it.se`, `support@nova-it.se` och `info@nova-it.se` är förberedda i webbplatsens kontaktkonfiguration, men visas inte publikt ännu.
-- E-postens DNS flyttas inte förrän Loopias exakta poster har förts in i Cloudflare och verifierats.
+- `kontakt@nova-it.se`, `support@nova-it.se`, `info@nova-it.se`, `webmaster@nova-it.se` och `no-reply@nova-it.se` är aktiva hos Loopia.
+- `kontakt@nova-it.se` är publik kontaktadress och formulärets mottagare. `no-reply@nova-it.se` används som teknisk avsändare när kontaktformuläret skickar via servern.
+- E-postens DNS ligger i Cloudflare eftersom Cloudflare är namnserver, medan brevlådorna hanteras hos Loopia.
 - `portal.nova-it.se` är reserverad för en framtida kund- och adminportal. Den ska ha egen Worker, databas, hemligheter och releasecykel.
 
 ## Nästa beslut

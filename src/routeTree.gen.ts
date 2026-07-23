@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TjansterRouteImport } from './routes/tjanster'
+import { Route as ProjektAterbrukRouteImport } from './routes/projekt-aterbruk'
 import { Route as OmOssRouteImport } from './routes/om-oss'
 import { Route as KontaktRouteImport } from './routes/kontakt'
 import { Route as FaqRouteImport } from './routes/faq'
@@ -21,6 +22,11 @@ import { Route as IndexRouteImport } from './routes/index'
 const TjansterRoute = TjansterRouteImport.update({
   id: '/tjanster',
   path: '/tjanster',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProjektAterbrukRoute = ProjektAterbrukRouteImport.update({
+  id: '/projekt-aterbruk',
+  path: '/projekt-aterbruk',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OmOssRoute = OmOssRouteImport.update({
@@ -67,6 +73,7 @@ export interface FileRoutesByFullPath {
   '/faq': typeof FaqRoute
   '/kontakt': typeof KontaktRoute
   '/om-oss': typeof OmOssRoute
+  '/projekt-aterbruk': typeof ProjektAterbrukRoute
   '/tjanster': typeof TjansterRoute
 }
 export interface FileRoutesByTo {
@@ -77,6 +84,7 @@ export interface FileRoutesByTo {
   '/faq': typeof FaqRoute
   '/kontakt': typeof KontaktRoute
   '/om-oss': typeof OmOssRoute
+  '/projekt-aterbruk': typeof ProjektAterbrukRoute
   '/tjanster': typeof TjansterRoute
 }
 export interface FileRoutesById {
@@ -88,6 +96,7 @@ export interface FileRoutesById {
   '/faq': typeof FaqRoute
   '/kontakt': typeof KontaktRoute
   '/om-oss': typeof OmOssRoute
+  '/projekt-aterbruk': typeof ProjektAterbrukRoute
   '/tjanster': typeof TjansterRoute
 }
 export interface FileRouteTypes {
@@ -100,6 +109,7 @@ export interface FileRouteTypes {
     | '/faq'
     | '/kontakt'
     | '/om-oss'
+    | '/projekt-aterbruk'
     | '/tjanster'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -110,6 +120,7 @@ export interface FileRouteTypes {
     | '/faq'
     | '/kontakt'
     | '/om-oss'
+    | '/projekt-aterbruk'
     | '/tjanster'
   id:
     | '__root__'
@@ -120,6 +131,7 @@ export interface FileRouteTypes {
     | '/faq'
     | '/kontakt'
     | '/om-oss'
+    | '/projekt-aterbruk'
     | '/tjanster'
   fileRoutesById: FileRoutesById
 }
@@ -131,6 +143,7 @@ export interface RootRouteChildren {
   FaqRoute: typeof FaqRoute
   KontaktRoute: typeof KontaktRoute
   OmOssRoute: typeof OmOssRoute
+  ProjektAterbrukRoute: typeof ProjektAterbrukRoute
   TjansterRoute: typeof TjansterRoute
 }
 
@@ -141,6 +154,13 @@ declare module '@tanstack/react-router' {
       path: '/tjanster'
       fullPath: '/tjanster'
       preLoaderRoute: typeof TjansterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/projekt-aterbruk': {
+      id: '/projekt-aterbruk'
+      path: '/projekt-aterbruk'
+      fullPath: '/projekt-aterbruk'
+      preLoaderRoute: typeof ProjektAterbrukRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/om-oss': {
@@ -203,6 +223,7 @@ const rootRouteChildren: RootRouteChildren = {
   FaqRoute: FaqRoute,
   KontaktRoute: KontaktRoute,
   OmOssRoute: OmOssRoute,
+  ProjektAterbrukRoute: ProjektAterbrukRoute,
   TjansterRoute: TjansterRoute,
 }
 export const routeTree = rootRouteImport
