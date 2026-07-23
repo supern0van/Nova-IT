@@ -20,8 +20,7 @@ export const submitContactRequest = createServerFn({ method: "POST" })
     const recipient = process.env.CONTACT_FORM_TO ?? "kontakt@nova-it.se";
 
     if (!apiKey || !from) {
-      console.error("Contact form delivery is missing configuration.");
-      throw new Error("Kontaktformuläret är inte konfigurerat.");
+      return { accepted: false as const, fallback: "email" as const };
     }
 
     const { subject, text } = formatContactEmail(data);
@@ -44,13 +43,11 @@ export const submitContactRequest = createServerFn({ method: "POST" })
       });
 
       if (!response.ok) {
-        console.error("Contact form email delivery failed", response.status);
-        throw new Error("Contact form delivery failed.");
+        return { accepted: false as const, fallback: "email" as const };
       }
-    } catch (error) {
-      console.error("Contact form email delivery failed.", error);
-      throw new Error("Kontaktformuläret kunde inte skicka ärendet.");
+    } catch {
+      return { accepted: false as const, fallback: "email" as const };
     }
 
-    return { accepted: true };
+    return { accepted: true as const };
   });
