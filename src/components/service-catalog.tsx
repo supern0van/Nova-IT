@@ -1,3 +1,5 @@
+import { Link } from "@tanstack/react-router";
+import { ArrowRight } from "lucide-react";
 import type { Service } from "@/lib/nova-data";
 
 export function ServiceCatalog({ services }: { services: Service[] }) {
@@ -15,6 +17,13 @@ export function ServiceCatalog({ services }: { services: Service[] }) {
             <span className="mt-3 block max-w-2xl text-sm leading-6 text-slate-300">
               {service.description}
             </span>
+            <Link
+              to="/tjanster/$slug"
+              params={{ slug: service.slug }}
+              className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-sky-300 transition-colors hover:text-sky-200"
+            >
+              Läs mer om tjänsten <ArrowRight className="h-4 w-4" />
+            </Link>
           </span>
         </article>
       ))}
