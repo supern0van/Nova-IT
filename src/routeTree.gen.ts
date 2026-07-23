@@ -11,8 +11,10 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TjansterRouteImport } from './routes/tjanster'
 import { Route as ProjektAterbrukRouteImport } from './routes/projekt-aterbruk'
+import { Route as PrivatpersonerRouteImport } from './routes/privatpersoner'
 import { Route as OmOssRouteImport } from './routes/om-oss'
 import { Route as KontaktRouteImport } from './routes/kontakt'
+import { Route as ForetagForeningarRouteImport } from './routes/foretag-foreningar'
 import { Route as FaqRouteImport } from './routes/faq'
 import { Route as CaseStudyRouteImport } from './routes/case-study'
 import { Route as AssistentRouteImport } from './routes/assistent'
@@ -29,6 +31,11 @@ const ProjektAterbrukRoute = ProjektAterbrukRouteImport.update({
   path: '/projekt-aterbruk',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PrivatpersonerRoute = PrivatpersonerRouteImport.update({
+  id: '/privatpersoner',
+  path: '/privatpersoner',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const OmOssRoute = OmOssRouteImport.update({
   id: '/om-oss',
   path: '/om-oss',
@@ -37,6 +44,11 @@ const OmOssRoute = OmOssRouteImport.update({
 const KontaktRoute = KontaktRouteImport.update({
   id: '/kontakt',
   path: '/kontakt',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ForetagForeningarRoute = ForetagForeningarRouteImport.update({
+  id: '/foretag-foreningar',
+  path: '/foretag-foreningar',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FaqRoute = FaqRouteImport.update({
@@ -71,8 +83,10 @@ export interface FileRoutesByFullPath {
   '/assistent': typeof AssistentRoute
   '/case-study': typeof CaseStudyRoute
   '/faq': typeof FaqRoute
+  '/foretag-foreningar': typeof ForetagForeningarRoute
   '/kontakt': typeof KontaktRoute
   '/om-oss': typeof OmOssRoute
+  '/privatpersoner': typeof PrivatpersonerRoute
   '/projekt-aterbruk': typeof ProjektAterbrukRoute
   '/tjanster': typeof TjansterRoute
 }
@@ -82,8 +96,10 @@ export interface FileRoutesByTo {
   '/assistent': typeof AssistentRoute
   '/case-study': typeof CaseStudyRoute
   '/faq': typeof FaqRoute
+  '/foretag-foreningar': typeof ForetagForeningarRoute
   '/kontakt': typeof KontaktRoute
   '/om-oss': typeof OmOssRoute
+  '/privatpersoner': typeof PrivatpersonerRoute
   '/projekt-aterbruk': typeof ProjektAterbrukRoute
   '/tjanster': typeof TjansterRoute
 }
@@ -94,8 +110,10 @@ export interface FileRoutesById {
   '/assistent': typeof AssistentRoute
   '/case-study': typeof CaseStudyRoute
   '/faq': typeof FaqRoute
+  '/foretag-foreningar': typeof ForetagForeningarRoute
   '/kontakt': typeof KontaktRoute
   '/om-oss': typeof OmOssRoute
+  '/privatpersoner': typeof PrivatpersonerRoute
   '/projekt-aterbruk': typeof ProjektAterbrukRoute
   '/tjanster': typeof TjansterRoute
 }
@@ -107,8 +125,10 @@ export interface FileRouteTypes {
     | '/assistent'
     | '/case-study'
     | '/faq'
+    | '/foretag-foreningar'
     | '/kontakt'
     | '/om-oss'
+    | '/privatpersoner'
     | '/projekt-aterbruk'
     | '/tjanster'
   fileRoutesByTo: FileRoutesByTo
@@ -118,8 +138,10 @@ export interface FileRouteTypes {
     | '/assistent'
     | '/case-study'
     | '/faq'
+    | '/foretag-foreningar'
     | '/kontakt'
     | '/om-oss'
+    | '/privatpersoner'
     | '/projekt-aterbruk'
     | '/tjanster'
   id:
@@ -129,8 +151,10 @@ export interface FileRouteTypes {
     | '/assistent'
     | '/case-study'
     | '/faq'
+    | '/foretag-foreningar'
     | '/kontakt'
     | '/om-oss'
+    | '/privatpersoner'
     | '/projekt-aterbruk'
     | '/tjanster'
   fileRoutesById: FileRoutesById
@@ -141,8 +165,10 @@ export interface RootRouteChildren {
   AssistentRoute: typeof AssistentRoute
   CaseStudyRoute: typeof CaseStudyRoute
   FaqRoute: typeof FaqRoute
+  ForetagForeningarRoute: typeof ForetagForeningarRoute
   KontaktRoute: typeof KontaktRoute
   OmOssRoute: typeof OmOssRoute
+  PrivatpersonerRoute: typeof PrivatpersonerRoute
   ProjektAterbrukRoute: typeof ProjektAterbrukRoute
   TjansterRoute: typeof TjansterRoute
 }
@@ -163,6 +189,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProjektAterbrukRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/privatpersoner': {
+      id: '/privatpersoner'
+      path: '/privatpersoner'
+      fullPath: '/privatpersoner'
+      preLoaderRoute: typeof PrivatpersonerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/om-oss': {
       id: '/om-oss'
       path: '/om-oss'
@@ -175,6 +208,13 @@ declare module '@tanstack/react-router' {
       path: '/kontakt'
       fullPath: '/kontakt'
       preLoaderRoute: typeof KontaktRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/foretag-foreningar': {
+      id: '/foretag-foreningar'
+      path: '/foretag-foreningar'
+      fullPath: '/foretag-foreningar'
+      preLoaderRoute: typeof ForetagForeningarRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/faq': {
@@ -221,8 +261,10 @@ const rootRouteChildren: RootRouteChildren = {
   AssistentRoute: AssistentRoute,
   CaseStudyRoute: CaseStudyRoute,
   FaqRoute: FaqRoute,
+  ForetagForeningarRoute: ForetagForeningarRoute,
   KontaktRoute: KontaktRoute,
   OmOssRoute: OmOssRoute,
+  PrivatpersonerRoute: PrivatpersonerRoute,
   ProjektAterbrukRoute: ProjektAterbrukRoute,
   TjansterRoute: TjansterRoute,
 }
