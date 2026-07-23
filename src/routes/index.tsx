@@ -5,6 +5,9 @@ import { Container } from "@/components/design-system";
 import { ServiceAreas } from "@/components/service-areas";
 import { processSteps } from "@/lib/nova-data";
 
+const homeUrl = "https://nova-it.se/";
+const socialImageUrl = "https://nova-it.se/nova-it-workspace.png";
+
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
@@ -18,7 +21,11 @@ export const Route = createFileRoute("/")({
         property: "og:description",
         content: "Praktisk hjälp när datorer, nätverk eller konton bromsar vardagen.",
       },
+      { property: "og:url", content: homeUrl },
+      { property: "og:image", content: socialImageUrl },
+      { name: "twitter:image", content: socialImageUrl },
     ],
+    links: [{ rel: "canonical", href: homeUrl }],
   }),
   component: Home,
 });
@@ -30,6 +37,8 @@ function Home() {
         <img
           src="/nova-it-workspace.png"
           alt="Arbetsplats med dator och nätverksutrustning"
+          fetchPriority="high"
+          decoding="async"
           className="absolute inset-0 -z-20 h-full w-full object-cover object-[62%_center]"
         />
         <div className="absolute inset-0 -z-10 bg-[#090f15]/76" />
