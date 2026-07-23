@@ -19,22 +19,6 @@ import { LegalDialogProvider } from "../components/legal-dialog";
 const siteUrl = "https://nova-it.se";
 const socialImageUrl = `${siteUrl}/nova-it-workspace.png`;
 
-const organizationStructuredData = {
-  "@context": "https://schema.org",
-  "@type": "Organization",
-  name: "Nova IT",
-  url: siteUrl,
-  logo: `${siteUrl}/nova-it-mark.svg`,
-};
-
-const websiteStructuredData = {
-  "@context": "https://schema.org",
-  "@type": "WebSite",
-  name: "Nova IT",
-  url: siteUrl,
-  inLanguage: "sv-SE",
-};
-
 function NotFoundComponent() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
@@ -146,14 +130,6 @@ function RootShell({ children }: { children: ReactNode }) {
     <html lang="sv">
       <head>
         <HeadContent />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationStructuredData) }}
-        />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteStructuredData) }}
-        />
       </head>
       <body>
         {children}
