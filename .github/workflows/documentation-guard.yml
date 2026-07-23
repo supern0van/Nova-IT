@@ -1,0 +1,79 @@
+name: Documentation guard
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+      - "docs/**"
+      - "feature/**"
+      - "fix/**"
+      - "codex/**"
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  validate:
+    name: Validate project documentation
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate required files and changelog fragments
+        shell: bash
+        env:
+          BASE_REF: ${{ github.base_ref || 'main' }}
+          PR_LABELS: ${{ join(github.event.pull_request.labels.*.name, ',') }}
+        run: |
+          set -euo pipefail
+
+          required=(
+            "docs/README.md"
+            "docs/CHANGELOG.md"
+            "docs/DECISIONS.md"
+            "docs/project-history.md"
+            "docs/documentation-workflow.md"
+            "docs/changes/_template.md"
+          )
+
+          for file in "${required[@]}"; do
+            test -f "$file" || { echo "Missing required documentation file: $file"; exit 1; }
+          done
+
+          shopt -s nullglob
+          fragments=(docs/changes/*.md)
+          for fragment in "${fragments[@]}"; do
+            [[ "$fragment" == "docs/changes/_template.md" ]] && continue
+            grep -Eq '^id: NOVA-[0-9]{4}$' "$fragment" || { echo "$fragment: missing valid NOVA ID"; exit 1; }
+            grep -Eq '^type: (added|changed|fixed|removed|security|infrastructure|decision)$' "$fragment" || { echo "$fragment: invalid type"; exit 1; }
+            grep -q '^## Vad ändrades?' "$fragment" || { echo "$fragment: missing What section"; exit 1; }
+            grep -q '^## Varför?' "$fragment" || { echo "$fragment: missing Why section"; exit 1; }
+            grep -q '^## Resultat' "$fragment" || { echo "$fragment: missing Result section"; exit 1; }
+          done
+
+          if [[ "${{ github.event_name }}" != "pull_request" ]]; then
+            exit 0
+          fi
+
+          git fetch origin "$BASE_REF" --depth=1
+          changed="$(git diff --name-only "origin/$BASE_REF...HEAD")"
+          echo "Changed files:"
+          echo "$changed"
+
+          significant="$(echo "$changed" | grep -E '^(src/|public/|package\.json$|bun\.lock$|wrangler\.|vite\.config|\.github/workflows/)' || true)"
+          fragment_changed="$(echo "$changed" | grep -E '^docs/changes/[^_].*\.md$' || true)"
+
+          if [[ -n "$significant" && -z "$fragment_changed" && ",$PR_LABELS," != *",skip-changelog,"* ]]; then
+            echo "A significant project change requires a changelog fragment in docs/changes/."
+            echo "Add one from docs/changes/_template.md or apply the skip-changelog label with a clear PR explanation."
+            exit 1
+          fi
