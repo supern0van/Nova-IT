@@ -5,12 +5,19 @@ Det här är navet för projektets tekniska och historiska dokumentation.
 ## Läsordning
 
 1. [Projektstatus](project-status.md) – nuläge och närmaste steg.
-2. [Projekthistorik](project-history.md) – den förklarande resan från idé till fungerande webbplats.
-3. [Changelog](CHANGELOG.md) – spårbara förändringar med permanenta `NOVA-xxxx`-ID:n.
-4. [Beslutslogg](DECISIONS.md) – större vägval, alternativ och konsekvenser.
-5. [Arbetsflöde för dokumentation](documentation-workflow.md) – hur framtida uppdateringar fångas.
-6. [Deploy och drift](deployment.md) – bygg, verifiering och publicering.
-7. [Roadmap](roadmap.md) – planerat arbete.
+2. [Sammanfattande projektlogg](PROJECT_MILESTONES.md) – kort, läraranpassad överblick över de större arbetsperioderna.
+3. [Projekthistorik](project-history.md) – den förklarande resan från idé till fungerande webbplats.
+4. [Changelog](CHANGELOG.md) – spårbara förändringar med permanenta `NOVA-xxxx`-ID:n.
+5. [Beslutslogg](DECISIONS.md) – större vägval, alternativ och konsekvenser.
+6. [Arbetsflöde för dokumentation](documentation-workflow.md) – hur framtida uppdateringar fångas.
+7. [Deploy och drift](deployment.md) – bygg, verifiering och publicering.
+8. [Roadmap](roadmap.md) – planerat arbete.
+
+## Tre nivåer av historik
+
+- `PROJECT_MILESTONES.md` är den korta versionen för lärare, presentationer och snabb överblick.
+- `project-history.md` beskriver projektets utveckling, sammanhang och lärdomar.
+- `CHANGELOG.md` spårar större tekniska förändringar med permanenta ID:n.
 
 ## Dokumentationsprincip
 
