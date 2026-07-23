@@ -3,7 +3,6 @@ export const serviceRegion = {
   shortLabel: "Hässelby, Västerort och Stockholms innerstad",
   title: "Västerort, Bromma och Stockholms innerstad",
   description:
-    "Nova IT utgår från Hässelby och hjälper kunder i Västerort, Bromma, Stockholms innerstad och närliggande områden som är rimliga att nå med kollektivtrafik. Exakt plats och upplägg bedöms utifrån ärendet.",
-  practicalNote:
-    "Serviceområdet bygger på rimlig restid med kollektivtrafik. Förfrågningar utanför området kan ändå bedömas från fall till fall.",
+    "Nova IT utgår från Hässelby och erbjuder IT-hjälp i Västerort, Bromma och Stockholms innerstad. Plats och upplägg bekräftas i samband med bokning.",
+  practicalNote: "Förfrågningar från andra delar av Stockholm bedöms individuellt.",
 } as const;
