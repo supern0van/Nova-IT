@@ -1,9 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Building2, Home as HomeIcon, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Container } from "@/components/design-system";
 import { ServiceAreas } from "@/components/service-areas";
-import { processSteps } from "@/lib/nova-data";
+import { processSteps, serviceRegion } from "@/lib/nova-data";
 
 const homeUrl = "https://nova-it.se/";
 const socialImageUrl = "https://nova-it.se/nova-it-workspace.png";
@@ -11,12 +11,13 @@ const socialImageUrl = "https://nova-it.se/nova-it-workspace.png";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Nova IT – IT som bara fungerar" },
+      { title: "Nova IT – IT-hjälp i Hässelby och Västerort" },
       {
         name: "description",
-        content: "Praktisk IT-support för datorer, nätverk, konton och säkerhet.",
+        content:
+          "Praktisk IT-hjälp för privatpersoner, småföretag och föreningar i Hässelby och Västerort.",
       },
-      { property: "og:title", content: "Nova IT – IT som bara fungerar" },
+      { property: "og:title", content: "Nova IT – IT-hjälp i Hässelby och Västerort" },
       {
         property: "og:description",
         content: "Praktisk hjälp när datorer, nätverk eller konton bromsar vardagen.",
@@ -43,15 +44,14 @@ function Home() {
         <div className="absolute inset-0 -z-10 bg-[#090f15]/76" />
         <Container className="flex min-h-[690px] items-end py-14 sm:min-h-[760px] sm:py-20">
           <div className="max-w-3xl">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-sky-200">
-              Praktisk IT-hjälp
+            <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-sky-200">
+              <MapPin className="h-4 w-4" /> Hässelby och Västerort
             </p>
             <h1 className="mt-5 text-5xl font-semibold leading-[0.94] tracking-normal text-balance sm:text-6xl lg:text-8xl">
               IT som bara fungerar.
             </h1>
             <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-200 sm:text-xl">
-              Hjälp med datorer, nätverk, konton och program när tekniken bromsar vardagen. Tydligt,
-              personligt och utan onödigt krångel.
+              Praktisk hjälp med datorer, nätverk, konton och program för privatpersoner, småföretag och föreningar. Tydligt, personligt och utan onödigt krångel.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Button asChild size="lg" className="bg-sky-400 text-slate-950 hover:bg-sky-300">
@@ -72,21 +72,44 @@ function Home() {
         </Container>
       </section>
 
+      <section className="nova-section border-b border-white/10">
+        <Container className="py-16 sm:py-20">
+          <div className="max-w-2xl">
+            <p className="eyebrow">Vem behöver hjälp?</p>
+            <h2 className="mt-3 text-3xl font-semibold tracking-normal text-balance sm:text-4xl">
+              Två tydliga vägar in.
+            </h2>
+          </div>
+          <div className="mt-8 grid gap-5 md:grid-cols-2">
+            <AudienceCard
+              icon={HomeIcon}
+              title="Privatpersoner"
+              text="Hjälp med datorer, Wi-Fi, installationer, konton, skrivare och backup i vardagen."
+              to="/privatpersoner"
+              linkText="IT-hjälp för privatpersoner"
+            />
+            <AudienceCard
+              icon={Building2}
+              title="Småföretag och föreningar"
+              text="Praktiskt stöd med arbetsplatser, nätverk, molntjänster, behörigheter och grundläggande säkerhet."
+              to="/foretag-foreningar"
+              linkText="IT-stöd för verksamheter"
+            />
+          </div>
+          <p className="mt-8 max-w-3xl text-sm leading-6 text-slate-400">{serviceRegion.description}</p>
+        </Container>
+      </section>
+
       <section className="nova-section">
         <Container className="py-16 sm:py-20">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-sky-300">
-                Det vi hjälper till med
-              </p>
+              <p className="eyebrow">Det vi hjälper till med</p>
               <h2 className="mt-3 max-w-2xl text-3xl font-semibold tracking-normal text-balance sm:text-4xl">
                 Rätt hjälp för problemet du faktiskt har.
               </h2>
             </div>
-            <Link
-              to="/tjanster"
-              className="text-sm font-medium text-sky-300 transition-colors hover:text-sky-200"
-            >
+            <Link to="/tjanster" className="text-sm font-medium text-sky-300 hover:text-sky-200">
               Se alla tjänster
             </Link>
           </div>
@@ -99,9 +122,7 @@ function Home() {
       <section className="nova-section">
         <Container className="grid gap-10 py-18 lg:grid-cols-[0.7fr_1.3fr] lg:items-start">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-sky-300">
-              Så arbetar vi
-            </p>
+            <p className="eyebrow">Så arbetar vi</p>
             <h2 className="mt-3 text-3xl font-semibold tracking-normal text-balance sm:text-4xl">
               Mindre gissningar. Mer kontroll.
             </h2>
@@ -120,5 +141,30 @@ function Home() {
         </Container>
       </section>
     </>
+  );
+}
+
+function AudienceCard({
+  icon: Icon,
+  title,
+  text,
+  to,
+  linkText,
+}: {
+  icon: typeof HomeIcon;
+  title: string;
+  text: string;
+  to: "/privatpersoner" | "/foretag-foreningar";
+  linkText: string;
+}) {
+  return (
+    <article className="rounded-lg border border-white/10 bg-white/5 p-6">
+      <Icon className="h-6 w-6 text-sky-300" />
+      <h3 className="mt-5 text-2xl font-semibold">{title}</h3>
+      <p className="mt-3 leading-7 text-slate-300">{text}</p>
+      <Link to={to} className="mt-6 inline-flex items-center gap-2 font-medium text-sky-300 hover:text-sky-200">
+        {linkText} <ArrowRight className="h-4 w-4" />
+      </Link>
+    </article>
   );
 }
