@@ -9,6 +9,8 @@ import {
 import { faqs } from "@/lib/nova-data";
 import { Container, TrustNotice, PageHeader } from "@/components/design-system";
 
+const faqUrl = "https://nova-it.se/faq";
+
 export const Route = createFileRoute("/faq")({
   head: () => ({
     meta: [
@@ -17,7 +19,14 @@ export const Route = createFileRoute("/faq")({
         name: "description",
         content: "Svar om hur vi hjälper med datorer, nätverk, konton och installationer.",
       },
+      { property: "og:title", content: "Vanliga frågor – Nova IT" },
+      {
+        property: "og:description",
+        content: "Korta svar om Nova IT:s hjälp med datorer, nätverk, konton och installationer.",
+      },
+      { property: "og:url", content: faqUrl },
     ],
+    links: [{ rel: "canonical", href: faqUrl }],
   }),
   component: FaqPage,
 });
