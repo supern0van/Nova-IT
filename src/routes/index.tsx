@@ -38,7 +38,6 @@ function Home() {
           src="/nova-it-workspace.png"
           alt="Arbetsplats med dator och nätverksutrustning"
           fetchPriority="high"
-          decoding="async"
           className="absolute inset-0 -z-20 h-full w-full object-cover object-[62%_center]"
         />
         <div className="absolute inset-0 -z-10 bg-[#090f15]/76" />
