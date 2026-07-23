@@ -73,6 +73,8 @@ Verifieringen kör:
 - `bun run typecheck`
 - `bun run build`
 
+När routes läggs till eller tas bort ska den genererade `src/routeTree.gen.ts` följa med i samma ändring. En grön typkontroll och produktionsbuild är kontrollen att route-trädet och sidfilerna är synkroniserade.
+
 ## Kvar för full kontakt- och e-postdrift
 
 - alla fem Nova IT-adresser är skapade och testade hos Loopia
