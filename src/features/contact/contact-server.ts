@@ -2,6 +2,8 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { formatContactEmail } from "./contact-submission";
 
+const CONTACT_FORM_RECIPIENT = "kontakt@nova-it.se";
+
 const contactRequestSchema = z.object({
   name: z.string().trim().min(2).max(100),
   email: z.string().trim().email().max(255),
@@ -17,10 +19,9 @@ export const submitContactRequest = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const apiKey = process.env.RESEND_API_KEY;
     const from = process.env.CONTACT_FORM_FROM;
-    const recipient = process.env.CONTACT_FORM_TO ?? "kontakt@nova-it.se";
 
     if (!apiKey || !from) {
-      console.error("Contact form delivery is missing configuration.");
+      console.error("Contact form delivery is missing RESEND_API_KEY or CONTACT_FORM_FROM.");
       throw new Error("Kontaktformuläret är inte konfigurerat.");
     }
 
@@ -36,7 +37,7 @@ export const submitContactRequest = createServerFn({ method: "POST" })
         },
         body: JSON.stringify({
           from,
-          to: [recipient],
+          to: [CONTACT_FORM_RECIPIENT],
           reply_to: data.email,
           subject,
           text,
@@ -44,7 +45,8 @@ export const submitContactRequest = createServerFn({ method: "POST" })
       });
 
       if (!response.ok) {
-        console.error("Contact form email delivery failed", response.status);
+        const responseBody = await response.text();
+        console.error("Contact form email delivery failed", response.status, responseBody);
         throw new Error("Contact form delivery failed.");
       }
     } catch (error) {
@@ -52,5 +54,5 @@ export const submitContactRequest = createServerFn({ method: "POST" })
       throw new Error("Kontaktformuläret kunde inte skicka ärendet.");
     }
 
-    return { accepted: true };
+    return { accepted: true, recipient: CONTACT_FORM_RECIPIENT };
   });
