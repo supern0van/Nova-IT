@@ -16,6 +16,25 @@ import { SiteHeader, SiteFooter } from "../components/site-chrome";
 import { SupportBotLauncher } from "../features/support/SupportBotLauncher";
 import { LegalDialogProvider } from "../components/legal-dialog";
 
+const siteUrl = "https://nova-it.se";
+const socialImageUrl = `${siteUrl}/nova-it-workspace.png`;
+
+const organizationStructuredData = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: "Nova IT",
+  url: siteUrl,
+  logo: `${siteUrl}/nova-it-mark.svg`,
+};
+
+const websiteStructuredData = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: "Nova IT",
+  url: siteUrl,
+  inLanguage: "sv-SE",
+};
+
 function NotFoundComponent() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
@@ -89,13 +108,23 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       { name: "author", content: "Nova IT" },
       { property: "og:locale", content: "sv_SE" },
+      { property: "og:site_name", content: "Nova IT" },
       { property: "og:title", content: "Nova IT – IT som bara fungerar" },
       {
         property: "og:description",
         content: "Praktisk IT-hjälp när datorer, Wi-Fi, konton eller program behöver fungera.",
       },
       { property: "og:type", content: "website" },
+      { property: "og:url", content: siteUrl },
+      { property: "og:image", content: socialImageUrl },
+      { property: "og:image:alt", content: "Nova IT – praktisk IT-hjälp" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "Nova IT – IT som bara fungerar" },
+      {
+        name: "twitter:description",
+        content: "Praktisk IT-hjälp när datorer, Wi-Fi, konton eller program behöver fungera.",
+      },
+      { name: "twitter:image", content: socialImageUrl },
       { name: "theme-color", content: "#172033" },
     ],
     links: [
@@ -117,6 +146,14 @@ function RootShell({ children }: { children: ReactNode }) {
     <html lang="sv">
       <head>
         <HeadContent />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationStructuredData) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteStructuredData) }}
+        />
       </head>
       <body>
         {children}
