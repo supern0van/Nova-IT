@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TjansterRouteImport } from './routes/tjanster'
+import { Route as TjansterSlugRouteImport } from './routes/tjanster.$slug'
 import { Route as ProjektAterbrukRouteImport } from './routes/projekt-aterbruk'
 import { Route as PrivatpersonerRouteImport } from './routes/privatpersoner'
 import { Route as OmOssRouteImport } from './routes/om-oss'
@@ -24,6 +25,11 @@ import { Route as IndexRouteImport } from './routes/index'
 const TjansterRoute = TjansterRouteImport.update({
   id: '/tjanster',
   path: '/tjanster',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TjansterSlugRoute = TjansterSlugRouteImport.update({
+  id: '/tjanster/$slug',
+  path: '/tjanster/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProjektAterbrukRoute = ProjektAterbrukRouteImport.update({
@@ -89,6 +95,7 @@ export interface FileRoutesByFullPath {
   '/privatpersoner': typeof PrivatpersonerRoute
   '/projekt-aterbruk': typeof ProjektAterbrukRoute
   '/tjanster': typeof TjansterRoute
+  '/tjanster/$slug': typeof TjansterSlugRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -102,6 +109,7 @@ export interface FileRoutesByTo {
   '/privatpersoner': typeof PrivatpersonerRoute
   '/projekt-aterbruk': typeof ProjektAterbrukRoute
   '/tjanster': typeof TjansterRoute
+  '/tjanster/$slug': typeof TjansterSlugRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -116,6 +124,7 @@ export interface FileRoutesById {
   '/privatpersoner': typeof PrivatpersonerRoute
   '/projekt-aterbruk': typeof ProjektAterbrukRoute
   '/tjanster': typeof TjansterRoute
+  '/tjanster/$slug': typeof TjansterSlugRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -131,6 +140,7 @@ export interface FileRouteTypes {
     | '/privatpersoner'
     | '/projekt-aterbruk'
     | '/tjanster'
+    | '/tjanster/$slug'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -144,6 +154,7 @@ export interface FileRouteTypes {
     | '/privatpersoner'
     | '/projekt-aterbruk'
     | '/tjanster'
+    | '/tjanster/$slug'
   id:
     | '__root__'
     | '/'
@@ -157,6 +168,7 @@ export interface FileRouteTypes {
     | '/privatpersoner'
     | '/projekt-aterbruk'
     | '/tjanster'
+    | '/tjanster/$slug'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -171,6 +183,7 @@ export interface RootRouteChildren {
   PrivatpersonerRoute: typeof PrivatpersonerRoute
   ProjektAterbrukRoute: typeof ProjektAterbrukRoute
   TjansterRoute: typeof TjansterRoute
+  TjansterSlugRoute: typeof TjansterSlugRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -180,6 +193,13 @@ declare module '@tanstack/react-router' {
       path: '/tjanster'
       fullPath: '/tjanster'
       preLoaderRoute: typeof TjansterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tjanster/$slug': {
+      id: '/tjanster/$slug'
+      path: '/tjanster/$slug'
+      fullPath: '/tjanster/$slug'
+      preLoaderRoute: typeof TjansterSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/projekt-aterbruk': {
@@ -267,6 +287,7 @@ const rootRouteChildren: RootRouteChildren = {
   PrivatpersonerRoute: PrivatpersonerRoute,
   ProjektAterbrukRoute: ProjektAterbrukRoute,
   TjansterRoute: TjansterRoute,
+  TjansterSlugRoute: TjansterSlugRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
