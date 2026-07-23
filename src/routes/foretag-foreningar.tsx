@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Container, PageHeader } from "@/components/design-system";
+import { serviceRegion } from "@/lib/service-region";
 
 export const Route = createFileRoute("/foretag-foreningar")({
   head: () => ({
@@ -10,7 +11,7 @@ export const Route = createFileRoute("/foretag-foreningar")({
       {
         name: "description",
         content:
-          "Praktiskt IT-stöd för mindre företag och föreningar med arbetsplatser, nätverk, konton, Microsoft 365, Google Workspace och backup.",
+          "Praktiskt IT-stöd för mindre företag och föreningar i Västerort, Bromma och Stockholms innerstad med arbetsplatser, nätverk, konton och backup.",
       },
     ],
     links: [{ rel: "canonical", href: "https://nova-it.se/foretag-foreningar" }],
@@ -53,11 +54,10 @@ function BusinessCustomersPage() {
           </div>
 
           <aside className="rounded-lg border border-white/10 bg-white/5 p-6">
-            <p className="eyebrow">Börja med rätt underlag</p>
-            <h2 className="mt-3 text-2xl font-semibold">Beskriv påverkan först</h2>
-            <p className="mt-4 leading-7 text-slate-300">
-              Berätta vilka användare eller delar av verksamheten som påverkas, vad som redan har testats och om något viktigt står still. Det gör den första bedömningen mer träffsäker.
-            </p>
+            <p className="eyebrow">Lokalt upplägg</p>
+            <h2 className="mt-3 text-2xl font-semibold">{serviceRegion.title}</h2>
+            <p className="mt-4 leading-7 text-slate-300">{serviceRegion.description}</p>
+            <p className="mt-3 text-sm leading-6 text-slate-400">{serviceRegion.practicalNote}</p>
             <Button asChild className="mt-6 w-full">
               <Link to="/kontakt" search={{ form: "request", service: undefined }}>
                 Skicka en förfrågan
