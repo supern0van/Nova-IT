@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Container, PageHeader } from "@/components/design-system";
+import { serviceRegion } from "@/lib/service-region";
 
 export const Route = createFileRoute("/privatpersoner")({
   head: () => ({
@@ -10,7 +11,7 @@ export const Route = createFileRoute("/privatpersoner")({
       {
         name: "description",
         content:
-          "Praktisk IT-hjälp för privatpersoner i Hässelby och Västerort med datorer, Wi-Fi, konton, installationer och backup.",
+          "Praktisk IT-hjälp för privatpersoner i Hässelby, Västerort, Bromma och Stockholms innerstad med datorer, Wi-Fi, konton, installationer och backup.",
       },
     ],
     links: [{ rel: "canonical", href: "https://nova-it.se/privatpersoner" }],
@@ -54,10 +55,9 @@ function PrivateCustomersPage() {
 
           <aside className="rounded-lg border border-white/10 bg-white/5 p-6">
             <p className="eyebrow">Lokalt och tydligt</p>
-            <h2 className="mt-3 text-2xl font-semibold">Hässelby och Västerort</h2>
-            <p className="mt-4 leading-7 text-slate-300">
-              Nova IT utgår från Hässelby och fokuserar på praktisk hjälp för kunder i Västerort och närliggande områden. Upplägget bestäms efter att ärendet har bedömts.
-            </p>
+            <h2 className="mt-3 text-2xl font-semibold">{serviceRegion.title}</h2>
+            <p className="mt-4 leading-7 text-slate-300">{serviceRegion.description}</p>
+            <p className="mt-3 text-sm leading-6 text-slate-400">{serviceRegion.practicalNote}</p>
             <Button asChild className="mt-6 w-full">
               <Link to="/kontakt" search={{ form: "request", service: undefined }}>
                 Beskriv ditt ärende

@@ -3,7 +3,8 @@ import { ArrowRight, Building2, Home as HomeIcon, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Container } from "@/components/design-system";
 import { ServiceAreas } from "@/components/service-areas";
-import { processSteps, serviceRegion } from "@/lib/nova-data";
+import { processSteps } from "@/lib/nova-data";
+import { serviceRegion } from "@/lib/service-region";
 
 const homeUrl = "https://nova-it.se/";
 const socialImageUrl = "https://nova-it.se/nova-it-workspace.png";
@@ -11,13 +12,16 @@ const socialImageUrl = "https://nova-it.se/nova-it-workspace.png";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Nova IT – IT-hjälp i Hässelby och Västerort" },
+      { title: "Nova IT – IT-hjälp i Västerort och Stockholms innerstad" },
       {
         name: "description",
         content:
-          "Praktisk IT-hjälp för privatpersoner, småföretag och föreningar i Hässelby och Västerort.",
+          "Praktisk IT-hjälp för privatpersoner, småföretag och föreningar i Hässelby, Västerort, Bromma och Stockholms innerstad.",
       },
-      { property: "og:title", content: "Nova IT – IT-hjälp i Hässelby och Västerort" },
+      {
+        property: "og:title",
+        content: "Nova IT – IT-hjälp i Västerort och Stockholms innerstad",
+      },
       {
         property: "og:description",
         content: "Praktisk hjälp när datorer, nätverk eller konton bromsar vardagen.",
@@ -45,7 +49,7 @@ function Home() {
         <Container className="flex min-h-[690px] items-end py-14 sm:min-h-[760px] sm:py-20">
           <div className="max-w-3xl">
             <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-sky-200">
-              <MapPin className="h-4 w-4" /> Hässelby och Västerort
+              <MapPin className="h-4 w-4" /> {serviceRegion.shortLabel}
             </p>
             <h1 className="mt-5 text-5xl font-semibold leading-[0.94] tracking-normal text-balance sm:text-6xl lg:text-8xl">
               IT som bara fungerar.
@@ -96,7 +100,9 @@ function Home() {
               linkText="IT-stöd för verksamheter"
             />
           </div>
-          <p className="mt-8 max-w-3xl text-sm leading-6 text-slate-400">{serviceRegion.description}</p>
+          <p className="mt-8 max-w-3xl text-sm leading-6 text-slate-400">
+            {serviceRegion.description} {serviceRegion.practicalNote}
+          </p>
         </Container>
       </section>
 
