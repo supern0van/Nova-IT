@@ -59,6 +59,13 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+  --color-surface-hero: var(--surface-hero);
+  --color-surface-band: var(--surface-band);
+  --color-surface-page: var(--surface-page);
+  --color-surface-muted: var(--surface-muted);
+  --color-surface-footer: var(--surface-footer);
+  --color-surface-hero-hover: var(--surface-hero-hover);
+  --color-surface-highlight: var(--surface-highlight);
 }
 
 :root {
@@ -95,6 +102,22 @@
   --sidebar-accent-foreground: oklch(0.965 0.008 245);
   --sidebar-border: oklch(0.33 0.022 247);
   --sidebar-ring: oklch(0.71 0.145 243);
+
+  /*
+   * Surface scale — consolidates what were previously seven separate
+   * hardcoded hex values (bg-[#090f15], bg-[#0c141c], bg-[#0d151e],
+   * bg-[#101922], bg-[#101a24], bg-[#111c25], bg-[#0b1720]) scattered
+   * across site-chrome.tsx, SupportBotLauncher.tsx, index.tsx,
+   * kontakt.tsx and projekt-aterbruk.tsx. Values are unchanged pixel-for-
+   * pixel (converted hex -> oklch), only the source of truth moved here.
+   */
+  --surface-hero: oklch(0.165 0.016 248.7); /* was #090f15 */
+  --surface-band: oklch(0.187 0.02 249); /* was #0c141c */
+  --surface-page: oklch(0.192 0.022 251.9); /* was #0d151e */
+  --surface-muted: oklch(0.209 0.022 248.9); /* was #101922 */
+  --surface-hero-hover: oklch(0.213 0.025 249); /* was #101a24 */
+  --surface-footer: oklch(0.22 0.024 243.8); /* was #111c25 */
+  --surface-highlight: oklch(0.198 0.025 242); /* was #0b1720 */
 }
 
 .dark {
@@ -202,19 +225,19 @@
   }
 
   .nova-band {
-    @apply bg-[#0c141c];
+    @apply bg-surface-band;
   }
 
   .nova-page-header {
-    @apply bg-[#0d151e] text-white;
+    @apply bg-surface-page text-white;
   }
 
   .nova-section {
-    @apply bg-[#0d151e] text-white;
+    @apply bg-surface-page text-white;
   }
 
   .nova-section-muted {
-    @apply bg-[#101922] text-white;
+    @apply bg-surface-muted text-white;
   }
 
   .nova-section-divider {
