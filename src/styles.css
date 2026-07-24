@@ -59,42 +59,57 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+  --color-surface-emphasis: var(--surface-emphasis);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+  --color-accent-hover: var(--accent-hover);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
 }
 
 :root {
   --radius: 0.5rem;
-  --background: oklch(0.985 0.006 210);
-  --foreground: oklch(0.225 0.03 214);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.225 0.03 214);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.129 0.042 264.695);
-  --primary: oklch(0.5 0.125 235);
-  --primary-foreground: oklch(0.985 0.006 210);
-  --secondary: oklch(0.955 0.018 204);
-  --secondary-foreground: oklch(0.26 0.04 211);
-  --muted: oklch(0.955 0.011 210);
-  --muted-foreground: oklch(0.48 0.028 215);
-  --accent: oklch(0.92 0.03 205);
-  --accent-foreground: oklch(0.28 0.055 220);
+  --background: oklch(0.13 0.021 247);
+  --foreground: oklch(0.965 0.008 245);
+  --card: oklch(0.17 0.022 247);
+  --card-foreground: oklch(0.965 0.008 245);
+  --popover: oklch(0.17 0.022 247);
+  --popover-foreground: oklch(0.965 0.008 245);
+  --primary: oklch(0.71 0.145 243);
+  --primary-foreground: oklch(0.16 0.025 247);
+  --secondary: oklch(0.205 0.025 247);
+  --secondary-foreground: oklch(0.94 0.012 245);
+  --muted: oklch(0.205 0.025 247);
+  --muted-foreground: oklch(0.72 0.022 245);
+  --accent: oklch(0.24 0.034 247);
+  --accent-foreground: oklch(0.975 0.008 245);
   --destructive: oklch(0.577 0.245 27.325);
   --destructive-foreground: oklch(0.984 0.003 247.858);
-  --border: oklch(0.885 0.014 210);
-  --input: oklch(0.885 0.014 210);
-  --ring: oklch(0.57 0.13 235);
+  --border: oklch(0.33 0.022 247);
+  --input: oklch(0.33 0.022 247);
+  --ring: oklch(0.71 0.145 243);
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
   --chart-4: oklch(0.828 0.189 84.429);
   --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.984 0.003 247.858);
-  --sidebar-foreground: oklch(0.129 0.042 264.695);
-  --sidebar-primary: oklch(0.208 0.042 265.755);
-  --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-accent: oklch(0.968 0.007 247.896);
-  --sidebar-accent-foreground: oklch(0.208 0.042 265.755);
-  --sidebar-border: oklch(0.929 0.013 255.508);
-  --sidebar-ring: oklch(0.704 0.04 256.788);
+  --sidebar: oklch(0.17 0.022 247);
+  --sidebar-foreground: oklch(0.965 0.008 245);
+  --sidebar-primary: oklch(0.71 0.145 243);
+  --sidebar-primary-foreground: oklch(0.16 0.025 247);
+  --sidebar-accent: oklch(0.24 0.034 247);
+  --sidebar-accent-foreground: oklch(0.965 0.008 245);
+  --sidebar-border: oklch(0.33 0.022 247);
+  --sidebar-ring: oklch(0.71 0.145 243);
+
+  /* PR 1A: new semantic tokens. Not yet referenced in markup — see
+     docs/workflow.md and the PR description for the consolidation plan. */
+  --surface-emphasis: oklch(0.21 0.024 247);
+  --text-secondary: oklch(0.87 0.02 246);
+  --text-muted: oklch(0.71 0.035 247);
+  --accent-hover: oklch(0.63 0.145 243);
+  --success: oklch(0.84 0.13 165);
+  --warning: oklch(0.82 0.15 85);
 }
 
 .dark {
@@ -152,8 +167,8 @@
   }
 
   ::selection {
-    background: oklch(0.82 0.09 166);
-    color: oklch(0.2 0.03 176);
+    background: oklch(0.71 0.145 243);
+    color: oklch(0.16 0.025 247);
   }
 }
 
@@ -195,5 +210,29 @@
       0 22px 56px -24px rgb(2 8 23 / 78%),
       0 10px 26px -16px rgb(15 23 42 / 70%),
       inset 0 1px 0 rgb(255 255 255 / 18%);
+  }
+
+  .nova-panel {
+    @apply border border-white/8 bg-white/[0.028];
+  }
+
+  .nova-band {
+    @apply bg-[#0c141c];
+  }
+
+  .nova-page-header {
+    @apply bg-[#0d151e] text-white;
+  }
+
+  .nova-section {
+    @apply bg-[#0d151e] text-white;
+  }
+
+  .nova-section-muted {
+    @apply bg-[#101922] text-white;
+  }
+
+  .nova-section-divider {
+    @apply border-t border-white/8;
   }
 }

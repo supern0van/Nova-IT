@@ -1,20 +1,12 @@
 import { Link } from "@tanstack/react-router";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import type { Service } from "@/lib/nova-data";
 
 export function ServiceCatalog({ services }: { services: Service[] }) {
   return (
     <div className="border-t border-white/12">
-      {services.map((service, index) => (
-        <Link
-          key={service.slug}
-          to="/kontakt"
-          search={{ service: service.slug }}
-          className="group grid gap-4 border-b border-white/12 py-6 transition-colors hover:bg-white/[0.035] focus-visible:bg-white/[0.035] focus-visible:outline-none sm:grid-cols-[3rem_minmax(0,1fr)_auto] sm:items-start sm:gap-6 sm:py-8"
-        >
-          <span className="pt-1 font-mono text-xs text-sky-300/80">
-            {String(index + 1).padStart(2, "0")}
-          </span>
+      {services.map((service) => (
+        <article key={service.slug} className="grid gap-4 border-b border-white/12 py-6 sm:py-8">
           <span>
             <span className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
               <span className="text-xl font-semibold tracking-normal text-white sm:text-2xl">
@@ -25,9 +17,15 @@ export function ServiceCatalog({ services }: { services: Service[] }) {
             <span className="mt-3 block max-w-2xl text-sm leading-6 text-slate-300">
               {service.description}
             </span>
+            <Link
+              to="/tjanster/$slug"
+              params={{ slug: service.slug }}
+              className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-sky-300 transition-colors hover:text-sky-200"
+            >
+              Läs mer om tjänsten <ArrowRight className="h-4 w-4" />
+            </Link>
           </span>
-          <ArrowUpRight className="h-5 w-5 text-slate-500 transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-sky-300 sm:mt-1" />
-        </Link>
+        </article>
       ))}
     </div>
   );

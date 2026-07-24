@@ -1,6 +1,6 @@
 # Projektstatus
 
-Senast uppdaterad: 2026-07-13
+Senast uppdaterad: 2026-07-22
 
 ## Publik drift
 
@@ -22,23 +22,24 @@ Senast uppdaterad: 2026-07-13
 
 ## Kvalitetsläge
 
-- `bun run test`: 7 tester passerar.
+- `bun run test`: passerar.
 - `bun run typecheck`: passerar.
 - `bun run build`: passerar och genererar Cloudflare Worker-output.
-- `bun run lint`: inga fel; sex tidigare Fast Refresh-varningar finns i delade UI-primitiver och blockerar inte build eller deploy.
+- `bun run lint`: körs som del av `bun run ci` före release.
 
 ## Nuvarande funktioner
 
 - Sidor för hem, tjänster, arbetssätt, FAQ, om Nova IT och kontakt.
 - Tjänsteval förs vidare till kontaktformulär med rätt förval.
 - Supportassistenten använder en lokal, regelbaserad kunskapsmotor med trygg eskalering till kontaktformulär.
-- Kontaktflödet sammanställer ärendet och öppnar ett e-postutkast till `kontakt@nova-it.se`; det skickar inte data till ett externt ärendesystem eller en backend.
-- Kontaktadresserna `kontakt@nova-it.se`, `support@nova-it.se` och `info@nova-it.se` är förberedda i projektet. De visas inte publikt ännu.
+- Kontaktformuläret har en server-side leveransväg via Resend. När den är aktiverad går ärendet direkt till `kontakt@nova-it.se` och besökaren svarar via sin angivna e-postadress. Det finns ingen lokal ärendedatabas i webbplatsen.
+- Kontaktadresserna `kontakt@nova-it.se`, `support@nova-it.se`, `info@nova-it.se`, `webmaster@nova-it.se` och `no-reply@nova-it.se` är aktiva hos Loopia. `kontakt@nova-it.se` är den publika kontaktadressen och formulärets mottagare, medan `no-reply@nova-it.se` är teknisk avsändare.
+- Integritet, kakor och villkor visas i kompakta dialoger på webbplatsen. Innehållet ska granskas på nytt innan en kundportal, e-handel eller annan persondatatung tjänst introduceras.
 
 ## Nästa fokuserade steg
 
-1. Gå igenom kundtext, tjänsteerbjudande och prioriteter för varje sida.
-2. Lägg in Loopias exakta MX-, SPF-, DKIM- och DMARC-poster i Cloudflare innan skarp e-post börjar användas.
-3. Genomför tillgänglighets- och mobilrunda före presentation eller bredare lansering.
-4. Avgör om kontaktformulär och assistent ska kopplas till ett ärendesystem eller en backend.
+1. Aktivera och testa kontaktformulärets server-side e-postleverans enligt [kontaktformularets aktivering](contact-form-activation.md).
+2. Lägg till Turnstile innan formuläret exponeras brett för öppen trafik.
+3. Genomför en tillgänglighets- och mobilrunda före bredare lansering.
+4. Fortsätt förfina kundtext, tjänsteerbjudande och prioriteringar för varje sida.
 5. Håll portalprojektet avskilt tills den publika webbplatsens designsystem och releaseflöde är etablerade.

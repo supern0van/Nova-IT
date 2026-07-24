@@ -1,4 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { ArrowUpRight } from "lucide-react";
 import {
   Accordion,
   AccordionContent,
@@ -6,7 +7,9 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { faqs } from "@/lib/nova-data";
-import { Container, CTASection, TrustNotice, PageHeader } from "@/components/design-system";
+import { Container, TrustNotice, PageHeader } from "@/components/design-system";
+
+const faqUrl = "https://nova-it.se/faq";
 
 export const Route = createFileRoute("/faq")({
   head: () => ({
@@ -14,9 +17,16 @@ export const Route = createFileRoute("/faq")({
       { title: "Vanliga frågor – Nova IT" },
       {
         name: "description",
-        content: "Svar om Nova IT:s support, tjänster, distanshjälp, säkerhet och bokning.",
+        content: "Svar om hur vi hjälper med datorer, nätverk, konton och installationer.",
       },
+      { property: "og:title", content: "Vanliga frågor – Nova IT" },
+      {
+        property: "og:description",
+        content: "Korta svar om Nova IT:s hjälp med datorer, nätverk, konton och installationer.",
+      },
+      { property: "og:url", content: faqUrl },
     ],
+    links: [{ rel: "canonical", href: faqUrl }],
   }),
   component: FaqPage,
 });
@@ -26,36 +36,39 @@ function FaqPage() {
     <>
       <PageHeader
         eyebrow="Vanliga frågor"
-        title="Tydliga svar innan du bokar IT-hjälp."
-        intro="Här finns korta svar om hur Nova IT kan hjälpa, vad som passar för distanssupport och när ärendet bör prioriteras."
+        title="Vanliga frågor, utan teknikspråk."
+        intro="Här finns korta svar om hur vi hjälper och vad som är bra att veta innan du hör av dig."
       />
-      <Container className="grid gap-10 py-14 lg:grid-cols-[0.68fr_1.32fr]">
-        <div>
-          <TrustNotice />
-          <p className="mt-6 text-sm leading-6 text-muted-foreground">
-            Hittar du inte rätt svar är det bättre att beskriva problemet än att lägga tid på egen
-            felsökning. Nova IT kan hjälpa dig välja rätt väg.
-          </p>
-        </div>
-        <Accordion
-          type="single"
-          collapsible
-          className="rounded-lg border border-border bg-card px-5"
-        >
-          {faqs.map((faq) => (
-            <AccordionItem key={faq.q} value={faq.q}>
-              <AccordionTrigger className="text-left text-base">{faq.q}</AccordionTrigger>
-              <AccordionContent className="leading-7 text-muted-foreground">
-                {faq.a}
-              </AccordionContent>
-            </AccordionItem>
-          ))}
-        </Accordion>
-      </Container>
-      <CTASection
-        title="Hittar du inte rätt fråga? Börja med problemet."
-        text="Kontaktformuläret samlar informationen som behövs för att Nova IT ska kunna bedöma nästa steg."
-      />
+      <section className="nova-section">
+        <Container className="grid gap-10 py-14 lg:grid-cols-[0.68fr_1.32fr]">
+          <div>
+            <TrustNotice />
+            <div className="mt-6 flex items-start gap-3">
+              <p className="text-sm leading-6 text-slate-300">
+                Hittar du inte rätt svar? Beskriv vad som händer, så återkommer vi med vad som är
+                rimligt som nästa steg.
+              </p>
+              <Link
+                to="/kontakt"
+                search={{ service: undefined }}
+                aria-label="Beskriv ett ärende"
+                title="Beskriv ett ärende"
+                className="grid h-9 w-9 shrink-0 place-items-center rounded-md border border-sky-300/20 text-sky-200 transition-colors hover:border-sky-300/50 hover:bg-sky-300/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
+              >
+                <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
+              </Link>
+            </div>
+          </div>
+          <Accordion type="single" collapsible className="border-t border-white/10">
+            {faqs.map((faq) => (
+              <AccordionItem key={faq.q} value={faq.q}>
+                <AccordionTrigger className="text-left text-base">{faq.q}</AccordionTrigger>
+                <AccordionContent className="leading-7 text-slate-300">{faq.a}</AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
+        </Container>
+      </section>
     </>
   );
 }
