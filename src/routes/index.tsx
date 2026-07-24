@@ -38,14 +38,14 @@ export const Route = createFileRoute("/")({
 function Home() {
   return (
     <>
-      <section className="relative isolate min-h-[690px] overflow-hidden bg-[#090f15] text-white sm:min-h-[760px]">
+      <section className="relative isolate min-h-[690px] overflow-hidden bg-surface-hero text-white sm:min-h-[760px]">
         <img
           src="/nova-it-workspace.png"
           alt="Arbetsplats med dator och nätverksutrustning"
           fetchPriority="high"
           className="absolute inset-0 -z-20 h-full w-full object-cover object-[62%_center]"
         />
-        <div className="absolute inset-0 -z-10 bg-[#090f15]/76" />
+        <div className="absolute inset-0 -z-10 bg-surface-hero/76" />
         <Container className="flex min-h-[690px] items-end py-14 sm:min-h-[760px] sm:py-20">
           <div className="max-w-3xl">
             <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-sky-200">
