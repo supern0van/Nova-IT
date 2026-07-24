@@ -42,7 +42,7 @@ export function SiteHeader() {
 
   return (
     <>
-      <header className="sticky top-0 z-[60] w-full bg-[#090f15]/94 text-white backdrop-blur-xl">
+      <header className="sticky top-0 z-[60] w-full bg-surface-hero/94 text-white backdrop-blur-xl">
         <Container className="flex h-18 items-center justify-between">
           <Link
             to="/"
@@ -95,7 +95,7 @@ export function SiteHeader() {
       {open && (
         <div
           id="mobile-navigation"
-          className="fixed inset-x-0 top-18 z-50 border-t border-white/10 bg-[#090f15] text-white shadow-2xl shadow-black/50 lg:hidden"
+          className="fixed inset-x-0 top-18 z-50 border-t border-white/10 bg-surface-hero text-white shadow-2xl shadow-black/50 lg:hidden"
         >
           <Container className="py-4">
             <nav className="flex flex-col" aria-label="Mobilnavigering">
@@ -130,7 +130,7 @@ export function SiteHeader() {
 
 export function SiteFooter() {
   return (
-    <footer id="site-footer" className="bg-[#111c25] text-slate-200">
+    <footer id="site-footer" className="bg-surface-footer text-slate-200">
       <Container className="grid overflow-hidden lg:grid-cols-[1.1fr_2fr_0.8fr_0.9fr]">
         <div className="border-b border-white/10 py-7 lg:border-b-0 lg:pr-10">
           <Link
