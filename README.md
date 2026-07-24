@@ -2,7 +2,7 @@
 
 En svensk webbplats för praktisk IT-support, nätverk, installationer, säkerhet och tydliga supportärenden.
 
-**Live:** [nova-it.se](https://nova-it.se)
+**Live:** [nova-it.se](https://nova-it.se)  
 **Källkod:** [supern0van/Nova-IT](https://github.com/supern0van/Nova-IT)
 
 `nova-it.se` är den publika adressen. `www.nova-it.se`, `novait.se` och `www.novait.se` skickas permanent vidare till den.
@@ -12,7 +12,10 @@ En svensk webbplats för praktisk IT-support, nätverk, installationer, säkerhe
 | Jag vill... | Läs / kör |
 | --- | --- |
 | Få en snabb bild av läget | [Projektstatus](docs/project-status.md) |
-| Förstå viktiga beslut och historik | [Projekthistorik](docs/project-history.md) |
+| Förstå resan från idé till nuvarande lösning | [Projekthistorik](docs/project-history.md) |
+| Se större förändringar och deras sammanhang | [Changelog](docs/CHANGELOG.md) |
+| Förstå varför viktiga vägval gjordes | [Beslutslogg](docs/DECISIONS.md) |
+| Förstå hela dokumentationsstrukturen | [Dokumentationsnav](docs/README.md) |
 | Starta sidan lokalt | `bun install --frozen-lockfile` och `bun run dev` |
 | Verifiera en ändring | `bun run ci` |
 | Publicera en verifierad build från `main` | [Deploy och drift](docs/deployment.md) |
@@ -20,10 +23,11 @@ En svensk webbplats för praktisk IT-support, nätverk, installationer, säkerhe
 ## Projektkarta
 
 ```text
-src/        Applikationskod: routes, komponenter och funktioner
-public/     Bilder, logotypmärke och andra publika tillgångar
-docs/       Beslut, drift, kvalitet och arbetsdokumentation
-.github/    CI för test, lint, typkontroll och produktionsbuild
+src/             Applikationskod: routes, komponenter och funktioner
+public/          Bilder, verifieringsfiler och andra publika tillgångar
+docs/            Historik, beslut, drift, kvalitet och arbetsdokumentation
+docs/changes/    Korta changelog-fragment för framtida större uppdateringar
+.github/         CI, dokumentationskontroll och PR-mall
 ```
 
 Huvudfunktioner:
@@ -48,8 +52,12 @@ bun run ci
 
 ## Dokumentation
 
+- [Dokumentationsnav](docs/README.md)
 - [Projektstatus](docs/project-status.md)
 - [Projekthistorik](docs/project-history.md)
+- [Changelog](docs/CHANGELOG.md)
+- [Beslutslogg](docs/DECISIONS.md)
+- [Dokumentationsflöde](docs/documentation-workflow.md)
 - [Deploy och drift](docs/deployment.md)
 - [Arbetsflöde](docs/workflow.md)
 - [E-post och DNS-handoff](docs/email-dns-handoff.md)
@@ -59,6 +67,10 @@ bun run ci
 - [Design-QA](docs/quality/design-qa-premium-service-system.md)
 - [Visuell redesign](docs/visual-redesign-report.md)
 - [Supportassistenten](docs/supportbot-integration-report.md)
+
+## Dokumentationsregel för större ändringar
+
+Betydande förändringar ska få ett kort fragment i `docs/changes/`. GitHub Actions kontrollerar detta i pull requests. Fragmentet beskriver inte bara vad som ändrades utan även varför och vilket resultat förändringen gav.
 
 ## Projektregler
 
