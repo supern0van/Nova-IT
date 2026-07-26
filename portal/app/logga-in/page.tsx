@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { Suspense } from 'react'
 
 import { InloggningsVy } from '@/components/auth/inloggnings-vy'
 
@@ -8,5 +9,11 @@ export const metadata: Metadata = {
 }
 
 export default function LoggaInSida() {
-  return <InloggningsVy />
+  // Suspense krävs av Next.js eftersom InloggningsVy använder
+  // useSearchParams() (för att läsa proxyns `next`-parameter).
+  return (
+    <Suspense fallback={null}>
+      <InloggningsVy />
+    </Suspense>
+  )
 }

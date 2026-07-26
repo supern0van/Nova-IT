@@ -25,8 +25,10 @@
  *   - Obligatorisk 2FA
  *   - Riktig lösenordsåterställning (`begarAterstallning` nedan är fortsatt
  *     en simulerad attrapp och pratar inte med Supabase)
- *   - Serversidesskydd av routes (middleware/proxy.ts)
  *   - Riktig roll-/behörighetsmodell (profiles-tabell)
+ *
+ * Serversidesskydd av routes finns numera i `proxy.ts` (Next.js 16), se
+ * `lib/supabase/proxy.ts`.
  */
 
 import type { Session as SupabaseSession, User as SupabaseUser } from '@supabase/supabase-js'

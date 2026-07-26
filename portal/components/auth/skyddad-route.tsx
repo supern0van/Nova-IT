@@ -8,12 +8,16 @@ import { NovaMark } from '@/components/nova-mark'
 import type { Behorighet } from '@/lib/auth/demo-auth'
 
 /**
- * Skyddar portalens sidor.
+ * Skyddar portalens sidor på klienten.
  *
- * OBS: skyddet sker här enbart på klienten, vilket räcker för en demo men inte
- * för produktion. Vid riktig autentisering ska detta kompletteras med kontroll
- * i `proxy.ts` (Next.js 16) eller i en server-layout, så att ingen skyddad data
- * någonsin skickas till en oautentiserad klient.
+ * Det faktiska säkerhetsskyddet sker numera på servern, i `proxy.ts` (Next.js
+ * 16) – se `lib/supabase/proxy.ts`. En oautentiserad klient nekas där redan
+ * innan någon route renderas, så ingen skyddad data skickas någonsin till
+ * webbläsaren i första hand.
+ *
+ * Den här komponenten är ett kompletterande UI-lager, inte säkerhetsgränsen:
+ * den visar ett laddningsläge medan sessionen läses in på klienten och
+ * omdirigerar även den vägen, men den är inte den enda kontrollen.
  */
 export function SkyddadRoute({
   children,

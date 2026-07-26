@@ -12,7 +12,7 @@ import {
   ShieldCheckIcon,
   TriangleAlertIcon,
 } from 'lucide-react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 
 import { useAuth } from '@/components/auth/auth-provider'
@@ -23,11 +23,18 @@ import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Spinner } from '@/components/ui/spinner'
 import { authAdapter, felmeddelanden, hamtaIhagkommenEpost } from '@/lib/auth/demo-auth'
+import { sakerOmdirigeringsSokvag } from '@/lib/auth/sakerOmdirigering'
+
+const STANDARDVAG_EFTER_INLOGGNING = '/portal'
 
 type Lage = 'inloggning' | 'glomt'
 
 export function InloggningsVy() {
   const router = useRouter()
+  // Satt av proxyn (`lib/supabase/proxy.ts`) när en oautentiserad användare
+  // nekades åtkomst till en skyddad sida – gör att inloggningen kan skicka
+  // tillbaka till exakt den sidan istället för alltid till /portal.
+  const sokParametrar = useSearchParams()
   const { anvandare, initierar, loggaIn, loggarIn, sessionUtgick, rensaSessionUtgick } = useAuth()
 
   const [lage, setLage] = useState<Lage>('inloggning')
@@ -38,10 +45,13 @@ export function InloggningsVy() {
   const [fel, setFel] = useState<string | null>(null)
   const [faltFel, setFaltFel] = useState<{ epost?: boolean; losenord?: boolean }>({})
 
-  // Redan inloggad? Skicka vidare in i portalen.
+  // Redan inloggad? Skicka vidare in i portalen – eller till den ursprungliga
+  // destinationen om proxyn skickade med en giltig `next`-parameter.
   useEffect(() => {
-    if (!initierar && anvandare) router.replace('/portal')
-  }, [initierar, anvandare, router])
+    if (initierar || !anvandare) return
+    const destination = sakerOmdirigeringsSokvag(sokParametrar.get('next')) ?? STANDARDVAG_EFTER_INLOGGNING
+    router.replace(destination)
+  }, [initierar, anvandare, router, sokParametrar])
 
   // Förifyll e-post om "kom ihåg mig" användes förra gången.
   useEffect(() => {
@@ -68,7 +78,8 @@ export function InloggningsVy() {
 
     const resultat = await loggaIn(epost, losenord, ihagkommen)
     if (resultat.ok) {
-      router.replace('/portal')
+      const destination = sakerOmdirigeringsSokvag(sokParametrar.get('next')) ?? STANDARDVAG_EFTER_INLOGGNING
+      router.replace(destination)
       return
     }
 
