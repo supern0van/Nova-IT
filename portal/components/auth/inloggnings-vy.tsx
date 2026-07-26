@@ -7,7 +7,6 @@ import {
   EyeIcon,
   EyeOffIcon,
   HeadsetIcon,
-  InfoIcon,
   LockIcon,
   MailIcon,
   ShieldCheckIcon,
@@ -24,14 +23,8 @@ import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Spinner } from '@/components/ui/spinner'
 import { authAdapter, felmeddelanden, hamtaIhagkommenEpost } from '@/lib/auth/demo-auth'
-import { cn } from '@/lib/utils'
 
 type Lage = 'inloggning' | 'glomt'
-
-const demokonton = [
-  { roll: 'Administratör', epost: 'admin@nova-it.se', losenord: 'Demo123!' },
-  { roll: 'Tekniker', epost: 'tekniker@nova-it.se', losenord: 'Demo123!' },
-]
 
 export function InloggningsVy() {
   const router = useRouter()
@@ -83,13 +76,6 @@ export function InloggningsVy() {
     setFel(meddelande)
     if (resultat.fel === 'ogiltig_epost') setFaltFel({ epost: true })
     if (resultat.fel === 'fel_uppgifter') setFaltFel({ epost: true, losenord: true })
-  }
-
-  function fyllI(konto: (typeof demokonton)[number]) {
-    setEpost(konto.epost)
-    setLosenord(konto.losenord)
-    setFel(null)
-    setFaltFel({})
   }
 
   return (
@@ -222,8 +208,6 @@ export function InloggningsVy() {
                   </Button>
                 </FieldGroup>
               </form>
-
-              <Demokonton onValj={fyllI} inaktiverad={loggarIn} />
             </>
           )}
         </div>
@@ -285,55 +269,11 @@ function VarumarkesPanel() {
   )
 }
 
-function Demokonton({
-  onValj,
-  inaktiverad,
-}: {
-  onValj: (konto: (typeof demokonton)[number]) => void
-  inaktiverad: boolean
-}) {
-  return (
-    <div className="mt-8 rounded-xl bg-surface-emphasis p-4">
-      <div className="flex items-start gap-2.5">
-        <InfoIcon className="mt-0.5 size-4 shrink-0 text-primary" />
-        <div className="flex flex-col gap-1">
-          <p className="text-[13px] font-medium leading-tight">Demonstrationsmiljö</p>
-          <p className="text-xs leading-relaxed text-muted-foreground">
-            Portalen använder testdata och demoinloggning. Ingen riktig kunddata hanteras och inga
-            mejl skickas.
-          </p>
-        </div>
-      </div>
-
-      <div className="mt-3.5 flex flex-col gap-1.5">
-        {demokonton.map((konto) => (
-          <button
-            key={konto.epost}
-            type="button"
-            disabled={inaktiverad}
-            onClick={() => onValj(konto)}
-            className={cn(
-              'group flex items-center justify-between gap-3 rounded-lg bg-card px-3 py-2.5 text-left transition-colors',
-              'hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50',
-            )}
-          >
-            <span className="flex min-w-0 flex-col">
-              <span className="text-[13px] font-medium leading-tight">{konto.roll}</span>
-              <span className="truncate font-mono text-[11px] text-muted-foreground">
-                {konto.epost} · {konto.losenord}
-              </span>
-            </span>
-            <span className="shrink-0 text-[11px] font-medium text-primary opacity-0 transition-opacity group-hover:opacity-100">
-              Fyll i
-            </span>
-          </button>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-/** Glömt lösenord – demoflöde utan riktigt e-postutskick. */
+/**
+ * Glömt lösenord – ingår inte i detta autentiseringssteg.
+ * Flödet är fortsatt simulerat (`authAdapter.begarAterstallning`) och skickar
+ * inget riktigt mejl. Kopplas till Supabase i ett separat, senare uppdrag.
+ */
 function GlomtLosenord({ epost: initialEpost, vidAvbryt }: { epost: string; vidAvbryt: () => void }) {
   const [epost, setEpost] = useState(initialEpost)
   const [skickar, setSkickar] = useState(false)
@@ -367,7 +307,7 @@ function GlomtLosenord({ epost: initialEpost, vidAvbryt }: { epost: string; vidA
           </p>
         </div>
         <p className="rounded-lg bg-surface-emphasis px-3.5 py-3 text-xs leading-relaxed text-muted-foreground">
-          I demonstrationsmiljön skickas inget mejl. Använd demokontona för att logga in.
+          Den här funktionen är inte fullt ut kopplad ännu – inget mejl skickas i nuläget.
         </p>
         <Button variant="outline" onClick={vidAvbryt} className="w-full">
           <ArrowLeftIcon data-icon="inline-start" />

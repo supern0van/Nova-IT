@@ -5,7 +5,6 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 
 import {
   authAdapter,
-  hamtaAnvandare,
   harBehorighet,
   type Behorighet,
   type InloggningsFel,
@@ -16,9 +15,9 @@ import type { Anvandare } from '@/lib/types'
 /**
  * Applikationens enda ingång till autentisering.
  *
- * Komponenter använder `useAuth()` och behöver inte veta om sessionen kommer
- * från localStorage (demo) eller från Supabase/Clerk/egen backend (produktion).
- * Byt implementation i `lib/auth/demo-auth.ts` – inte här.
+ * Komponenter använder `useAuth()` och behöver inte veta att sessionen
+ * kommer från Supabase Auth. Byt implementation i `lib/auth/demo-auth.ts`
+ * – inte här.
  */
 
 interface AuthContextVarde {
@@ -32,7 +31,7 @@ interface AuthContextVarde {
     losenord: string,
     ihagkommen: boolean,
   ) => Promise<{ ok: boolean; fel?: InloggningsFel }>
-  loggaUt: () => Promise<void>
+  loggaUt: () => Promise<{ ok: boolean }>
   kan: (behorighet: Behorighet) => boolean
   /** Sätts när sessionen gått ut, så inloggningssidan kan förklara varför. */
   sessionUtgick: boolean
@@ -51,21 +50,38 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loggarIn, setLoggarIn] = useState(false)
   const [sessionUtgick, setSessionUtgick] = useState(false)
 
-  // Läs in befintlig session vid start.
+  // Läs in befintlig Supabase-session vid start.
   useEffect(() => {
-    const befintlig = authAdapter.hamtaSession()
-    if (befintlig) {
-      setSession(befintlig)
-      setAnvandare(hamtaAnvandare(befintlig.anvandareId) ?? null)
+    let avbruten = false
+    authAdapter.hamtaSession().then((befintlig) => {
+      if (avbruten) return
+      setSession(befintlig?.session ?? null)
+      setAnvandare(befintlig?.anvandare ?? null)
+      setInitierar(false)
+    })
+    return () => {
+      avbruten = true
     }
-    setInitierar(false)
+  }, [])
+
+  // Lyssna på förändringar i Supabase-sessionen (t.ex. tokenuppdatering,
+  // eller att sessionen upphör/blir ogiltig medan portalen är öppen).
+  // Sätter INTE `sessionUtgick` här: avsiktlig utloggning (`loggaUt`) ger
+  // samma händelse (session blir null) och ska inte visas som en utgången
+  // session. Den lokala utgångsbevakningen nedan äger det ansvaret.
+  useEffect(() => {
+    const avregistrera = authAdapter.lyssnaPaSessionsandringar((varde) => {
+      setSession(varde?.session ?? null)
+      setAnvandare(varde?.anvandare ?? null)
+    })
+    return avregistrera
   }, [])
 
   // Bevaka utgången session medan portalen är öppen.
   useEffect(() => {
     if (!session) return
     const intervall = setInterval(() => {
-      if (Date.now() > session.upphorVid) {
+      if (session.upphorVid !== null && Date.now() > session.upphorVid) {
         setSession(null)
         setAnvandare(null)
         setSessionUtgick(true)
@@ -95,11 +111,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   )
 
   const loggaUt = useCallback(async () => {
-    await authAdapter.loggaUt()
+    const resultat = await authAdapter.loggaUt()
+    if (!resultat.ok) {
+      // Behåll ett konsekvent auth-state: låtsas inte att utloggningen
+      // lyckades om Supabase signOut() misslyckades.
+      return { ok: false as const }
+    }
     setSession(null)
     setAnvandare(null)
     setSessionUtgick(false)
     router.replace('/logga-in')
+    return { ok: true as const }
   }, [router])
 
   const kan = useCallback(

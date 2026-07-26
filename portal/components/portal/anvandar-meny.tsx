@@ -36,7 +36,16 @@ export function AnvandarMeny({
 
   async function hanteraUtloggning() {
     setLoggarUt(true)
-    await loggaUt()
+    try {
+      const resultat = await loggaUt()
+      if (!resultat.ok) {
+        toast.error('Utloggningen kunde inte slutföras', {
+          description: 'Kontrollera din internetanslutning och försök igen.',
+        })
+      }
+    } finally {
+      setLoggarUt(false)
+    }
   }
 
   function aterstall() {
@@ -85,14 +94,16 @@ export function AnvandarMeny({
         side={komprimerad ? 'right' : 'top'}
         className="w-60"
       >
-        <DropdownMenuLabel className="flex flex-col gap-0.5 py-2">
-          <span className="text-[13px] font-medium">{anvandare.namn}</span>
-          <span className="font-normal text-xs text-muted-foreground">{anvandare.epost}</span>
-          <span className="mt-1.5 inline-flex w-fit items-center gap-1 rounded-md bg-primary/12 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary">
-            <RollIkon className="size-3" />
-            {rollLabel[anvandare.roll]}
-          </span>
-        </DropdownMenuLabel>
+        <DropdownMenuGroup>
+          <DropdownMenuLabel className="flex flex-col gap-0.5 py-2">
+            <span className="text-[13px] font-medium">{anvandare.namn}</span>
+            <span className="font-normal text-xs text-muted-foreground">{anvandare.epost}</span>
+            <span className="mt-1.5 inline-flex w-fit items-center gap-1 rounded-md bg-primary/12 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary">
+              <RollIkon className="size-3" />
+              {rollLabel[anvandare.roll]}
+            </span>
+          </DropdownMenuLabel>
+        </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
           <DropdownMenuItem onClick={aterstall}>

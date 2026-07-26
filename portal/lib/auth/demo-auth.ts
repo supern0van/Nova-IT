@@ -1,61 +1,48 @@
 /**
  * ╔══════════════════════════════════════════════════════════════════════════╗
- * ║  DEMOAUTENTISERING – ERSÄTTS I PRODUKTION                                ║
+ * ║  AUTENTISERING – SUPABASE (E-POST + LÖSENORD)                            ║
  * ╚══════════════════════════════════════════════════════════════════════════╝
  *
  * Denna modul är den ENDA platsen i portalen som vet hur inloggning fungerar.
  * Allt annat i applikationen använder `useAuth()` från
  * `components/auth/auth-provider.tsx`, som i sin tur anropar detta gränssnitt.
  *
- * Lösenord jämförs i klartext och sessionen ligger i localStorage. Detta är
- * medvetet och endast avsett för demonstration – det ger INGET säkerhetsskydd.
+ * Inloggning sker mot Supabase Auth (`signInWithPassword`). Sessionen hanteras
+ * av Supabase-klienten själv (`@supabase/ssr`) – den håller sitt eget
+ * lagringsutrymme i webbläsaren och uppdaterar access-token automatiskt.
+ * Portalen sparar ingen egen kopia av lösenord eller sessionsdata i
+ * `localStorage` längre.
  *
- * ── Vid övergång till riktig autentisering ────────────────────────────────
- * Byt ut implementationen av `authAdapter` nedan mot ett anrop till valfri
- * leverantör. Signaturerna behöver inte ändras:
+ * ── Tillfällig mappning till portalens användarmodell ──────────────────────
+ * Portalen har ännu ingen roll- eller behörighetstabell i Supabase. Tills
+ * dess mappas varje inloggad Supabase-användare till den befintliga
+ * `Anvandare`-typen av `tillPortalAnvandare()` nedan – se dokumentationen där
+ * för exakt vilka fält som kommer från Supabase och vilka som är tillfälliga
+ * standardvärden. Detta är INTE en behörighetsmodell och ska ersättas när
+ * riktiga roller/profiler införs.
  *
- *   Supabase Auth:
- *     loggaIn  → supabase.auth.signInWithPassword({ email, password })
- *     loggaUt  → supabase.auth.signOut()
- *     hamtaSession → supabase.auth.getSession()
- *
- *   Clerk:
- *     loggaIn  → signIn.create({ identifier, password })
- *     hamtaSession → useSession()
- *
- *   Egen backend (Better Auth / NextAuth):
- *     loggaIn  → POST /api/auth/sign-in  (sätter httpOnly-cookie)
- *     hamtaSession → GET /api/auth/session
- *
- * Sessionen bör då flyttas från localStorage till en httpOnly-cookie och
- * sidskyddet i `components/auth/skyddad-route.tsx` kompletteras med kontroll
- * i middleware/proxy så att skyddet sker på servern.
+ * ── Kvar att göra i senare uppdrag (medvetet utanför detta steg) ───────────
+ *   - Obligatorisk 2FA
+ *   - Riktig lösenordsåterställning (`begarAterstallning` nedan är fortsatt
+ *     en simulerad attrapp och pratar inte med Supabase)
+ *   - Serversidesskydd av routes (middleware/proxy.ts)
+ *   - Riktig roll-/behörighetsmodell (profiles-tabell)
  */
 
+import type { Session as SupabaseSession, User as SupabaseUser } from '@supabase/supabase-js'
+
 import { demoAnvandare } from '@/lib/demo-data'
+import { skapaSupabaseWebblasarklient } from '@/lib/supabase/client'
 import type { Anvandare, Roll } from '@/lib/types'
 
-const SESSION_NYCKEL = 'nova-it.demo-session'
-const IHAGKOMMEN_NYCKEL = 'nova-it.demo-ihagkommen-epost'
-
-/** Sessionslängd. Kort när "kom ihåg mig" inte är valt. */
-const SESSION_TIMMAR_STANDARD = 8
-const SESSION_TIMMAR_IHAGKOMMEN = 24 * 30
-
-/** Lösenord för demokontona. Finns självklart inte i en riktig lösning. */
-const DEMO_LOSENORD: Record<string, string> = {
-  'admin@nova-it.se': 'Demo123!',
-  'tekniker@nova-it.se': 'Demo123!',
-  'sofia@nova-it.se': 'Demo123!',
-}
+const IHAGKOMMEN_NYCKEL = 'nova-it.ihagkommen-epost'
 
 export interface Session {
   anvandareId: string
   epost: string
   roll: Roll
-  /** Unix-tidsstämpel (ms) när sessionen upphör. */
-  upphorVid: number
-  skapadVid: number
+  /** Unix-tidsstämpel (ms) när Supabase-sessionens access-token upphör. */
+  upphorVid: number | null
   ihagkommen: boolean
 }
 
@@ -85,18 +72,80 @@ function giltigEpost(epost: string) {
 }
 
 /**
- * Autentiseringsadapter. Byt ut innehållet i dessa funktioner för att koppla
- * på riktig autentisering – resten av portalen behöver inte ändras.
+ * ── Tillfällig mappning: Supabase-användare → portalens Anvandare ─────────
+ *
+ * Fält som kommer direkt från Supabase:
+ *   - id     ← `user.id`
+ *   - epost  ← `user.email`
+ *
+ * Fält som sätts till tillfälliga standardvärden (ingen rollmodell finns än):
+ *   - roll      → `'administrator'`
+ *   - namn      → härleds ur e-postens lokal-del (t.ex. "webmaster")
+ *   - initialer → härleds ur e-postens lokal-del
+ *   - titel     → statisk platshållartext som tydligt märker kontot som tillfälligt
+ *   - aktiv     → alltid `true`
+ *
+ * Om e-postadressen råkar matcha en post i den befintliga demo-personallistan
+ * (`demoAnvandare`, t.ex. admin@nova-it.se) återanvänds den postens namn,
+ * titel och initialer för ett bättre gränssnitt i övriga vyer – men `id` och
+ * `epost` kommer alltid från Supabase, och `roll` sätts alltid av denna
+ * funktion (inte av demolistan).
+ *
+ * `webmaster@nova-it.se` – kontot som verifierar denna implementation – finns
+ * inte i `demoAnvandare` och får därför ett helt syntetiskt `Anvandare`-
+ * objekt enligt standardvärdena ovan.
+ *
+ * VIKTIGT: Detta är inte en behörighetsmodell. Så fort riktiga roller/profiler
+ * införs i Supabase ska denna funktion ersättas av en uppslagning mot en
+ * riktig users-/profiles-tabell, och `roll` sluta vara ett hårdkodat
+ * standardvärde för alla inloggade konton.
+ */
+function tillPortalAnvandare(user: SupabaseUser): Anvandare {
+  const epost = user.email ?? ''
+  const befintlig = demoAnvandare.find((a) => a.epost.toLowerCase() === epost.toLowerCase())
+
+  if (befintlig) {
+    return { ...befintlig, id: user.id, epost }
+  }
+
+  const lokalDel = epost.split('@')[0] || 'admin'
+  const initialer = lokalDel.slice(0, 2).toUpperCase() || '?'
+
+  return {
+    id: user.id,
+    namn: lokalDel,
+    epost,
+    roll: 'administrator',
+    initialer,
+    titel: 'Adminkonto (tillfällig mappning – ingen rollmodell införd än)',
+    aktiv: true,
+  }
+}
+
+function tillPortalSession(
+  supabaseSession: SupabaseSession,
+  anvandare: Anvandare,
+  ihagkommen: boolean,
+): Session {
+  return {
+    anvandareId: anvandare.id,
+    epost: anvandare.epost,
+    roll: anvandare.roll,
+    upphorVid: supabaseSession.expires_at ? supabaseSession.expires_at * 1000 : null,
+    ihagkommen,
+  }
+}
+
+/**
+ * Autentiseringsadapter. All kommunikation med Supabase Auth går via denna
+ * adapter – resten av portalen känner bara till `useAuth()`.
  */
 export const authAdapter = {
-  /** Simulerad nätverkslatens så att laddningslägen syns i demon. */
   async loggaIn(
     epost: string,
     losenord: string,
     ihagkommen: boolean,
   ): Promise<InloggningsResultat> {
-    await new Promise((r) => setTimeout(r, 850))
-
     const normaliserad = epost.trim().toLowerCase()
 
     if (!normaliserad || !losenord) {
@@ -106,59 +155,94 @@ export const authAdapter = {
       return { ok: false, fel: 'ogiltig_epost' }
     }
 
-    const anvandare = demoAnvandare.find((a) => a.epost.toLowerCase() === normaliserad)
+    const supabase = skapaSupabaseWebblasarklient()
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: normaliserad,
+      password: losenord,
+    })
 
-    if (!anvandare || DEMO_LOSENORD[normaliserad] !== losenord) {
+    if (error || !data.session || !data.user) {
       return { ok: false, fel: 'fel_uppgifter' }
     }
-    if (!anvandare.aktiv) {
-      return { ok: false, fel: 'konto_inaktivt' }
-    }
 
-    const timmar = ihagkommen ? SESSION_TIMMAR_IHAGKOMMEN : SESSION_TIMMAR_STANDARD
-    const session: Session = {
-      anvandareId: anvandare.id,
-      epost: anvandare.epost,
-      roll: anvandare.roll,
-      skapadVid: Date.now(),
-      upphorVid: Date.now() + timmar * 3600_000,
-      ihagkommen,
-    }
-
-    sparaSession(session)
     if (ihagkommen) {
-      sparaIhagkommenEpost(anvandare.epost)
+      sparaIhagkommenEpost(normaliserad)
     } else {
       rensaIhagkommenEpost()
     }
 
-    return { ok: true, session, anvandare }
-  },
-
-  async loggaUt(): Promise<void> {
-    await new Promise((r) => setTimeout(r, 250))
-    if (isBrowser()) window.localStorage.removeItem(SESSION_NYCKEL)
-  },
-
-  /** Läser session och kastar den om den har gått ut. */
-  hamtaSession(): Session | null {
-    if (!isBrowser()) return null
-    try {
-      const rå = window.localStorage.getItem(SESSION_NYCKEL)
-      if (!rå) return null
-      const session = JSON.parse(rå) as Session
-      if (!session?.anvandareId || typeof session.upphorVid !== 'number') return null
-      if (Date.now() > session.upphorVid) {
-        window.localStorage.removeItem(SESSION_NYCKEL)
-        return null
-      }
-      return session
-    } catch {
-      return null
+    const anvandare = tillPortalAnvandare(data.user)
+    return {
+      ok: true,
+      session: tillPortalSession(data.session, anvandare, ihagkommen),
+      anvandare,
     }
   },
 
-  /** Demoåterställning av lösenord – skickar inget riktigt mejl. */
+  /**
+   * Loggar ut via Supabase. Returnerar `{ ok: false }` om `signOut()`
+   * misslyckas (t.ex. nätverksfel), så att `AuthProvider` inte låtsas att
+   * utloggningen lyckades och inte rensar sessionen i onödan.
+   */
+  async loggaUt(): Promise<{ ok: boolean }> {
+    const supabase = skapaSupabaseWebblasarklient()
+    const { error } = await supabase.auth.signOut()
+    return { ok: !error }
+  },
+
+  /**
+   * Läser den aktuella Supabase-sessionen (om någon).
+   *
+   * OBS: asynkron till skillnad från den tidigare demo-implementationen,
+   * eftersom Supabase-klienten inte exponerar sessionen synkront – den
+   * initieras och verifieras asynkront av `@supabase/ssr`. Anroparen
+   * (`AuthProvider`) väntar in resultatet innan portalen visas.
+   */
+  async hamtaSession(): Promise<{ session: Session; anvandare: Anvandare } | null> {
+    const supabase = skapaSupabaseWebblasarklient()
+    const {
+      data: { session },
+    } = await supabase.auth.getSession()
+
+    if (!session?.user) return null
+
+    const anvandare = tillPortalAnvandare(session.user)
+    return {
+      session: tillPortalSession(session, anvandare, hamtaIhagkommenEpost() === anvandare.epost),
+      anvandare,
+    }
+  },
+
+  /**
+   * Lyssnar på förändringar i Supabase-sessionen (utloggning i en annan
+   * flik, tokenuppdatering, utgången session). Returnerar en
+   * avregistreringsfunktion som `AuthProvider` anropar vid unmount.
+   */
+  lyssnaPaSessionsandringar(
+    callback: (varde: { session: Session; anvandare: Anvandare } | null) => void,
+  ): () => void {
+    const supabase = skapaSupabaseWebblasarklient()
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_handelse, session) => {
+      if (!session?.user) {
+        callback(null)
+        return
+      }
+      const anvandare = tillPortalAnvandare(session.user)
+      callback({
+        session: tillPortalSession(session, anvandare, hamtaIhagkommenEpost() === anvandare.epost),
+        anvandare,
+      })
+    })
+    return () => subscription.unsubscribe()
+  },
+
+  /**
+   * Simulerad lösenordsåterställning – ingår INTE i detta autentiseringssteg.
+   * Oförändrad sedan tidigare: skickar inget riktigt mejl och pratar inte med
+   * Supabase. Ersätts i ett separat, senare uppdrag.
+   */
   async begarAterstallning(epost: string): Promise<{ ok: boolean; fel?: InloggningsFel }> {
     await new Promise((r) => setTimeout(r, 900))
     const normaliserad = epost.trim().toLowerCase()
@@ -167,11 +251,6 @@ export const authAdapter = {
     // Svarar alltid positivt: avslöjar inte vilka adresser som finns.
     return { ok: true }
   },
-}
-
-function sparaSession(session: Session) {
-  if (!isBrowser()) return
-  window.localStorage.setItem(SESSION_NYCKEL, JSON.stringify(session))
 }
 
 export function sparaIhagkommenEpost(epost: string) {
