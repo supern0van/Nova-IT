@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title">
+  <title id="title">Nova IT</title>
+  <path d="M14 49V20.5c0-3.6 2.9-6.5 6.5-6.5 1.8 0 3.4.7 4.6 1.9L41 31.8V20.5c0-3.6 2.9-6.5 6.5-6.5s6.5 2.9 6.5 6.5V49c0 3.6-2.9 6.5-6.5 6.5-1.8 0-3.4-.7-4.6-1.9L27 37.7V49c0 3.6-2.9 6.5-6.5 6.5S14 52.6 14 49Z" fill="#ffffff"/>
+  <circle cx="49" cy="9" r="5" fill="#38bdf8"/>
+</svg>
