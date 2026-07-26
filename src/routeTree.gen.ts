@@ -10,7 +10,6 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TjansterRouteImport } from './routes/tjanster'
-import { Route as TjansterSlugRouteImport } from './routes/tjanster.$slug'
 import { Route as ProjektAterbrukRouteImport } from './routes/projekt-aterbruk'
 import { Route as PrivatpersonerRouteImport } from './routes/privatpersoner'
 import { Route as OmOssRouteImport } from './routes/om-oss'
@@ -21,15 +20,11 @@ import { Route as CaseStudyRouteImport } from './routes/case-study'
 import { Route as AssistentRouteImport } from './routes/assistent'
 import { Route as ArbetssattRouteImport } from './routes/arbetssatt'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as TjansterSlugRouteImport } from './routes/tjanster.$slug'
 
 const TjansterRoute = TjansterRouteImport.update({
   id: '/tjanster',
   path: '/tjanster',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const TjansterSlugRoute = TjansterSlugRouteImport.update({
-  id: '/tjanster/$slug',
-  path: '/tjanster/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProjektAterbrukRoute = ProjektAterbrukRouteImport.update({
@@ -82,6 +77,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TjansterSlugRoute = TjansterSlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => TjansterRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -94,7 +94,7 @@ export interface FileRoutesByFullPath {
   '/om-oss': typeof OmOssRoute
   '/privatpersoner': typeof PrivatpersonerRoute
   '/projekt-aterbruk': typeof ProjektAterbrukRoute
-  '/tjanster': typeof TjansterRoute
+  '/tjanster': typeof TjansterRouteWithChildren
   '/tjanster/$slug': typeof TjansterSlugRoute
 }
 export interface FileRoutesByTo {
@@ -108,7 +108,7 @@ export interface FileRoutesByTo {
   '/om-oss': typeof OmOssRoute
   '/privatpersoner': typeof PrivatpersonerRoute
   '/projekt-aterbruk': typeof ProjektAterbrukRoute
-  '/tjanster': typeof TjansterRoute
+  '/tjanster': typeof TjansterRouteWithChildren
   '/tjanster/$slug': typeof TjansterSlugRoute
 }
 export interface FileRoutesById {
@@ -123,7 +123,7 @@ export interface FileRoutesById {
   '/om-oss': typeof OmOssRoute
   '/privatpersoner': typeof PrivatpersonerRoute
   '/projekt-aterbruk': typeof ProjektAterbrukRoute
-  '/tjanster': typeof TjansterRoute
+  '/tjanster': typeof TjansterRouteWithChildren
   '/tjanster/$slug': typeof TjansterSlugRoute
 }
 export interface FileRouteTypes {
@@ -182,8 +182,7 @@ export interface RootRouteChildren {
   OmOssRoute: typeof OmOssRoute
   PrivatpersonerRoute: typeof PrivatpersonerRoute
   ProjektAterbrukRoute: typeof ProjektAterbrukRoute
-  TjansterRoute: typeof TjansterRoute
-  TjansterSlugRoute: typeof TjansterSlugRoute
+  TjansterRoute: typeof TjansterRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -193,13 +192,6 @@ declare module '@tanstack/react-router' {
       path: '/tjanster'
       fullPath: '/tjanster'
       preLoaderRoute: typeof TjansterRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/tjanster/$slug': {
-      id: '/tjanster/$slug'
-      path: '/tjanster/$slug'
-      fullPath: '/tjanster/$slug'
-      preLoaderRoute: typeof TjansterSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/projekt-aterbruk': {
@@ -272,8 +264,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/tjanster/$slug': {
+      id: '/tjanster/$slug'
+      path: '/$slug'
+      fullPath: '/tjanster/$slug'
+      preLoaderRoute: typeof TjansterSlugRouteImport
+      parentRoute: typeof TjansterRoute
+    }
   }
 }
+
+interface TjansterRouteChildren {
+  TjansterSlugRoute: typeof TjansterSlugRoute
+}
+
+const TjansterRouteChildren: TjansterRouteChildren = {
+  TjansterSlugRoute: TjansterSlugRoute,
+}
+
+const TjansterRouteWithChildren = TjansterRoute._addFileChildren(
+  TjansterRouteChildren,
+)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
@@ -286,8 +297,7 @@ const rootRouteChildren: RootRouteChildren = {
   OmOssRoute: OmOssRoute,
   PrivatpersonerRoute: PrivatpersonerRoute,
   ProjektAterbrukRoute: ProjektAterbrukRoute,
-  TjansterRoute: TjansterRoute,
-  TjansterSlugRoute: TjansterSlugRoute,
+  TjansterRoute: TjansterRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
