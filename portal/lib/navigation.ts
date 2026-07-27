@@ -8,7 +8,7 @@ import {
   type LucideIcon,
 } from 'lucide-react'
 
-import type { Behorighet } from '@/lib/auth/demo-auth'
+import type { Behorighet } from '@/lib/auth/supabase-auth'
 
 export interface NavPost {
   href: string
