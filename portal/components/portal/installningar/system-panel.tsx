@@ -33,6 +33,11 @@ interface ProfilRad {
   roll: SystemRoll
   skapad: string
   uppdaterad: string
+  kontoHalsa?: {
+    epostBekraftad: boolean | null
+    senastInloggad: string | null
+    authSkapad: string | null
+  } | null
 }
 
 type ProfilStatus =
@@ -75,6 +80,12 @@ const driftStatusStil: Record<SystemStatusNiva, string> = {
   varning: 'bg-warning/10 text-warning',
   fel: 'bg-destructive/10 text-destructive',
 }
+
+const kontoStatusStil = {
+  ok: 'bg-success/10 text-success',
+  varning: 'bg-warning/10 text-warning',
+  okand: 'bg-muted text-muted-foreground',
+} as const
 
 function DriftIkon({ status }: { status: SystemStatusNiva }) {
   if (status === 'ok') return <CheckCircle2Icon className="size-3.5" />
@@ -178,7 +189,9 @@ export function SystemPanel() {
 
       setProfilStatus((nu) => ({
         ...nu,
-        profiler: nu.profiler.map((rad) => (rad.id === data.profil?.id ? data.profil : rad)),
+        profiler: nu.profiler.map((rad) =>
+          rad.id === data.profil?.id ? { ...rad, ...data.profil } : rad,
+        ),
       }))
 
       toast.success('Systemroll uppdaterad', {
@@ -276,6 +289,18 @@ export function SystemPanel() {
                 {profilStatus.profiler.map((profil) => {
                   const RollIkon = profil.roll === 'administrator' ? ShieldIcon : UserRoundIcon
                   const namn = profil.namn.trim() || profil.epost
+                  const kontoStatus =
+                    profil.kontoHalsa?.epostBekraftad === true
+                      ? 'ok'
+                      : profil.kontoHalsa?.epostBekraftad === false
+                        ? 'varning'
+                        : 'okand'
+                  const kontoStatusText =
+                    kontoStatus === 'ok'
+                      ? 'E-post bekräftad'
+                      : kontoStatus === 'varning'
+                        ? 'E-post ej bekräftad'
+                        : 'Auth-status okänd'
                   const initialer = namn
                     .split(/\s+/)
                     .map((del) => del[0])
@@ -336,6 +361,26 @@ export function SystemPanel() {
                               Din egen roll ändras inte här.
                             </span>
                           )}
+                        </Faltrad>
+                        <Faltrad etikett="Kontostatus">
+                          <Badge
+                            variant="ghost"
+                            className={cn('w-fit', kontoStatusStil[kontoStatus])}
+                          >
+                            {kontoStatus === 'ok' ? (
+                              <CheckCircle2Icon className="size-3.5" />
+                            ) : kontoStatus === 'varning' ? (
+                              <TriangleAlertIcon className="size-3.5" />
+                            ) : (
+                              <XCircleIcon className="size-3.5" />
+                            )}
+                            {kontoStatusText}
+                          </Badge>
+                        </Faltrad>
+                        <Faltrad etikett="Senast inloggad">
+                          {profil.kontoHalsa?.senastInloggad
+                            ? formateraDatumTid(profil.kontoHalsa.senastInloggad)
+                            : 'Ingen uppgift'}
                         </Faltrad>
                         <Faltrad etikett="Uppdaterad">
                           {formateraDatumTid(profil.uppdaterad)}
