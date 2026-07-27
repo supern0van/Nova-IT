@@ -2,6 +2,8 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "nova-it-admin",
   "main": ".open-next/worker.js",
+  "workers_dev": true,
+  "preview_urls": false,
   "compatibility_date": "2026-07-27",
   "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
   "assets": {
@@ -14,6 +16,13 @@
       "custom_domain": true
     }
   ],
+  "secrets": {
+    "required": [
+      "NEXT_PUBLIC_SUPABASE_URL",
+      "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
+      "SUPABASE_SERVICE_ROLE_KEY"
+    ]
+  },
   "services": [
     {
       "binding": "WORKER_SELF_REFERENCE",
