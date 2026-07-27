@@ -22,6 +22,10 @@
     {
       "pattern": "portal.novait.se",
       "custom_domain": true
+    },
+    {
+      "pattern": "portal.nova-it.se",
+      "custom_domain": true
     }
   ],
   "secrets": {
