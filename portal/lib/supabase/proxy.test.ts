@@ -2,11 +2,12 @@ import { NextRequest } from 'next/server'
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
 const getClaims = vi.fn()
+const createServerClient = vi.fn(() => ({
+  auth: { getClaims },
+}))
 
 vi.mock('@supabase/ssr', () => ({
-  createServerClient: vi.fn(() => ({
-    auth: { getClaims },
-  })),
+  createServerClient,
 }))
 
 process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://example.supabase.co'
@@ -43,6 +44,42 @@ describe('uppdateraSessionOchSkyddaPortal – obligatorisk MFA', () => {
   })
 
   describe('/portal (skyddad route)', () => {
+    it('sätter cache-skydd när Supabase uppdaterar sessionskakor', async () => {
+      createServerClient.mockImplementationOnce(
+        ((_url: string, _key: string, options: unknown) => ({
+          auth: {
+            getClaims: async () => {
+              const cookies = (options as {
+                cookies: {
+                  setAll?: (
+                    cookiesToSet: { name: string; value: string; options: Record<string, never> }[],
+                    headers: Record<string, string>,
+                  ) => void
+                }
+              }).cookies
+
+              cookies.setAll?.(
+                [{ name: 'sb-access-token', value: 'uppdaterad', options: {} }],
+                {
+                  'Cache-Control': 'private, no-cache, no-store, must-revalidate, max-age=0',
+                  Expires: '0',
+                  Pragma: 'no-cache',
+                },
+              )
+
+              return { data: { claims: { sub: 'user-1', aal: 'aal2' } } }
+            },
+          },
+        })) as never,
+      )
+
+      const svar = await uppdateraSessionOchSkyddaPortal(begaran('/portal/arenden'))
+
+      expect(svar.headers.get('Cache-Control')).toBe('private, no-cache, no-store, must-revalidate, max-age=0')
+      expect(svar.headers.get('Expires')).toBe('0')
+      expect(svar.headers.get('Pragma')).toBe('no-cache')
+    })
+
     it('blockerad åtkomst: utloggad användare skickas till /logga-in med bevarad destination', async () => {
       ingenSession()
       const svar = await uppdateraSessionOchSkyddaPortal(begaran('/portal/kunder'))

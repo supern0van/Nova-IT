@@ -3,11 +3,12 @@ import type { NextRequest } from 'next/server'
 import { uppdateraSessionOchSkyddaPortal } from '@/lib/supabase/proxy'
 
 /**
- * Next.js 16 Proxy (ersätter tidigare middleware.ts – funktionen är
- * densamma, bara namnet har ändrats:
- * https://nextjs.org/docs/app/api-reference/file-conventions/proxy).
+ * Next.js Middleware körs på servern (Edge-runtime) innan någon route
+ * renderas. Portalen använder medvetet Middleware tills OpenNext stödjer
+ * Next.js 16:s Node-baserade `proxy.ts`, så att samma serverskydd kan köras
+ * i den separata Cloudflare-workern.
  *
- * Körs på servern (Node.js-runtime) innan någon route renderas. Det är
+ * Det är
  * enda platsen i portalen som kan garantera att en oautentiserad klient
  * aldrig får skyddat innehåll skickat till sig, oavsett vilken adress som
  * skrivs in direkt i webbläsaren.
@@ -16,7 +17,7 @@ import { uppdateraSessionOchSkyddaPortal } from '@/lib/supabase/proxy'
  * `lib/supabase/proxy.ts`, i linje med Supabases rekommenderade struktur
  * (klient-, server- och proxyhjälpare i `lib/supabase/`).
  */
-export async function proxy(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   return uppdateraSessionOchSkyddaPortal(request)
 }
 

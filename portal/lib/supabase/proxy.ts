@@ -75,10 +75,11 @@ export async function uppdateraSessionOchSkyddaPortal(request: NextRequest) {
       getAll() {
         return request.cookies.getAll()
       },
-      setAll(cookiesToSet) {
+      setAll(cookiesToSet, headers) {
         cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
         svar = NextResponse.next({ request })
         cookiesToSet.forEach(({ name, value, options }) => svar.cookies.set(name, value, options))
+        Object.entries(headers).forEach(([name, value]) => svar.headers.set(name, value))
       },
     },
   })
