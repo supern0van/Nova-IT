@@ -10,6 +10,7 @@ import {
   type InloggningsFel,
   type Session,
 } from '@/lib/auth/demo-auth'
+import type { SystemRoll } from '@/lib/auth/roll'
 import type { Anvandare } from '@/lib/types'
 
 /**
@@ -36,6 +37,18 @@ interface AuthContextVarde {
   /** Sätts när sessionen gått ut, så inloggningssidan kan förklara varför. */
   sessionUtgick: boolean
   rensaSessionUtgick: () => void
+  /**
+   * Den inloggade användarens systemroll (`SystemRoll` – 'administrator' |
+   * 'medarbetare'), hämtad från `profiles`-tabellen via `/api/roll` (aldrig
+   * litad på från klienten – se `lib/auth/roll.ts`). Detta är INTE samma sak
+   * som personal-/teknikerrollen (`Anvandare.roll`, typen `Roll` i
+   * `lib/types.ts`) som styr `kan()`/`harBehorighet()` ovan.
+   * `null` innan den lästs in första gången, eller om användaren är
+   * utloggad.
+   */
+  roll: SystemRoll | null
+  /** true medan `roll` läses in (efter inloggning eller vid sidladdning). */
+  laddarRoll: boolean
 }
 
 const AuthContext = createContext<AuthContextVarde | null>(null)
@@ -49,6 +62,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [initierar, setInitierar] = useState(true)
   const [loggarIn, setLoggarIn] = useState(false)
   const [sessionUtgick, setSessionUtgick] = useState(false)
+  const [roll, setRoll] = useState<SystemRoll | null>(null)
+  const [laddarRoll, setLaddarRoll] = useState(false)
 
   // Läs in befintlig Supabase-session vid start.
   useEffect(() => {
@@ -90,6 +105,38 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }, KONTROLL_INTERVALL_MS)
     return () => clearInterval(intervall)
   }, [session, router])
+
+  // Hämta den inloggade användarens roll från databasen (via /api/roll).
+  // Körs vid inloggning och vid sidladdning med befintlig session – aldrig
+  // utifrån ett värde klienten själv sätter. Nyckeln på `anvandare.id` (inte
+  // hela `anvandare`-objektet) undviker onödiga omfrågningar vid t.ex.
+  // token-uppdateringar där samma användare bara får ett nytt sessionsobjekt.
+  useEffect(() => {
+    const anvandareId = anvandare?.id
+    if (!anvandareId) {
+      setRoll(null)
+      setLaddarRoll(false)
+      return
+    }
+
+    let avbruten = false
+    setLaddarRoll(true)
+    fetch('/api/roll')
+      .then((svar) => (svar.ok ? svar.json() : { roll: null }))
+      .then((data: { roll: SystemRoll | null }) => {
+        if (!avbruten) setRoll(data.roll)
+      })
+      .catch(() => {
+        if (!avbruten) setRoll(null)
+      })
+      .finally(() => {
+        if (!avbruten) setLaddarRoll(false)
+      })
+
+    return () => {
+      avbruten = true
+    }
+  }, [anvandare?.id])
 
   const loggaIn = useCallback(
     async (epost: string, losenord: string, ihagkommen: boolean) => {
@@ -140,8 +187,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       kan,
       sessionUtgick,
       rensaSessionUtgick: () => setSessionUtgick(false),
+      roll,
+      laddarRoll,
     }),
-    [anvandare, session, initierar, loggarIn, loggaIn, loggaUt, kan, sessionUtgick],
+    [anvandare, session, initierar, loggarIn, loggaIn, loggaUt, kan, sessionUtgick, roll, laddarRoll],
   )
 
   return <AuthContext.Provider value={varde}>{children}</AuthContext.Provider>

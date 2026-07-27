@@ -14,21 +14,25 @@
  * `localStorage` längre.
  *
  * ── Tillfällig mappning till portalens användarmodell ──────────────────────
- * Portalen har ännu ingen roll- eller behörighetstabell i Supabase. Tills
- * dess mappas varje inloggad Supabase-användare till den befintliga
- * `Anvandare`-typen av `tillPortalAnvandare()` nedan – se dokumentationen där
- * för exakt vilka fält som kommer från Supabase och vilka som är tillfälliga
- * standardvärden. Detta är INTE en behörighetsmodell och ska ersättas när
- * riktiga roller/profiler införs.
+ * `Anvandare.roll` (fältet som styr `harBehorighet()` och portalens
+ * befintliga personal-/tilldelningssystem, typen `Roll` i `lib/types.ts`)
+ * sätts fortsatt till ett hårdkodat standardvärde av `tillPortalAnvandare()`
+ * nedan – se dokumentationen där. Det är en HELT SKILD sak från
+ * systemrollen (typen `SystemRoll`, 'administrator' | 'medarbetare', se
+ * `lib/auth/roll.ts`) som styr vad den inloggade portalanvändaren FÅR GÖRA i
+ * systemet – den lagras i `profiles`-tabellen
+ * (`supabase/migrations/20260727014500_profiler_och_roller.sql`) och
+ * `useAuth().roll` hämtar den via `/api/roll`. De två typerna är medvetet
+ * fristående från varandra och ska inte blandas ihop.
  *
  * ── Kvar att göra i senare uppdrag (medvetet utanför detta steg) ───────────
  *   - Obligatorisk 2FA
  *   - Riktig lösenordsåterställning (`begarAterstallning` nedan är fortsatt
  *     en simulerad attrapp och pratar inte med Supabase)
- *   - Riktig roll-/behörighetsmodell (profiles-tabell)
  *
- * Serversidesskydd av routes finns numera i `proxy.ts` (Next.js 16), se
- * `lib/supabase/proxy.ts`.
+ * Serversidesskydd av routes finns i `proxy.ts` (Next.js 16), se
+ * `lib/supabase/proxy.ts`. Systemroller (SystemRoll) finns i
+ * `profiles`-tabellen, se `lib/auth/roll.ts`.
  */
 
 import type { Session as SupabaseSession, User as SupabaseUser } from '@supabase/supabase-js'
@@ -101,6 +105,9 @@ function giltigEpost(epost: string) {
  * införs i Supabase ska denna funktion ersättas av en uppslagning mot en
  * riktig users-/profiles-tabell, och `roll` sluta vara ett hårdkodat
  * standardvärde för alla inloggade konton.
+ *
+ * (`profiles`-tabellen finns nu, se `lib/auth/roll.ts` – men den är ännu
+ * inte kopplad till just detta fält. Se modulens toppdokumentation.)
  */
 function tillPortalAnvandare(user: SupabaseUser): Anvandare {
   const epost = user.email ?? ''
