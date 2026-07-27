@@ -48,7 +48,7 @@ export function InstallningarVy() {
     <Sida>
       <Sidhuvud
         rubrik="Inställningar"
-        beskrivning="Styr aviseringar, mottagare, ärendekategorier och standardsvar för Nova IT. Ändringarna sparas i den här demosessionen."
+        beskrivning="Systemfliken är kopplad mot Supabase och Cloudflare Worker. Övriga konfigurationsflikar visas som underlag tills backendtabeller och e-postflöde är beslutade."
       />
 
       <Tabs value={flik} onValueChange={(v) => setFlik(v as Flik)}>

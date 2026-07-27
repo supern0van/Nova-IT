@@ -24,6 +24,10 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Spinner } from '@/components/ui/spinner'
 import { Switch } from '@/components/ui/switch'
+import {
+  adminKonfigurationEjKoppladText,
+  adminKonfigurationSkrivbar,
+} from '@/lib/admin/konfiguration'
 import { laggTillMottagare, taBortMottagare, vaxlaMottagare } from '@/lib/store'
 import type { EpostMottagare } from '@/lib/types'
 
@@ -35,7 +39,7 @@ const EPOST_MONSTER = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
  */
 export function MottagarePanel({ mottagare }: { mottagare: EpostMottagare[] }) {
   const { kan } = useAuth()
-  const kanAndra = kan('hantera_systeminstallningar')
+  const kanAndra = kan('hantera_systeminstallningar') && adminKonfigurationSkrivbar
 
   const [visaNy, setVisaNy] = useState(false)
   const [epost, setEpost] = useState('')
@@ -107,6 +111,10 @@ export function MottagarePanel({ mottagare }: { mottagare: EpostMottagare[] }) {
       >
         E-postmottagare
       </Sektionsrubrik>
+
+      <p className="rounded-lg bg-surface-emphasis p-2.5 text-[12px] leading-relaxed text-muted-foreground">
+        {adminKonfigurationEjKoppladText}
+      </p>
 
       {visaNy && (
         <div className="flex flex-col gap-3 rounded-lg bg-surface-emphasis p-3">
@@ -219,6 +227,12 @@ export function MottagarePanel({ mottagare }: { mottagare: EpostMottagare[] }) {
             </li>
           ))}
         </ul>
+      )}
+
+      {!adminKonfigurationSkrivbar && (
+        <p className="text-[12px] leading-relaxed text-muted-foreground">
+          Lägg till, pausa och ta bort är därför avstängt tills mottagarlistan sparas server-side.
+        </p>
       )}
     </Yta>
   )

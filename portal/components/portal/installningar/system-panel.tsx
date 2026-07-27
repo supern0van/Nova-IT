@@ -1,11 +1,19 @@
 'use client'
 
-import { ShieldCheckIcon, ShieldIcon, UserRoundIcon } from 'lucide-react'
+import {
+  CheckCircle2Icon,
+  ShieldCheckIcon,
+  ShieldIcon,
+  TriangleAlertIcon,
+  UserRoundIcon,
+  XCircleIcon,
+} from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 
 import { useAuth } from '@/components/auth/auth-provider'
 import { Faltrad, Sektionsrubrik, Yta } from '@/components/portal/ui-delar'
+import { Badge } from '@/components/ui/badge'
 import {
   Select,
   SelectContent,
@@ -16,6 +24,7 @@ import {
 import { Spinner } from '@/components/ui/spinner'
 import { systemRoller, type SystemRoll } from '@/lib/auth/roll'
 import { formateraDatumTid, systemRollLabel } from '@/lib/labels'
+import { cn } from '@/lib/utils'
 
 interface ProfilRad {
   id: string
@@ -32,6 +41,47 @@ type ProfilStatus =
   | { status: 'nekad'; profiler: ProfilRad[] }
   | { status: 'fel'; profiler: ProfilRad[] }
 
+type SystemStatusNiva = 'ok' | 'varning' | 'fel'
+
+interface SystemStatusKontroll {
+  id: string
+  namn: string
+  status: SystemStatusNiva
+  beskrivning: string
+}
+
+interface SystemStatusSvar {
+  kontroller: SystemStatusKontroll[]
+  profiler: {
+    antal: number | null
+    status: SystemStatusNiva
+  }
+}
+
+type DriftStatus =
+  | { status: 'laddar'; drift: SystemStatusSvar | null }
+  | { status: 'klar'; drift: SystemStatusSvar }
+  | { status: 'nekad'; drift: null }
+  | { status: 'fel'; drift: null }
+
+const driftStatusLabel: Record<SystemStatusNiva, string> = {
+  ok: 'OK',
+  varning: 'Varning',
+  fel: 'Fel',
+}
+
+const driftStatusStil: Record<SystemStatusNiva, string> = {
+  ok: 'bg-success/10 text-success',
+  varning: 'bg-warning/10 text-warning',
+  fel: 'bg-destructive/10 text-destructive',
+}
+
+function DriftIkon({ status }: { status: SystemStatusNiva }) {
+  if (status === 'ok') return <CheckCircle2Icon className="size-3.5" />
+  if (status === 'varning') return <TriangleAlertIcon className="size-3.5" />
+  return <XCircleIcon className="size-3.5" />
+}
+
 /**
  * Systemöversikt för verkliga portalkonton.
  *
@@ -45,16 +95,22 @@ export function SystemPanel() {
     status: 'laddar',
     profiler: [],
   })
+  const [driftStatus, setDriftStatus] = useState<DriftStatus>({
+    status: 'laddar',
+    drift: null,
+  })
   const [spararRoll, setSpararRoll] = useState<string | null>(null)
 
   useEffect(() => {
     if (!kanSePersonal) {
       setProfilStatus({ status: 'nekad', profiler: [] })
+      setDriftStatus({ status: 'nekad', drift: null })
       return
     }
 
     let avbruten = false
     setProfilStatus({ status: 'laddar', profiler: [] })
+    setDriftStatus({ status: 'laddar', drift: null })
 
     fetch('/api/admin/profiler')
       .then(async (svar) => {
@@ -68,6 +124,21 @@ export function SystemPanel() {
       })
       .catch(() => {
         if (!avbruten) setProfilStatus({ status: 'fel', profiler: [] })
+      })
+
+    fetch('/api/admin/systemstatus')
+      .then(async (svar) => {
+        if (svar.status === 403) return { status: 'nekad' as const, drift: null }
+        if (!svar.ok) return { status: 'fel' as const, drift: null }
+        const data = (await svar.json()) as { status?: SystemStatusSvar | null }
+        if (!data.status) return { status: 'fel' as const, drift: null }
+        return { status: 'klar' as const, drift: data.status }
+      })
+      .then((data) => {
+        if (!avbruten) setDriftStatus(data)
+      })
+      .catch(() => {
+        if (!avbruten) setDriftStatus({ status: 'fel', drift: null })
       })
 
     return () => {
@@ -125,107 +196,159 @@ export function SystemPanel() {
   return (
     <div className="flex flex-col gap-4">
       {kanSePersonal ? (
-        <Yta className="flex flex-col gap-4 p-3.5">
-          <Sektionsrubrik antal={profilStatus.profiler.length}>Portalkonton</Sektionsrubrik>
+        <>
+          <Yta className="flex flex-col gap-4 p-3.5">
+            <Sektionsrubrik>Driftstatus</Sektionsrubrik>
 
-          <p className="text-[12px] leading-relaxed text-muted-foreground">
-            Konton och systemroller läses från Supabase-tabellen profiles. Systemroller kan ändras
-            här och skyddas server-side med AAL2-session samt administratörsroll.
-          </p>
+            <p className="text-[12px] leading-relaxed text-muted-foreground">
+              Kontrollerna körs server-side i Worker:n och visar om de obligatoriska
+              Supabase-inställningarna och profiles-tabellen är tillgängliga.
+            </p>
 
-          {profilStatus.status === 'laddar' && (
-            <div className="flex items-center gap-2 rounded-lg bg-surface-emphasis p-3 text-[13px] text-muted-foreground">
-              <Spinner data-icon="inline-start" />
-              Läser portalkonton från Supabase…
-            </div>
-          )}
+            {driftStatus.status === 'laddar' && (
+              <div className="flex items-center gap-2 rounded-lg bg-surface-emphasis p-3 text-[13px] text-muted-foreground">
+                <Spinner data-icon="inline-start" />
+                Kontrollerar Worker och Supabase…
+              </div>
+            )}
 
-          {profilStatus.status === 'fel' && (
-            <div className="rounded-lg bg-destructive/10 p-3 text-[13px] text-destructive">
-              Portalkontona kunde inte läsas just nu. Kontrollera Supabase-konfigurationen och
-              försök igen.
-            </div>
-          )}
+            {driftStatus.status === 'fel' && (
+              <div className="rounded-lg bg-destructive/10 p-3 text-[13px] text-destructive">
+                Systemstatus kunde inte hämtas just nu.
+              </div>
+            )}
 
-          {profilStatus.status === 'klar' && profilStatus.profiler.length === 0 && (
-            <div className="rounded-lg bg-surface-emphasis p-3 text-[13px] text-muted-foreground">
-              Inga portalkonton hittades i profiles-tabellen.
-            </div>
-          )}
-
-          {profilStatus.status === 'klar' && profilStatus.profiler.length > 0 && (
-            <ul className="flex flex-col gap-1.5">
-              {profilStatus.profiler.map((profil) => {
-                const RollIkon = profil.roll === 'administrator' ? ShieldIcon : UserRoundIcon
-                const namn = profil.namn.trim() || profil.epost
-                const initialer = namn
-                  .split(/\s+/)
-                  .map((del) => del[0])
-                  .join('')
-                  .slice(0, 2)
-                  .toUpperCase()
-
-                return (
-                  <li
-                    key={profil.id}
-                    className="flex flex-wrap items-center justify-between gap-4 rounded-lg bg-surface-emphasis p-3"
-                  >
-                    <div className="flex min-w-0 items-center gap-2.5">
-                      <span
-                        aria-hidden="true"
-                        className="flex size-8 shrink-0 items-center justify-center rounded-full bg-card text-[11px] font-semibold text-text-secondary"
-                      >
-                        {initialer || '?'}
-                      </span>
-                      <div className="flex min-w-0 flex-col gap-0.5">
-                        <p className="truncate text-[13px] font-medium">{namn}</p>
-                        <p className="truncate text-[12px] text-muted-foreground">{profil.epost}</p>
+            {driftStatus.status === 'klar' && (
+              <ul className="grid gap-1.5 md:grid-cols-2">
+                {driftStatus.drift.kontroller.map((kontroll) => (
+                  <li key={kontroll.id} className="rounded-lg bg-surface-emphasis p-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex min-w-0 flex-col gap-1">
+                        <p className="text-[13px] font-medium">{kontroll.namn}</p>
+                        <p className="text-pretty text-[12px] leading-relaxed text-muted-foreground">
+                          {kontroll.beskrivning}
+                        </p>
                       </div>
+                      <Badge
+                        variant="ghost"
+                        className={cn('shrink-0', driftStatusStil[kontroll.status])}
+                      >
+                        <DriftIkon status={kontroll.status} />
+                        {driftStatusLabel[kontroll.status]}
+                      </Badge>
                     </div>
-
-                    <dl className="flex flex-wrap items-start gap-x-8 gap-y-2">
-                      <Faltrad etikett="Systemroll">
-                        <div className="flex items-center gap-2">
-                          <RollIkon className="size-3.5 shrink-0" />
-                          <Select
-                            value={profil.roll}
-                            onValueChange={(nyRoll) =>
-                              void andraSystemroll(profil, nyRoll as SystemRoll)
-                            }
-                            disabled={spararRoll !== null || profil.id === anvandare?.id}
-                          >
-                            <SelectTrigger
-                              size="sm"
-                              className="min-w-36 bg-card text-[13px]"
-                              aria-label={`Ändra systemroll för ${profil.epost}`}
-                            >
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {systemRoller.map((roll) => (
-                                <SelectItem key={roll} value={roll}>
-                                  {systemRollLabel[roll]}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          {spararRoll === profil.id && <Spinner data-icon="inline-end" />}
-                        </div>
-                        {profil.id === anvandare?.id && (
-                          <span className="mt-1 block text-[11px] text-muted-foreground">
-                            Din egen roll ändras inte här.
-                          </span>
-                        )}
-                      </Faltrad>
-                      <Faltrad etikett="Uppdaterad">{formateraDatumTid(profil.uppdaterad)}</Faltrad>
-                      <Faltrad etikett="Skapad">{formateraDatumTid(profil.skapad)}</Faltrad>
-                    </dl>
                   </li>
-                )
-              })}
-            </ul>
-          )}
-        </Yta>
+                ))}
+              </ul>
+            )}
+          </Yta>
+
+          <Yta className="flex flex-col gap-4 p-3.5">
+            <Sektionsrubrik antal={profilStatus.profiler.length}>Portalkonton</Sektionsrubrik>
+
+            <p className="text-[12px] leading-relaxed text-muted-foreground">
+              Konton och systemroller läses från Supabase-tabellen profiles. Systemroller kan
+              ändras här och skyddas server-side med AAL2-session samt administratörsroll.
+            </p>
+
+            {profilStatus.status === 'laddar' && (
+              <div className="flex items-center gap-2 rounded-lg bg-surface-emphasis p-3 text-[13px] text-muted-foreground">
+                <Spinner data-icon="inline-start" />
+                Läser portalkonton från Supabase…
+              </div>
+            )}
+
+            {profilStatus.status === 'fel' && (
+              <div className="rounded-lg bg-destructive/10 p-3 text-[13px] text-destructive">
+                Portalkontona kunde inte läsas just nu. Kontrollera Supabase-konfigurationen och
+                försök igen.
+              </div>
+            )}
+
+            {profilStatus.status === 'klar' && profilStatus.profiler.length === 0 && (
+              <div className="rounded-lg bg-surface-emphasis p-3 text-[13px] text-muted-foreground">
+                Inga portalkonton hittades i profiles-tabellen.
+              </div>
+            )}
+
+            {profilStatus.status === 'klar' && profilStatus.profiler.length > 0 && (
+              <ul className="flex flex-col gap-1.5">
+                {profilStatus.profiler.map((profil) => {
+                  const RollIkon = profil.roll === 'administrator' ? ShieldIcon : UserRoundIcon
+                  const namn = profil.namn.trim() || profil.epost
+                  const initialer = namn
+                    .split(/\s+/)
+                    .map((del) => del[0])
+                    .join('')
+                    .slice(0, 2)
+                    .toUpperCase()
+
+                  return (
+                    <li
+                      key={profil.id}
+                      className="flex flex-wrap items-center justify-between gap-4 rounded-lg bg-surface-emphasis p-3"
+                    >
+                      <div className="flex min-w-0 items-center gap-2.5">
+                        <span
+                          aria-hidden="true"
+                          className="flex size-8 shrink-0 items-center justify-center rounded-full bg-card text-[11px] font-semibold text-text-secondary"
+                        >
+                          {initialer || '?'}
+                        </span>
+                        <div className="flex min-w-0 flex-col gap-0.5">
+                          <p className="truncate text-[13px] font-medium">{namn}</p>
+                          <p className="truncate text-[12px] text-muted-foreground">
+                            {profil.epost}
+                          </p>
+                        </div>
+                      </div>
+
+                      <dl className="flex flex-wrap items-start gap-x-8 gap-y-2">
+                        <Faltrad etikett="Systemroll">
+                          <div className="flex items-center gap-2">
+                            <RollIkon className="size-3.5 shrink-0" />
+                            <Select
+                              value={profil.roll}
+                              onValueChange={(nyRoll) =>
+                                void andraSystemroll(profil, nyRoll as SystemRoll)
+                              }
+                              disabled={spararRoll !== null || profil.id === anvandare?.id}
+                            >
+                              <SelectTrigger
+                                size="sm"
+                                className="min-w-36 bg-card text-[13px]"
+                                aria-label={`Ändra systemroll för ${profil.epost}`}
+                              >
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {systemRoller.map((roll) => (
+                                  <SelectItem key={roll} value={roll}>
+                                    {systemRollLabel[roll]}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            {spararRoll === profil.id && <Spinner data-icon="inline-end" />}
+                          </div>
+                          {profil.id === anvandare?.id && (
+                            <span className="mt-1 block text-[11px] text-muted-foreground">
+                              Din egen roll ändras inte här.
+                            </span>
+                          )}
+                        </Faltrad>
+                        <Faltrad etikett="Uppdaterad">
+                          {formateraDatumTid(profil.uppdaterad)}
+                        </Faltrad>
+                        <Faltrad etikett="Skapad">{formateraDatumTid(profil.skapad)}</Faltrad>
+                      </dl>
+                    </li>
+                  )
+                })}
+              </ul>
+            )}
+          </Yta>
+        </>
       ) : (
         <Yta className="flex items-start gap-3 p-3.5">
           <ShieldCheckIcon className="mt-0.5 size-4 text-muted-foreground" />

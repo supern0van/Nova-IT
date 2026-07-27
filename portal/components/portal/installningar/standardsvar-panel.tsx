@@ -12,6 +12,10 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Spinner } from '@/components/ui/spinner'
 import { Textarea } from '@/components/ui/textarea'
+import {
+  adminKonfigurationEjKoppladText,
+  adminKonfigurationSkrivbar,
+} from '@/lib/admin/konfiguration'
 import { sparaStandardsvar } from '@/lib/store'
 import type { Standardsvar } from '@/lib/types'
 
@@ -21,7 +25,7 @@ import type { Standardsvar } from '@/lib/types'
  */
 export function StandardsvarPanel({ standardsvar }: { standardsvar: Standardsvar[] }) {
   const { kan } = useAuth()
-  const kanAndra = kan('hantera_systeminstallningar')
+  const kanAndra = kan('hantera_systeminstallningar') && adminKonfigurationSkrivbar
 
   const [redigerarId, setRedigerarId] = useState<string | null>(null)
   const [rubrik, setRubrik] = useState('')
@@ -54,6 +58,7 @@ export function StandardsvarPanel({ standardsvar }: { standardsvar: Standardsvar
       <Sektionsrubrik antal={standardsvar.length}>Standardsvar</Sektionsrubrik>
 
       <p className="rounded-lg bg-surface-emphasis p-2.5 text-[12px] leading-relaxed text-muted-foreground">
+        {adminKonfigurationEjKoppladText}{' '}
         Texterna används i svarsrutan på ett ärende. Platshållarna{' '}
         <code className="rounded bg-card px-1 py-0.5 text-[11px]">{'{{kundnamn}}'}</code> och{' '}
         <code className="rounded bg-card px-1 py-0.5 text-[11px]">{'{{tekniker}}'}</code> fylls i

@@ -8,6 +8,10 @@ import { useAuth } from '@/components/auth/auth-provider'
 import { PrioritetChip, Sektionsrubrik, Yta } from '@/components/portal/ui-delar'
 import { Spinner } from '@/components/ui/spinner'
 import { Switch } from '@/components/ui/switch'
+import {
+  adminKonfigurationEjKoppladText,
+  adminKonfigurationSkrivbar,
+} from '@/lib/admin/konfiguration'
 import { vaxlaKategori } from '@/lib/store'
 import type { Arende, Arendekategori } from '@/lib/types'
 
@@ -24,7 +28,7 @@ export function KategorierPanel({
   arenden: Arende[]
 }) {
   const { kan } = useAuth()
-  const kanAndra = kan('hantera_systeminstallningar')
+  const kanAndra = kan('hantera_systeminstallningar') && adminKonfigurationSkrivbar
   const [sparar, setSparar] = useState<string | null>(null)
 
   const antalPerKategori = useMemo(() => {
@@ -58,8 +62,8 @@ export function KategorierPanel({
       <p className="flex items-start gap-2 rounded-lg bg-surface-emphasis p-2.5 text-[12px] leading-relaxed text-muted-foreground">
         <InfoIcon className="mt-0.5 size-3.5 shrink-0" />
         <span>
-          Att stänga av en kategori döljer den för nya ärenden. Befintliga ärenden behåller sin
-          kategori och påverkas inte.
+          {adminKonfigurationEjKoppladText} När backend finns ska avstängda kategorier döljas för
+          nya ärenden medan befintliga ärenden behåller sin kategori.
         </span>
       </p>
 
@@ -110,6 +114,12 @@ export function KategorierPanel({
           )
         })}
       </ul>
+
+      {!adminKonfigurationSkrivbar && (
+        <p className="text-[12px] leading-relaxed text-muted-foreground">
+          Reglagen är låsta tills kategorierna har riktig serverlagring.
+        </p>
+      )}
     </Yta>
   )
 }

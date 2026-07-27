@@ -8,6 +8,10 @@ import { useAuth } from '@/components/auth/auth-provider'
 import { Sektionsrubrik, Yta } from '@/components/portal/ui-delar'
 import { Spinner } from '@/components/ui/spinner'
 import { Switch } from '@/components/ui/switch'
+import {
+  adminKonfigurationEjKoppladText,
+  adminKonfigurationSkrivbar,
+} from '@/lib/admin/konfiguration'
 import { vaxlaAvisering } from '@/lib/store'
 import type { Aviseringsinstallning } from '@/lib/types'
 
@@ -16,7 +20,7 @@ import type { Aviseringsinstallning } from '@/lib/types'
  */
 export function AviseringarPanel({ aviseringar }: { aviseringar: Aviseringsinstallning[] }) {
   const { kan } = useAuth()
-  const kanAndra = kan('hantera_systeminstallningar')
+  const kanAndra = kan('hantera_systeminstallningar') && adminKonfigurationSkrivbar
   const [sparar, setSparar] = useState<string | null>(null)
 
   async function vaxla(avisering: Aviseringsinstallning) {
@@ -42,8 +46,7 @@ export function AviseringarPanel({ aviseringar }: { aviseringar: Aviseringsinsta
       <p className="flex items-start gap-2 rounded-lg bg-surface-emphasis p-2.5 text-[12px] leading-relaxed text-muted-foreground">
         <InfoIcon className="mt-0.5 size-3.5 shrink-0" />
         <span>
-          Demon skickar ingen riktig e-post. Valen visar vilka händelser som skulle avisera
-          mottagarna under fliken Mottagare.
+          {adminKonfigurationEjKoppladText} Ingen riktig e-post skickas från dessa val i nuläget.
         </span>
       </p>
 
@@ -72,11 +75,16 @@ export function AviseringarPanel({ aviseringar }: { aviseringar: Aviseringsinsta
         ))}
       </ul>
 
-      {!kanAndra && (
+      {!adminKonfigurationSkrivbar ? (
+        <p className="text-[12px] leading-relaxed text-muted-foreground">
+          Skrivning är avstängd här för att undvika att lokala demoändringar misstas för
+          produktionsinställningar.
+        </p>
+      ) : !kanAndra ? (
         <p className="text-[12px] leading-relaxed text-muted-foreground">
           Din roll kan läsa aviseringarna men inte ändra dem.
         </p>
-      )}
+      ) : null}
     </Yta>
   )
 }
