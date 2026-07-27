@@ -16,7 +16,7 @@ import { Button } from '@/components/ui/button'
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Spinner } from '@/components/ui/spinner'
-import { authAdapter } from '@/lib/auth/demo-auth'
+import { authAdapter } from '@/lib/auth/supabase-auth'
 import {
   avbrytEnrollment,
   hamtaAssuransniva,

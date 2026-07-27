@@ -7,7 +7,7 @@
  * Den är medvetet en EGEN, fristående typ – inte samma sak som `Roll` i
  * `lib/types.ts` ('administrator' | 'tekniker'), som beskriver portalens
  * personal-/teknikerroll i ärende-/bokningstilldelningen och styr
- * `harBehorighet()` i `lib/auth/demo-auth.ts`. De två typerna råkar båda ha
+ * `harBehorighet()` i `lib/auth/supabase-auth.ts`. De två typerna råkar båda ha
  * ett värde som heter "administrator", men beskriver olika saker och ska
  * inte blandas ihop.
  *

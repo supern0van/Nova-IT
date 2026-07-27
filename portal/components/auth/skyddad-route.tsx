@@ -5,7 +5,7 @@ import { useEffect } from 'react'
 
 import { useAuth } from '@/components/auth/auth-provider'
 import { NovaMark } from '@/components/nova-mark'
-import type { Behorighet } from '@/lib/auth/demo-auth'
+import type { Behorighet } from '@/lib/auth/supabase-auth'
 
 /**
  * Skyddar portalens sidor på klienten.

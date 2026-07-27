@@ -9,7 +9,7 @@ import {
   type Behorighet,
   type InloggningsFel,
   type Session,
-} from '@/lib/auth/demo-auth'
+} from '@/lib/auth/supabase-auth'
 import { arAdministrator, type SystemRoll } from '@/lib/auth/roll'
 import type { Anvandare } from '@/lib/types'
 
@@ -17,7 +17,7 @@ import type { Anvandare } from '@/lib/types'
  * Applikationens enda ingång till autentisering.
  *
  * Komponenter använder `useAuth()` och behöver inte veta att sessionen
- * kommer från Supabase Auth. Byt implementation i `lib/auth/demo-auth.ts`
+ * kommer från Supabase Auth. Byt implementation i `lib/auth/supabase-auth.ts`
  * – inte här.
  */
 

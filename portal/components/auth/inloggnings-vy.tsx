@@ -22,7 +22,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Spinner } from '@/components/ui/spinner'
-import { authAdapter, felmeddelanden, hamtaIhagkommenEpost } from '@/lib/auth/demo-auth'
+import { authAdapter, felmeddelanden, hamtaIhagkommenEpost } from '@/lib/auth/supabase-auth'
 import { sakerOmdirigeringsSokvag } from '@/lib/auth/sakerOmdirigering'
 
 const STANDARDVAG_EFTER_INLOGGNING = '/portal'

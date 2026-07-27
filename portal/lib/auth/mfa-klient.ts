@@ -4,7 +4,7 @@
  * ╚══════════════════════════════════════════════════════════════════════╝
  *
  * Enda platsen i portalen som anropar `supabase.auth.mfa.*` direkt. Precis
- * som `lib/auth/demo-auth.ts` är gränssnittet för inloggning, är den här
+ * som `lib/auth/supabase-auth.ts` är gränssnittet för inloggning, är den här
  * modulen gränssnittet för MFA – `components/auth/mfa-vy.tsx` och
  * `components/portal/sakerhet/sakerhet-vy.tsx` känner bara till dessa
  * funktioner, inte Supabase-klienten direkt.

@@ -20,12 +20,12 @@ vi.mock('@/lib/supabase/client', () => ({
   }),
 }))
 
-let authAdapter: typeof import('@/lib/auth/demo-auth').authAdapter
+let authAdapter: typeof import('@/lib/auth/supabase-auth').authAdapter
 
 beforeEach(async () => {
   vi.resetModules()
   vi.clearAllMocks()
-  ;({ authAdapter } = await import('@/lib/auth/demo-auth'))
+  ;({ authAdapter } = await import('@/lib/auth/supabase-auth'))
 })
 
 describe('authAdapter Supabase-identitet', () => {
