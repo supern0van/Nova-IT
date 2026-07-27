@@ -14,8 +14,11 @@ import { hamtaAutentiseradAnvandarId } from '@/lib/supabase/route-anvandare'
  * klientens roll" uppfylls.
  *
  * Svar: `{ roll: SystemRoll | null }`.
- * 401 om ingen giltig session finns. `{ roll: null }` (200) om användaren av
- * någon anledning saknar profilrad (ska normalt inte hända).
+ * 401 om ingen giltig, MFA-verifierad (`aal2`) session finns – se
+ * `hamtaAutentiseradAnvandarId()` i `lib/supabase/route-anvandare.ts`, som
+ * även nekar en inloggad men inte MFA-verifierad (`aal1`) användare.
+ * `{ roll: null }` (200) om användaren av någon anledning saknar profilrad
+ * (ska normalt inte hända).
  */
 export async function GET(request: NextRequest) {
   const anvandareId = await hamtaAutentiseradAnvandarId(request)

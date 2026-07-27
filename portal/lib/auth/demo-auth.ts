@@ -35,13 +35,26 @@
  * `profiles`-tabellen, se `lib/auth/roll.ts`.
  */
 
-import type { Session as SupabaseSession, User as SupabaseUser } from '@supabase/supabase-js'
+import type {
+  AuthChangeEvent,
+  Session as SupabaseSession,
+  User as SupabaseUser,
+} from '@supabase/supabase-js'
 
 import { demoAnvandare } from '@/lib/demo-data'
 import { skapaSupabaseWebblasarklient } from '@/lib/supabase/client'
 import type { Anvandare, Roll } from '@/lib/types'
 
 const IHAGKOMMEN_NYCKEL = 'nova-it.ihagkommen-epost'
+
+/**
+ * Namnet på Supabase-sessionshändelsen som utlöste en session-callback.
+ * Framför allt intressant för `'MFA_CHALLENGE_VERIFIED'` – händelsen som
+ * fyras när `supabase.auth.mfa.verify()` lyckas – så att `AuthProvider` kan
+ * hämta om den skyddade rollen (`/api/roll`) efter att en session gått från
+ * `aal1` till `aal2`, utan att behöva vänta på en ny inloggning.
+ */
+export type AuthChangeEventNamn = AuthChangeEvent
 
 export interface Session {
   anvandareId: string
@@ -224,25 +237,32 @@ export const authAdapter = {
 
   /**
    * Lyssnar på förändringar i Supabase-sessionen (utloggning i en annan
-   * flik, tokenuppdatering, utgången session). Returnerar en
+   * flik, tokenuppdatering, utgången session, eller att MFA-verifiering
+   * just slutfördes – se `AuthChangeEventNamn`). Returnerar en
    * avregistreringsfunktion som `AuthProvider` anropar vid unmount.
    */
   lyssnaPaSessionsandringar(
-    callback: (varde: { session: Session; anvandare: Anvandare } | null) => void,
+    callback: (
+      varde: { session: Session; anvandare: Anvandare } | null,
+      handelse: AuthChangeEventNamn,
+    ) => void,
   ): () => void {
     const supabase = skapaSupabaseWebblasarklient()
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_handelse, session) => {
+    } = supabase.auth.onAuthStateChange((handelse, session) => {
       if (!session?.user) {
-        callback(null)
+        callback(null, handelse)
         return
       }
       const anvandare = tillPortalAnvandare(session.user)
-      callback({
-        session: tillPortalSession(session, anvandare, hamtaIhagkommenEpost() === anvandare.epost),
-        anvandare,
-      })
+      callback(
+        {
+          session: tillPortalSession(session, anvandare, hamtaIhagkommenEpost() === anvandare.epost),
+          anvandare,
+        },
+        handelse,
+      )
     })
     return () => subscription.unsubscribe()
   },

@@ -2,6 +2,7 @@ import {
   CalendarDaysIcon,
   LayoutDashboardIcon,
   SettingsIcon,
+  ShieldCheckIcon,
   TicketIcon,
   UsersIcon,
   type LucideIcon,
@@ -30,6 +31,10 @@ export const navigation: NavPost[] = [
     ikon: SettingsIcon,
     kraver: 'se_installningar',
   },
+  // Ingen `kraver`: tvåstegsverifiering är obligatorisk för alla portalkonton
+  // (se lib/supabase/proxy.ts), så hanteringen av den ska vara synlig för
+  // alla inloggade – inte styrd av personal-/teknikerbehörigheter.
+  { href: '/portal/sakerhet', etikett: 'Säkerhet', ikon: ShieldCheckIcon },
 ]
 
 export function arAktiv(href: string, pathname: string, exakt?: boolean) {

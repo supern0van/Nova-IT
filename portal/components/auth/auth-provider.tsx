@@ -64,6 +64,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [sessionUtgick, setSessionUtgick] = useState(false)
   const [roll, setRoll] = useState<SystemRoll | null>(null)
   const [laddarRoll, setLaddarRoll] = useState(false)
+  // Höjs varje gång Supabase fyrar `MFA_CHALLENGE_VERIFIED` (dvs. när
+  // sessionen precis gått från `aal1` till `aal2`). Roll-hämtningseffekten
+  // nedan lyssnar på det här värdet också – annars skulle /api/roll (som nu
+  // kräver `aal2`, se lib/supabase/route-anvandare.ts) förbli 401 tills
+  // nästa hela sidladdning, trots att användaren just blivit MFA-verifierad.
+  const [mfaVerifieradVersion, setMfaVerifieradVersion] = useState(0)
 
   // Läs in befintlig Supabase-session vid start.
   useEffect(() => {
@@ -85,9 +91,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // samma händelse (session blir null) och ska inte visas som en utgången
   // session. Den lokala utgångsbevakningen nedan äger det ansvaret.
   useEffect(() => {
-    const avregistrera = authAdapter.lyssnaPaSessionsandringar((varde) => {
+    const avregistrera = authAdapter.lyssnaPaSessionsandringar((varde, handelse) => {
       setSession(varde?.session ?? null)
       setAnvandare(varde?.anvandare ?? null)
+      if (handelse === 'MFA_CHALLENGE_VERIFIED') {
+        setMfaVerifieradVersion((v) => v + 1)
+      }
     })
     return avregistrera
   }, [])
@@ -136,7 +145,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => {
       avbruten = true
     }
-  }, [anvandare?.id])
+  }, [anvandare?.id, mfaVerifieradVersion])
 
   const loggaIn = useCallback(
     async (epost: string, losenord: string, ihagkommen: boolean) => {
@@ -167,6 +176,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setSession(null)
     setAnvandare(null)
     setSessionUtgick(false)
+    setMfaVerifieradVersion(0)
     router.replace('/logga-in')
     return { ok: true as const }
   }, [router])

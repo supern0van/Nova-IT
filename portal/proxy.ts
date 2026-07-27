@@ -22,7 +22,8 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   // Täcker samtliga routes som finns i portalens Next.js-app:
-  // "/" (skickar vidare till /portal), "/portal" + alla underrutter, samt
-  // inloggningssidan (för att kunna skicka vidare redan inloggade dit bort).
-  matcher: ['/', '/portal', '/portal/:path*', '/logga-in'],
+  // "/" (skickar vidare till /portal), "/portal" + alla underrutter,
+  // inloggningssidan (för att kunna skicka vidare redan inloggade dit bort),
+  // samt "/mfa" (obligatorisk MFA/TOTP-enrollment och -verifiering).
+  matcher: ['/', '/portal', '/portal/:path*', '/logga-in', '/mfa', '/mfa/:path*'],
 }
