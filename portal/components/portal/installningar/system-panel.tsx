@@ -2,6 +2,7 @@
 
 import {
   CheckCircle2Icon,
+  MailPlusIcon,
   ShieldCheckIcon,
   ShieldIcon,
   TriangleAlertIcon,
@@ -14,6 +15,9 @@ import { toast } from 'sonner'
 import { useAuth } from '@/components/auth/auth-provider'
 import { Faltrad, Sektionsrubrik, Yta } from '@/components/portal/ui-delar'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import {
   Select,
   SelectContent,
@@ -93,6 +97,10 @@ function DriftIkon({ status }: { status: SystemStatusNiva }) {
   return <XCircleIcon className="size-3.5" />
 }
 
+function sorteraProfiler(profiler: ProfilRad[]) {
+  return [...profiler].sort((a, b) => a.epost.localeCompare(b.epost, 'sv'))
+}
+
 /**
  * Systemöversikt för verkliga portalkonton.
  *
@@ -111,6 +119,11 @@ export function SystemPanel() {
     drift: null,
   })
   const [spararRoll, setSpararRoll] = useState<string | null>(null)
+  const [visarInbjudan, setVisarInbjudan] = useState(false)
+  const [nyttNamn, setNyttNamn] = useState('')
+  const [nyEpost, setNyEpost] = useState('')
+  const [nyRoll, setNyRoll] = useState<SystemRoll>('medarbetare')
+  const [bjuderIn, setBjuderIn] = useState(false)
 
   useEffect(() => {
     if (!kanSePersonal) {
@@ -206,6 +219,71 @@ export function SystemPanel() {
     }
   }
 
+  async function bjudInPortalkonto() {
+    if (bjuderIn) return
+
+    const namn = nyttNamn.trim()
+    const epost = nyEpost.trim().toLowerCase()
+    if (namn.length < 2 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(epost)) {
+      toast.error('Kontot kan inte bjudas in ännu', {
+        description: 'Ange minst två tecken i namn och en giltig e-postadress.',
+      })
+      return
+    }
+
+    setBjuderIn(true)
+
+    try {
+      const svar = await fetch('/api/admin/profiler', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ namn, epost, roll: nyRoll }),
+      })
+
+      if (!svar.ok) {
+        const beskrivning =
+          svar.status === 409
+            ? 'Det finns redan ett portalkonto med den e-postadressen.'
+            : svar.status === 400
+              ? 'Kontrollera namn, e-postadress och systemroll.'
+              : 'Kontrollera att sessionen fortfarande är AAL2-verifierad och försök igen.'
+        toast.error('Kunde inte bjuda in portalkonto', { description: beskrivning })
+        return
+      }
+
+      const data = (await svar.json()) as { profil?: ProfilRad }
+      if (!data.profil) {
+        toast.error('Kunde inte bjuda in portalkonto', {
+          description: 'API:t svarade utan skapad profil.',
+        })
+        return
+      }
+
+      setProfilStatus((nu) => ({
+        ...nu,
+        status: 'klar',
+        profiler: sorteraProfiler([
+          data.profil!,
+          ...nu.profiler.filter((profil) => profil.id !== data.profil?.id),
+        ]),
+      }))
+      setNyttNamn('')
+      setNyEpost('')
+      setNyRoll('medarbetare')
+      setVisarInbjudan(false)
+
+      toast.success('Portalkonto inbjudet', {
+        description: `${data.profil.epost} har fått en Supabase-inbjudan.`,
+      })
+    } catch {
+      toast.error('Kunde inte bjuda in portalkonto', {
+        description: 'Nätverket eller Worker-svaret avbröts.',
+      })
+    } finally {
+      setBjuderIn(false)
+    }
+  }
+
   return (
     <div className="flex flex-col gap-4">
       {kanSePersonal ? (
@@ -257,12 +335,87 @@ export function SystemPanel() {
           </Yta>
 
           <Yta className="flex flex-col gap-4 p-3.5">
-            <Sektionsrubrik antal={profilStatus.profiler.length}>Portalkonton</Sektionsrubrik>
+            <Sektionsrubrik
+              antal={profilStatus.profiler.length}
+              atgard={
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={visarInbjudan ? 'secondary' : 'outline'}
+                  onClick={() => setVisarInbjudan((visas) => !visas)}
+                >
+                  <MailPlusIcon data-icon="inline-start" />
+                  Bjud in konto
+                </Button>
+              }
+            >
+              Portalkonton
+            </Sektionsrubrik>
 
             <p className="text-[12px] leading-relaxed text-muted-foreground">
               Konton och systemroller läses från Supabase-tabellen profiles. Systemroller kan
               ändras här och skyddas server-side med AAL2-session samt administratörsroll.
             </p>
+
+            {visarInbjudan && (
+              <div className="grid gap-3 rounded-lg border border-border bg-card p-3 md:grid-cols-[1fr_1fr_auto]">
+                <div className="flex flex-col gap-1.5">
+                  <Label htmlFor="nytt-portalkonto-namn" className="text-[12px]">
+                    Namn
+                  </Label>
+                  <Input
+                    id="nytt-portalkonto-namn"
+                    value={nyttNamn}
+                    onChange={(event) => setNyttNamn(event.target.value)}
+                    placeholder="Ex. Anna Andersson"
+                    disabled={bjuderIn}
+                  />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <Label htmlFor="nytt-portalkonto-epost" className="text-[12px]">
+                    E-post
+                  </Label>
+                  <Input
+                    id="nytt-portalkonto-epost"
+                    type="email"
+                    value={nyEpost}
+                    onChange={(event) => setNyEpost(event.target.value)}
+                    placeholder="namn@nova-it.se"
+                    disabled={bjuderIn}
+                  />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <Label htmlFor="nytt-portalkonto-roll" className="text-[12px]">
+                    Systemroll
+                  </Label>
+                  <div className="flex gap-2">
+                    <Select
+                      value={nyRoll}
+                      onValueChange={(roll) => setNyRoll(roll as SystemRoll)}
+                      disabled={bjuderIn}
+                    >
+                      <SelectTrigger
+                        id="nytt-portalkonto-roll"
+                        className="min-w-36 bg-background text-[13px]"
+                      >
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {systemRoller.map((roll) => (
+                          <SelectItem key={roll} value={roll}>
+                            {systemRollLabel[roll]}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Button type="button" onClick={() => void bjudInPortalkonto()} disabled={bjuderIn}>
+                      {bjuderIn ? <Spinner data-icon="inline-start" /> : null}
+                      Skicka
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {profilStatus.status === 'laddar' && (
               <div className="flex items-center gap-2 rounded-lg bg-surface-emphasis p-3 text-[13px] text-muted-foreground">

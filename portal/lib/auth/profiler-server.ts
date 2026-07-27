@@ -20,6 +20,17 @@ export interface ProfilRad {
   kontoHalsa?: KontoHalsa | null
 }
 
+export interface NyPortalProfil {
+  epost: string
+  namn: string
+  roll: SystemRoll
+  redirectTo?: string
+}
+
+export type BjudInPortalProfilResultat =
+  | { ok: true; profil: ProfilRad }
+  | { ok: false; fel: 'finns_redan' | 'kunde_inte_bjuda_in' | 'kunde_inte_spara_profil' }
+
 export async function harAdminAtkomst(anvandareId: string): Promise<boolean> {
   const roll = await hamtaRollFranDatabasen(anvandareId)
   return arAdministrator(roll)
@@ -60,6 +71,68 @@ export async function uppdateraProfilRollIDatabasen(
 
   if (error || !data) return null
   return data as ProfilRad
+}
+
+export async function bjudInPortalProfil({
+  epost,
+  namn,
+  roll,
+  redirectTo,
+}: NyPortalProfil): Promise<BjudInPortalProfilResultat> {
+  const supabase = skapaSupabaseServiceklient()
+  const normaliseradEpost = epost.trim().toLowerCase()
+  const normaliseratNamn = namn.trim()
+
+  const { data: befintligProfil, error: kontrollFel } = await supabase
+    .from('profiles')
+    .select('id')
+    .eq('epost', normaliseradEpost)
+    .maybeSingle()
+
+  if (kontrollFel) return { ok: false, fel: 'kunde_inte_spara_profil' }
+  if (befintligProfil) return { ok: false, fel: 'finns_redan' }
+
+  const { data: authData, error: inviteFel } = await supabase.auth.admin.inviteUserByEmail(
+    normaliseradEpost,
+    {
+      data: {
+        namn: normaliseratNamn,
+        full_name: normaliseratNamn,
+      },
+      redirectTo,
+    },
+  )
+
+  const user = authData.user
+  if (inviteFel || !user?.id) {
+    return { ok: false, fel: inviteFel?.status === 422 ? 'finns_redan' : 'kunde_inte_bjuda_in' }
+  }
+
+  const { data: profil, error: profilFel } = await supabase
+    .from('profiles')
+    .upsert(
+      {
+        id: user.id,
+        epost: normaliseradEpost,
+        namn: normaliseratNamn || normaliseradEpost.split('@')[0],
+        roll,
+      },
+      { onConflict: 'id' },
+    )
+    .select('id, epost, namn, roll, skapad, uppdaterad')
+    .maybeSingle()
+
+  if (profilFel || !profil) {
+    return { ok: false, fel: 'kunde_inte_spara_profil' }
+  }
+
+  return {
+    ok: true,
+    profil: {
+      ...(profil as ProfilRad),
+      kontoHalsa: kontoHalsaFranAuthAnvandare(user),
+    },
+  }
 }
 
 async function listaAuthAnvandare(): Promise<User[]> {
