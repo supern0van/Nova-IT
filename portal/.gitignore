@@ -16,4 +16,5 @@ node_modules
 .wrangler/
 .dev.vars
 cloudflare-env.d.ts
+*.tsbuildinfo
 .DS_Store
