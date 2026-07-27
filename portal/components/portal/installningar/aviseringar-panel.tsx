@@ -1,42 +1,16 @@
 'use client'
 
 import { InfoIcon } from 'lucide-react'
-import { useState } from 'react'
-import { toast } from 'sonner'
 
-import { useAuth } from '@/components/auth/auth-provider'
 import { Sektionsrubrik, Yta } from '@/components/portal/ui-delar'
-import { Spinner } from '@/components/ui/spinner'
 import { Switch } from '@/components/ui/switch'
-import {
-  adminKonfigurationEjKoppladText,
-  adminKonfigurationSkrivbar,
-} from '@/lib/admin/konfiguration'
-import { vaxlaAvisering } from '@/lib/store'
+import { adminKonfigurationEjKoppladText } from '@/lib/admin/konfiguration'
 import type { Aviseringsinstallning } from '@/lib/types'
 
 /**
  * Aviseringar. Styr vilka händelser som ska skicka e-post till mottagarlistan.
  */
 export function AviseringarPanel({ aviseringar }: { aviseringar: Aviseringsinstallning[] }) {
-  const { kan } = useAuth()
-  const kanAndra = kan('hantera_systeminstallningar') && adminKonfigurationSkrivbar
-  const [sparar, setSparar] = useState<string | null>(null)
-
-  async function vaxla(avisering: Aviseringsinstallning) {
-    setSparar(avisering.id)
-    try {
-      await vaxlaAvisering(avisering.id)
-      toast.success(
-        avisering.aktiv
-          ? `"${avisering.namn}" är avstängd`
-          : `"${avisering.namn}" är påslagen`,
-      )
-    } finally {
-      setSparar(null)
-    }
-  }
-
   const antalAktiva = aviseringar.filter((a) => a.aktiv).length
 
   return (
@@ -63,11 +37,9 @@ export function AviseringarPanel({ aviseringar }: { aviseringar: Aviseringsinsta
               </p>
             </div>
             <div className="flex shrink-0 items-center gap-2">
-              {sparar === avisering.id && <Spinner className="size-3.5 text-muted-foreground" />}
               <Switch
                 checked={avisering.aktiv}
-                disabled={!kanAndra || sparar === avisering.id}
-                onCheckedChange={() => vaxla(avisering)}
+                disabled
                 aria-label={`Avisering: ${avisering.namn}`}
               />
             </div>
@@ -75,16 +47,10 @@ export function AviseringarPanel({ aviseringar }: { aviseringar: Aviseringsinsta
         ))}
       </ul>
 
-      {!adminKonfigurationSkrivbar ? (
-        <p className="text-[12px] leading-relaxed text-muted-foreground">
-          Skrivning är avstängd här för att undvika att lokala demoändringar misstas för
-          produktionsinställningar.
-        </p>
-      ) : !kanAndra ? (
-        <p className="text-[12px] leading-relaxed text-muted-foreground">
-          Din roll kan läsa aviseringarna men inte ändra dem.
-        </p>
-      ) : null}
+      <p className="text-[12px] leading-relaxed text-muted-foreground">
+        Skrivning är avstängd här för att undvika att lokala ändringar misstas för
+        produktionsinställningar.
+      </p>
     </Yta>
   )
 }

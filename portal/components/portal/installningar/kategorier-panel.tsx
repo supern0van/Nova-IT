@@ -1,18 +1,11 @@
 'use client'
 
 import { InfoIcon } from 'lucide-react'
-import { useMemo, useState } from 'react'
-import { toast } from 'sonner'
+import { useMemo } from 'react'
 
-import { useAuth } from '@/components/auth/auth-provider'
 import { PrioritetChip, Sektionsrubrik, Yta } from '@/components/portal/ui-delar'
-import { Spinner } from '@/components/ui/spinner'
 import { Switch } from '@/components/ui/switch'
-import {
-  adminKonfigurationEjKoppladText,
-  adminKonfigurationSkrivbar,
-} from '@/lib/admin/konfiguration'
-import { vaxlaKategori } from '@/lib/store'
+import { adminKonfigurationEjKoppladText } from '@/lib/admin/konfiguration'
 import type { Arende, Arendekategori } from '@/lib/types'
 
 /**
@@ -27,10 +20,6 @@ export function KategorierPanel({
   kategorier: Arendekategori[]
   arenden: Arende[]
 }) {
-  const { kan } = useAuth()
-  const kanAndra = kan('hantera_systeminstallningar') && adminKonfigurationSkrivbar
-  const [sparar, setSparar] = useState<string | null>(null)
-
   const antalPerKategori = useMemo(() => {
     const karta = new Map<string, number>()
     for (const arende of arenden) {
@@ -38,20 +27,6 @@ export function KategorierPanel({
     }
     return karta
   }, [arenden])
-
-  async function vaxla(kategori: Arendekategori) {
-    setSparar(kategori.id)
-    try {
-      await vaxlaKategori(kategori.id)
-      toast.success(
-        kategori.aktiv
-          ? `"${kategori.namn}" går inte längre att välja`
-          : `"${kategori.namn}" går att välja igen`,
-      )
-    } finally {
-      setSparar(null)
-    }
-  }
 
   const antalAktiva = kategorier.filter((k) => k.aktiv).length
 
@@ -88,11 +63,9 @@ export function KategorierPanel({
                   </p>
                 </div>
                 <div className="flex shrink-0 items-center gap-2">
-                  {sparar === kategori.id && <Spinner className="size-3.5 text-muted-foreground" />}
                   <Switch
                     checked={kategori.aktiv}
-                    disabled={!kanAndra || sparar === kategori.id}
-                    onCheckedChange={() => vaxla(kategori)}
+                    disabled
                     aria-label={`Kategori: ${kategori.namn}`}
                   />
                 </div>
@@ -115,11 +88,9 @@ export function KategorierPanel({
         })}
       </ul>
 
-      {!adminKonfigurationSkrivbar && (
-        <p className="text-[12px] leading-relaxed text-muted-foreground">
-          Reglagen är låsta tills kategorierna har riktig serverlagring.
-        </p>
-      )}
+      <p className="text-[12px] leading-relaxed text-muted-foreground">
+        Reglagen är låsta tills kategorierna har riktig serverlagring.
+      </p>
     </Yta>
   )
 }

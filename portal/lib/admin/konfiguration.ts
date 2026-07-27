@@ -5,7 +5,5 @@
  * Aviseringar, mottagare, kategorier och standardsvar saknar däremot ännu
  * beslutad datamodell, så de ska inte låtsas vara produktionsskrivbara.
  */
-export const adminKonfigurationSkrivbar = false
-
 export const adminKonfigurationEjKoppladText =
   'Den här konfigurationen är inte driftkopplad ännu. Den visas som underlag, men ändras först när backendtabeller och e-postflöde är beslutade.'
