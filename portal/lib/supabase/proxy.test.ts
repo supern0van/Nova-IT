@@ -117,6 +117,12 @@ describe('uppdateraSessionOchSkyddaPortal – obligatorisk MFA', () => {
       expect(mal?.pathname).toBe('/mfa')
     })
 
+    it('lösenordsåterställning: aal1-session får rendera /logga-in?aterstall=1', async () => {
+      sessionMedNiva('aal1')
+      const svar = await uppdateraSessionOchSkyddaPortal(begaran('/logga-in?aterstall=1'))
+      expect(omdirigeringsmal(svar)).toBeNull()
+    })
+
     it('redan inloggad OCH MFA-verifierad: skickas vidare till /portal', async () => {
       sessionMedNiva('aal2')
       const svar = await uppdateraSessionOchSkyddaPortal(begaran('/logga-in'))

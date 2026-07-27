@@ -25,10 +25,6 @@
  * `useAuth().roll` hämtar den via `/api/roll`. De två typerna är medvetet
  * fristående från varandra och ska inte blandas ihop.
  *
- * ── Kvar att göra i senare uppdrag (medvetet utanför detta steg) ───────────
- *   - Riktig lösenordsåterställning (`begarAterstallning` nedan är fortsatt
- *     en simulerad attrapp och pratar inte med Supabase)
- *
  * Serversidesskydd av routes finns i `proxy.ts` (Next.js 16), se
  * `lib/supabase/proxy.ts`. Systemroller (SystemRoll) finns i
  * `profiles`-tabellen, se `lib/auth/roll.ts`.
@@ -69,12 +65,16 @@ export type InloggningsFel =
   | 'ogiltig_epost'
   | 'fel_uppgifter'
   | 'konto_inaktivt'
+  | 'svagt_losenord'
+  | 'serverfel'
 
 export const felmeddelanden: Record<InloggningsFel, string> = {
   saknade_uppgifter: 'Fyll i både e-postadress och lösenord.',
   ogiltig_epost: 'Ange en giltig e-postadress.',
   fel_uppgifter: 'Fel e-postadress eller lösenord. Kontrollera uppgifterna och försök igen.',
   konto_inaktivt: 'Kontot är inaktiverat. Kontakta en administratör för att få det aktiverat.',
+  svagt_losenord: 'Lösenordet behöver vara minst 8 tecken.',
+  serverfel: 'Kunde inte slutföra åtgärden just nu. Försök igen.',
 }
 
 export type InloggningsResultat =
@@ -278,17 +278,31 @@ export const authAdapter = {
     return () => subscription.unsubscribe()
   },
 
-  /**
-   * Simulerad lösenordsåterställning – ingår INTE i detta autentiseringssteg.
-   * Oförändrad sedan tidigare: skickar inget riktigt mejl och pratar inte med
-   * Supabase. Ersätts i ett separat, senare uppdrag.
-   */
   async begarAterstallning(epost: string): Promise<{ ok: boolean; fel?: InloggningsFel }> {
-    await new Promise((r) => setTimeout(r, 900))
     const normaliserad = epost.trim().toLowerCase()
     if (!normaliserad) return { ok: false, fel: 'saknade_uppgifter' }
     if (!giltigEpost(normaliserad)) return { ok: false, fel: 'ogiltig_epost' }
-    // Svarar alltid positivt: avslöjar inte vilka adresser som finns.
+
+    const supabase = skapaSupabaseWebblasarklient()
+    const redirectTo = isBrowser()
+      ? `${window.location.origin}/logga-in?aterstall=1`
+      : undefined
+    const { error } = await supabase.auth.resetPasswordForEmail(normaliserad, { redirectTo })
+
+    if (error) return { ok: false, fel: 'serverfel' }
+    // Supabase avslöjar inte om adressen finns, vilket är vad vi vill.
+    return { ok: true }
+  },
+
+  async uppdateraLosenord(losenord: string): Promise<{ ok: boolean; fel?: InloggningsFel }> {
+    if (!losenord) return { ok: false, fel: 'saknade_uppgifter' }
+    if (losenord.length < 8) return { ok: false, fel: 'svagt_losenord' }
+
+    const supabase = skapaSupabaseWebblasarklient()
+    const { error } = await supabase.auth.updateUser({ password: losenord })
+    if (error) return { ok: false, fel: 'serverfel' }
+
+    await supabase.auth.signOut()
     return { ok: true }
   },
 }

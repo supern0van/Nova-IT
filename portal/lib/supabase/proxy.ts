@@ -47,6 +47,7 @@ export async function uppdateraSessionOchSkyddaPortal(request: NextRequest) {
   const { pathname } = request.nextUrl
   const arInloggningssida = pathname === INLOGGNINGSVAG || pathname.startsWith(`${INLOGGNINGSVAG}/`)
   const arMfaSida = pathname === MFA_VAG || pathname.startsWith(`${MFA_VAG}/`)
+  const arLosenordsaterstallning = arInloggningssida && request.nextUrl.searchParams.get('aterstall') === '1'
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const publishableKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
@@ -131,6 +132,10 @@ export async function uppdateraSessionOchSkyddaPortal(request: NextRequest) {
   }
 
   if (arInloggningssida) {
+    // Supabase password recovery skapar en tillfällig session som ofta bara
+    // är `aal1`. Den måste få rendera /logga-in?aterstall=1 så användaren kan
+    // välja nytt lösenord innan ordinarie obligatorisk MFA tar vid igen.
+    if (arLosenordsaterstallning) return svar
     if (!inloggad) return svar
     if (!mfaVerifierad) return omdirigeraTillMfa()
     return omdirigeraTillInloggadDestination()

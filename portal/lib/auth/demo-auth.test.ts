@@ -4,6 +4,8 @@ const signInWithPassword = vi.fn()
 const getSession = vi.fn()
 const signOut = vi.fn()
 const onAuthStateChange = vi.fn()
+const resetPasswordForEmail = vi.fn()
+const updateUser = vi.fn()
 
 vi.mock('@/lib/supabase/client', () => ({
   skapaSupabaseWebblasarklient: () => ({
@@ -12,6 +14,8 @@ vi.mock('@/lib/supabase/client', () => ({
       getSession,
       signOut,
       onAuthStateChange,
+      resetPasswordForEmail,
+      updateUser,
     },
   }),
 }))
@@ -77,5 +81,27 @@ describe('authAdapter Supabase-identitet', () => {
       titel: 'Adminkonto (tillfällig personalmappning)',
       initialer: 'W',
     })
+  })
+
+  it('skickar återställningslänk via Supabase Auth', async () => {
+    resetPasswordForEmail.mockResolvedValue({ error: null })
+
+    const resultat = await authAdapter.begarAterstallning('Admin@Nova-IT.se')
+
+    expect(resultat).toEqual({ ok: true })
+    expect(resetPasswordForEmail).toHaveBeenCalledWith('admin@nova-it.se', {
+      redirectTo: undefined,
+    })
+  })
+
+  it('uppdaterar lösenord via Supabase Auth och loggar ut recovery-sessionen', async () => {
+    updateUser.mockResolvedValue({ error: null })
+    signOut.mockResolvedValue({ error: null })
+
+    const resultat = await authAdapter.uppdateraLosenord('nytt-losenord')
+
+    expect(resultat).toEqual({ ok: true })
+    expect(updateUser).toHaveBeenCalledWith({ password: 'nytt-losenord' })
+    expect(signOut).toHaveBeenCalled()
   })
 })

@@ -27,7 +27,7 @@ import { sakerOmdirigeringsSokvag } from '@/lib/auth/sakerOmdirigering'
 
 const STANDARDVAG_EFTER_INLOGGNING = '/portal'
 
-type Lage = 'inloggning' | 'glomt'
+type Lage = 'inloggning' | 'glomt' | 'nytt_losenord'
 
 export function InloggningsVy() {
   const router = useRouter()
@@ -36,8 +36,9 @@ export function InloggningsVy() {
   // tillbaka till exakt den sidan istället för alltid till /portal.
   const sokParametrar = useSearchParams()
   const { anvandare, initierar, loggaIn, loggarIn, sessionUtgick, rensaSessionUtgick } = useAuth()
+  const aterstallerLosenord = sokParametrar.get('aterstall') === '1'
 
-  const [lage, setLage] = useState<Lage>('inloggning')
+  const [lage, setLage] = useState<Lage>(aterstallerLosenord ? 'nytt_losenord' : 'inloggning')
   const [epost, setEpost] = useState('')
   const [losenord, setLosenord] = useState('')
   const [visaLosenord, setVisaLosenord] = useState(false)
@@ -48,10 +49,15 @@ export function InloggningsVy() {
   // Redan inloggad? Skicka vidare in i portalen – eller till den ursprungliga
   // destinationen om proxyn skickade med en giltig `next`-parameter.
   useEffect(() => {
+    if (aterstallerLosenord) return
     if (initierar || !anvandare) return
     const destination = sakerOmdirigeringsSokvag(sokParametrar.get('next')) ?? STANDARDVAG_EFTER_INLOGGNING
     router.replace(destination)
-  }, [initierar, anvandare, router, sokParametrar])
+  }, [aterstallerLosenord, initierar, anvandare, router, sokParametrar])
+
+  useEffect(() => {
+    if (aterstallerLosenord) setLage('nytt_losenord')
+  }, [aterstallerLosenord])
 
   // Förifyll e-post om "kom ihåg mig" användes förra gången.
   useEffect(() => {
@@ -106,7 +112,9 @@ export function InloggningsVy() {
             </div>
           </div>
 
-          {lage === 'glomt' ? (
+          {lage === 'nytt_losenord' ? (
+            <NyttLosenord vidKlar={() => setLage('inloggning')} />
+          ) : lage === 'glomt' ? (
             <GlomtLosenord epost={epost} vidAvbryt={() => setLage('inloggning')} />
           ) : (
             <>
@@ -280,11 +288,6 @@ function VarumarkesPanel() {
   )
 }
 
-/**
- * Glömt lösenord – ingår inte i detta autentiseringssteg.
- * Flödet är fortsatt simulerat (`authAdapter.begarAterstallning`) och skickar
- * inget riktigt mejl. Kopplas till Supabase i ett separat, senare uppdrag.
- */
 function GlomtLosenord({ epost: initialEpost, vidAvbryt }: { epost: string; vidAvbryt: () => void }) {
   const [epost, setEpost] = useState(initialEpost)
   const [skickar, setSkickar] = useState(false)
@@ -312,17 +315,14 @@ function GlomtLosenord({ epost: initialEpost, vidAvbryt }: { epost: string; vidA
         </span>
         <div className="flex flex-col gap-2">
           <h1 className="text-2xl font-semibold tracking-tight">Kontrollera din inkorg</h1>
-          <p className="text-sm leading-relaxed text-muted-foreground">
-            Om <span className="font-medium text-text-secondary">{epost}</span> finns registrerad
-            har vi skickat en återställningslänk dit.
-          </p>
-        </div>
-        <p className="rounded-lg bg-surface-emphasis px-3.5 py-3 text-xs leading-relaxed text-muted-foreground">
-          Den här funktionen är inte fullt ut kopplad ännu – inget mejl skickas i nuläget.
+        <p className="text-sm leading-relaxed text-muted-foreground">
+          Om <span className="font-medium text-text-secondary">{epost}</span> finns registrerad
+          har vi skickat en återställningslänk dit.
         </p>
-        <Button variant="outline" onClick={vidAvbryt} className="w-full">
-          <ArrowLeftIcon data-icon="inline-start" />
-          Tillbaka till inloggning
+      </div>
+      <Button variant="outline" onClick={vidAvbryt} className="w-full">
+        <ArrowLeftIcon data-icon="inline-start" />
+        Tillbaka till inloggning
         </Button>
       </div>
     )
@@ -380,6 +380,140 @@ function GlomtLosenord({ epost: initialEpost, vidAvbryt }: { epost: string; vidA
               Tillbaka
             </Button>
           </div>
+        </FieldGroup>
+      </form>
+    </div>
+  )
+}
+
+function NyttLosenord({ vidKlar }: { vidKlar: () => void }) {
+  const [losenord, setLosenord] = useState('')
+  const [bekrafta, setBekrafta] = useState('')
+  const [visaLosenord, setVisaLosenord] = useState(false)
+  const [sparar, setSparar] = useState(false)
+  const [klart, setKlart] = useState(false)
+  const [fel, setFel] = useState<string | null>(null)
+
+  async function spara(e: React.FormEvent) {
+    e.preventDefault()
+    setFel(null)
+
+    if (!losenord || !bekrafta) {
+      setFel('Fyll i och bekräfta det nya lösenordet.')
+      return
+    }
+
+    if (losenord !== bekrafta) {
+      setFel('Lösenorden matchar inte.')
+      return
+    }
+
+    setSparar(true)
+    const resultat = await authAdapter.uppdateraLosenord(losenord)
+    setSparar(false)
+
+    if (!resultat.ok) {
+      setFel(felmeddelanden[resultat.fel ?? 'serverfel'])
+      return
+    }
+
+    setKlart(true)
+  }
+
+  if (klart) {
+    return (
+      <div className="flex flex-col gap-5">
+        <span className="flex size-11 items-center justify-center rounded-xl bg-success/12">
+          <CheckCircle2Icon className="size-5 text-success" />
+        </span>
+        <div className="flex flex-col gap-2">
+          <h1 className="text-2xl font-semibold tracking-tight">Lösenordet är uppdaterat</h1>
+          <p className="text-sm leading-relaxed text-muted-foreground">
+            Logga in med ditt nya lösenord. Efter inloggning gäller fortfarande obligatorisk
+            tvåstegsverifiering.
+          </p>
+        </div>
+        <Button variant="outline" onClick={vidKlar} className="w-full">
+          <ArrowLeftIcon data-icon="inline-start" />
+          Till inloggning
+        </Button>
+      </div>
+    )
+  }
+
+  return (
+    <div>
+      <header className="flex flex-col gap-1.5">
+        <h1 className="text-2xl font-semibold tracking-tight">Välj nytt lösenord</h1>
+        <p className="text-sm leading-relaxed text-muted-foreground">
+          Ange ett nytt lösenord för ditt Nova IT-konto. Du loggas ut från
+          återställningssessionen när lösenordet har sparats.
+        </p>
+      </header>
+
+      <form onSubmit={spara} className="mt-6" noValidate>
+        <FieldGroup>
+          <Field data-invalid={fel ? true : undefined}>
+            <FieldLabel htmlFor="nytt-losenord">Nytt lösenord</FieldLabel>
+            <div className="relative">
+              <LockIcon className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                id="nytt-losenord"
+                type={visaLosenord ? 'text' : 'password'}
+                autoComplete="new-password"
+                placeholder="Minst 8 tecken"
+                value={losenord}
+                onChange={(e) => {
+                  setLosenord(e.target.value)
+                  setFel(null)
+                }}
+                className="pl-9 pr-10"
+              />
+              <button
+                type="button"
+                onClick={() => setVisaLosenord((v) => !v)}
+                aria-label={visaLosenord ? 'Dölj lösenord' : 'Visa lösenord'}
+                aria-pressed={visaLosenord}
+                className="absolute right-1 top-1/2 flex size-8 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                {visaLosenord ? <EyeOffIcon className="size-4" /> : <EyeIcon className="size-4" />}
+              </button>
+            </div>
+          </Field>
+
+          <Field data-invalid={fel ? true : undefined}>
+            <FieldLabel htmlFor="bekrafta-losenord">Bekräfta lösenord</FieldLabel>
+            <div className="relative">
+              <LockIcon className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                id="bekrafta-losenord"
+                type={visaLosenord ? 'text' : 'password'}
+                autoComplete="new-password"
+                placeholder="Skriv samma lösenord igen"
+                value={bekrafta}
+                onChange={(e) => {
+                  setBekrafta(e.target.value)
+                  setFel(null)
+                }}
+                className="pl-9"
+              />
+            </div>
+          </Field>
+
+          {fel && (
+            <div
+              role="alert"
+              className="flex items-start gap-2.5 rounded-lg bg-destructive/10 px-3.5 py-3"
+            >
+              <TriangleAlertIcon className="mt-0.5 size-4 shrink-0 text-destructive" />
+              <p className="text-[13px] leading-relaxed text-text-secondary">{fel}</p>
+            </div>
+          )}
+
+          <Button type="submit" disabled={sparar} className="w-full">
+            {sparar && <Spinner data-icon="inline-start" />}
+            {sparar ? 'Sparar…' : 'Spara nytt lösenord'}
+          </Button>
         </FieldGroup>
       </form>
     </div>
