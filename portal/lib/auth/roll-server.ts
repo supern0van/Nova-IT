@@ -36,3 +36,22 @@ export async function hamtaRollFranDatabasen(anvandareId: string): Promise<Syste
   if (error || !data) return null
   return data.roll as SystemRoll
 }
+
+export interface EgenProfil {
+  epost: string
+  namn: string
+}
+
+export async function hamtaEgenProfilFranDatabasen(
+  anvandareId: string,
+): Promise<EgenProfil | null> {
+  const supabase = skapaSupabaseServiceklient()
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('epost, namn')
+    .eq('id', anvandareId)
+    .maybeSingle()
+
+  if (error || !data) return null
+  return data as EgenProfil
+}

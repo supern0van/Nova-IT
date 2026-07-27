@@ -10,7 +10,7 @@ import {
   type InloggningsFel,
   type Session,
 } from '@/lib/auth/demo-auth'
-import type { SystemRoll } from '@/lib/auth/roll'
+import { arAdministrator, type SystemRoll } from '@/lib/auth/roll'
 import type { Anvandare } from '@/lib/types'
 
 /**
@@ -54,6 +54,31 @@ interface AuthContextVarde {
 const AuthContext = createContext<AuthContextVarde | null>(null)
 
 const KONTROLL_INTERVALL_MS = 30_000
+const SYSTEM_ADMIN_BEHORIGHETER: readonly Behorighet[] = [
+  'se_installningar',
+  'hantera_anvandare',
+  'hantera_systeminstallningar',
+]
+
+interface RollSvar {
+  roll: SystemRoll | null
+  profil?: {
+    epost: string
+    namn: string
+  } | null
+}
+
+function initialerFranNamn(namn: string) {
+  return (
+    namn
+      .trim()
+      .split(/\s+/)
+      .map((del) => del[0])
+      .join('')
+      .slice(0, 2)
+      .toUpperCase() || '?'
+  )
+}
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter()
@@ -132,8 +157,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setLaddarRoll(true)
     fetch('/api/roll')
       .then((svar) => (svar.ok ? svar.json() : { roll: null }))
-      .then((data: { roll: SystemRoll | null }) => {
-        if (!avbruten) setRoll(data.roll)
+      .then((data: RollSvar) => {
+        if (avbruten) return
+        setRoll(data.roll)
+        if (data.profil) {
+          setAnvandare((aktuell) => {
+            if (!aktuell || aktuell.id !== anvandareId) return aktuell
+            const namn = data.profil?.namn.trim() || aktuell.namn
+            const epost = data.profil?.epost.trim() || aktuell.epost
+            return {
+              ...aktuell,
+              namn,
+              epost,
+              initialer: initialerFranNamn(namn || epost.split('@')[0] || aktuell.namn),
+            }
+          })
+        }
       })
       .catch(() => {
         if (!avbruten) setRoll(null)
@@ -182,8 +221,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [router])
 
   const kan = useCallback(
-    (behorighet: Behorighet) => (anvandare ? harBehorighet(anvandare.roll, behorighet) : false),
-    [anvandare],
+    (behorighet: Behorighet) => {
+      if (!anvandare) return false
+      if (SYSTEM_ADMIN_BEHORIGHETER.includes(behorighet) && !arAdministrator(roll)) return false
+      return harBehorighet(anvandare.roll, behorighet)
+    },
+    [anvandare, roll],
   )
 
   const varde = useMemo<AuthContextVarde>(

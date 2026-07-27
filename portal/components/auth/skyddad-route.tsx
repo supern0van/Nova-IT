@@ -27,7 +27,7 @@ export function SkyddadRoute({
   kraverBehorighet?: Behorighet
 }) {
   const router = useRouter()
-  const { anvandare, initierar, kan } = useAuth()
+  const { anvandare, initierar, kan, laddarRoll } = useAuth()
 
   useEffect(() => {
     if (initierar) return
@@ -35,12 +35,18 @@ export function SkyddadRoute({
       router.replace('/logga-in')
       return
     }
+    if (kraverBehorighet && laddarRoll) return
     if (kraverBehorighet && !kan(kraverBehorighet)) {
       router.replace('/portal')
     }
-  }, [initierar, anvandare, kraverBehorighet, kan, router])
+  }, [initierar, laddarRoll, anvandare, kraverBehorighet, kan, router])
 
-  if (initierar || !anvandare || (kraverBehorighet && !kan(kraverBehorighet))) {
+  if (
+    initierar ||
+    !anvandare ||
+    (kraverBehorighet && laddarRoll) ||
+    (kraverBehorighet && !kan(kraverBehorighet))
+  ) {
     return <PortalLaddar />
   }
 

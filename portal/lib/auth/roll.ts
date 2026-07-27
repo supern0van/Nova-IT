@@ -26,6 +26,12 @@
 
 export type SystemRoll = 'administrator' | 'medarbetare'
 
+export const systemRoller = ['administrator', 'medarbetare'] as const satisfies readonly SystemRoll[]
+
+export function arSystemRoll(varde: unknown): varde is SystemRoll {
+  return typeof varde === 'string' && systemRoller.includes(varde as SystemRoll)
+}
+
 export function harRoll(roll: SystemRoll | null | undefined, malRoll: SystemRoll): boolean {
   return roll === malRoll
 }

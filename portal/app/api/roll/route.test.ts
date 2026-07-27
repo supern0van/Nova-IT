@@ -3,9 +3,10 @@ import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
 const hamtaAutentiseradAnvandarId = vi.fn()
 const hamtaRollFranDatabasen = vi.fn()
+const hamtaEgenProfilFranDatabasen = vi.fn()
 
 vi.mock('@/lib/supabase/route-anvandare', () => ({ hamtaAutentiseradAnvandarId }))
-vi.mock('@/lib/auth/roll-server', () => ({ hamtaRollFranDatabasen }))
+vi.mock('@/lib/auth/roll-server', () => ({ hamtaEgenProfilFranDatabasen, hamtaRollFranDatabasen }))
 
 let GET: typeof import('@/app/api/roll/route').GET
 
@@ -38,36 +39,53 @@ describe('GET /api/roll', () => {
     expect(svar.status).toBe(401)
     expect(await svar.json()).toEqual({ roll: null })
     expect(hamtaRollFranDatabasen).not.toHaveBeenCalled()
+    expect(hamtaEgenProfilFranDatabasen).not.toHaveBeenCalled()
   })
 
   it('200 med systemrollen för en giltig, MFA-verifierad administratör', async () => {
     hamtaAutentiseradAnvandarId.mockResolvedValue('user-1')
     hamtaRollFranDatabasen.mockResolvedValue('administrator')
+    hamtaEgenProfilFranDatabasen.mockResolvedValue({
+      epost: 'webmaster@nova-it.se',
+      namn: 'Webmaster',
+    })
 
     const svar = await GET(fakeRequest())
 
     expect(svar.status).toBe(200)
-    expect(await svar.json()).toEqual({ roll: 'administrator' })
+    expect(await svar.json()).toEqual({
+      roll: 'administrator',
+      profil: { epost: 'webmaster@nova-it.se', namn: 'Webmaster' },
+    })
     expect(hamtaRollFranDatabasen).toHaveBeenCalledWith('user-1')
+    expect(hamtaEgenProfilFranDatabasen).toHaveBeenCalledWith('user-1')
   })
 
   it('200 med systemrollen för en giltig, MFA-verifierad medarbetare', async () => {
     hamtaAutentiseradAnvandarId.mockResolvedValue('user-2')
     hamtaRollFranDatabasen.mockResolvedValue('medarbetare')
+    hamtaEgenProfilFranDatabasen.mockResolvedValue({
+      epost: 'medarbetare@nova-it.se',
+      namn: 'Medarbetare',
+    })
 
     const svar = await GET(fakeRequest())
 
     expect(svar.status).toBe(200)
-    expect(await svar.json()).toEqual({ roll: 'medarbetare' })
+    expect(await svar.json()).toEqual({
+      roll: 'medarbetare',
+      profil: { epost: 'medarbetare@nova-it.se', namn: 'Medarbetare' },
+    })
   })
 
   it('200 med roll:null om användaren saknar profilrad', async () => {
     hamtaAutentiseradAnvandarId.mockResolvedValue('user-3')
     hamtaRollFranDatabasen.mockResolvedValue(null)
+    hamtaEgenProfilFranDatabasen.mockResolvedValue(null)
 
     const svar = await GET(fakeRequest())
 
     expect(svar.status).toBe(200)
-    expect(await svar.json()).toEqual({ roll: null })
+    expect(await svar.json()).toEqual({ roll: null, profil: null })
   })
 })

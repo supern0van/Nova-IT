@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
 
-import { hamtaRollFranDatabasen } from '@/lib/auth/roll-server'
+import { hamtaEgenProfilFranDatabasen, hamtaRollFranDatabasen } from '@/lib/auth/roll-server'
 import { hamtaAutentiseradAnvandarId } from '@/lib/supabase/route-anvandare'
 
 /**
@@ -27,6 +27,10 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ roll: null }, { status: 401 })
   }
 
-  const roll = await hamtaRollFranDatabasen(anvandareId)
-  return NextResponse.json({ roll })
+  const [roll, profil] = await Promise.all([
+    hamtaRollFranDatabasen(anvandareId),
+    hamtaEgenProfilFranDatabasen(anvandareId),
+  ])
+
+  return NextResponse.json({ roll, profil })
 }

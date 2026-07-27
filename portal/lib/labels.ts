@@ -8,6 +8,7 @@ import type {
   Prioritet,
   Roll,
 } from '@/lib/types'
+import type { SystemRoll } from '@/lib/auth/roll'
 
 /** Svenska etiketter + återhållsam statusfärgsättning för hela portalen. */
 
@@ -125,6 +126,11 @@ export const bokningStatusChip: Record<BokningStatus, string> = {
 export const rollLabel: Record<Roll, string> = {
   administrator: 'Administratör',
   tekniker: 'Tekniker',
+}
+
+export const systemRollLabel: Record<SystemRoll, string> = {
+  administrator: 'Administratör',
+  medarbetare: 'Medarbetare',
 }
 
 /** Relativ tid på svenska, t.ex. "för 12 min sedan". */
