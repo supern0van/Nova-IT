@@ -6,6 +6,8 @@ import { hamtaRollFranDatabasen } from '@/lib/auth/roll-server'
 import { hamtaAutentiseradAnvandarId } from '@/lib/supabase/route-anvandare'
 import { skapaSupabaseServiceklient } from '@/lib/supabase/service'
 
+const EPOST_MONSTER = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
+
 /**
  * Administratörsstött MFA-återställningsflöde (recovery), se
  * `lib/auth/mfa-admin-server.ts` för bakgrund och motivering.
@@ -58,15 +60,40 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ ok: false, fel: 'Ange en e-postadress.' }, { status: 400 })
   }
 
+  if (!EPOST_MONSTER.test(epost)) {
+    return NextResponse.json(
+      { ok: false, fel: 'Ange en giltig e-postadress.' },
+      { status: 400 },
+    )
+  }
+
   // Skyddar mot att en administratör (av misstag) återställer sitt eget
   // konto via den här endpointen – hämtar den inloggade adminens e-post via
   // service-klienten (aldrig den från klientens inskickade `epost`-fält).
-  const service = skapaSupabaseServiceklient()
-  const { data: egenProfil } = await service
-    .from('profiles')
-    .select('epost')
-    .eq('id', anvandareId)
-    .maybeSingle()
+  let egenProfil: { epost?: string | null } | null = null
+  try {
+    const service = skapaSupabaseServiceklient()
+    const { data, error } = await service
+      .from('profiles')
+      .select('epost')
+      .eq('id', anvandareId)
+      .maybeSingle()
+
+    if (error) {
+      return NextResponse.json(
+        { ok: false, fel: 'Kunde inte verifiera administratörskontot.' },
+        { status: 500 },
+      )
+    }
+
+    egenProfil = data
+  } catch {
+    return NextResponse.json(
+      { ok: false, fel: 'Kunde inte verifiera administratörskontot.' },
+      { status: 500 },
+    )
+  }
+
   if (egenProfil?.epost?.toLowerCase() === epost.toLowerCase()) {
     return NextResponse.json(
       {
