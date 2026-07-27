@@ -28,6 +28,33 @@ function miljoKontroll(namn: string, variabel: string, beskrivning: string): Sys
   }
 }
 
+const konfigurationsKontroller: SystemStatusKontroll[] = [
+  {
+    id: 'settings-notifications-storage',
+    namn: 'Aviseringsinställningar',
+    status: 'varning',
+    beskrivning: 'Visas i läsläge tills serverlagring och e-postflöde är beslutade.',
+  },
+  {
+    id: 'settings-recipients-storage',
+    namn: 'E-postmottagare',
+    status: 'varning',
+    beskrivning: 'Mottagarlistan är inte driftkopplad ännu och kan därför inte ändras i portalen.',
+  },
+  {
+    id: 'settings-categories-storage',
+    namn: 'Ärendekategorier',
+    status: 'varning',
+    beskrivning: 'Kategorier är låsta tills en riktig servermodell finns för nya ärenden.',
+  },
+  {
+    id: 'settings-canned-replies-storage',
+    namn: 'Standardsvar',
+    status: 'varning',
+    beskrivning: 'Standardsvar visas som underlag tills de kan sparas server-side.',
+  },
+]
+
 export async function hamtaSystemStatus(): Promise<SystemStatus> {
   const kontroller: SystemStatusKontroll[] = [
     miljoKontroll(
@@ -49,7 +76,7 @@ export async function hamtaSystemStatus(): Promise<SystemStatus> {
 
   if (kontroller.some((kontroll) => kontroll.status === 'fel')) {
     return {
-      kontroller,
+      kontroller: [...kontroller, ...konfigurationsKontroller],
       profiler: {
         antal: null,
         status: 'fel',
@@ -73,6 +100,7 @@ export async function hamtaSystemStatus(): Promise<SystemStatus> {
             status: 'fel',
             beskrivning: 'Worker:n kunde inte läsa profiles-tabellen via service role.',
           },
+          ...konfigurationsKontroller,
         ],
         profiler: {
           antal: null,
@@ -84,14 +112,15 @@ export async function hamtaSystemStatus(): Promise<SystemStatus> {
     return {
       kontroller: [
         ...kontroller,
-        {
-          id: 'profiles-read',
-          namn: 'Profiles-tabellen',
-          status: 'ok',
-          beskrivning: 'Worker:n kan läsa portalkonton från Supabase.',
-        },
-      ],
-      profiler: {
+          {
+            id: 'profiles-read',
+            namn: 'Profiles-tabellen',
+            status: 'ok',
+            beskrivning: 'Worker:n kan läsa portalkonton från Supabase.',
+          },
+          ...konfigurationsKontroller,
+        ],
+        profiler: {
         antal: count ?? 0,
         status: 'ok',
       },
@@ -106,6 +135,7 @@ export async function hamtaSystemStatus(): Promise<SystemStatus> {
           status: 'fel',
           beskrivning: 'Worker:n kunde inte skapa Supabase service-klienten.',
         },
+        ...konfigurationsKontroller,
       ],
       profiler: {
         antal: null,

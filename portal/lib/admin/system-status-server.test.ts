@@ -24,7 +24,17 @@ describe('hamtaSystemStatus', () => {
     const status = await hamtaSystemStatus()
 
     expect(status.profiler).toEqual({ antal: 3, status: 'ok' })
-    expect(status.kontroller.every((kontroll) => kontroll.status === 'ok')).toBe(true)
+    expect(
+      status.kontroller
+        .filter((kontroll) => !kontroll.id.startsWith('settings-'))
+        .every((kontroll) => kontroll.status === 'ok'),
+    ).toBe(true)
+    expect(status.kontroller).toContainEqual({
+      id: 'settings-recipients-storage',
+      namn: 'E-postmottagare',
+      status: 'varning',
+      beskrivning: 'Mottagarlistan är inte driftkopplad ännu och kan därför inte ändras i portalen.',
+    })
     expect(from).toHaveBeenCalledWith('profiles')
   })
 
@@ -40,6 +50,7 @@ describe('hamtaSystemStatus', () => {
       status: 'fel',
       beskrivning: 'SUPABASE_SERVICE_ROLE_KEY saknas i Worker-miljön.',
     })
+    expect(status.kontroller.some((kontroll) => kontroll.id.startsWith('settings-'))).toBe(true)
     expect(skapaSupabaseServiceklient).not.toHaveBeenCalled()
   })
 
@@ -49,7 +60,7 @@ describe('hamtaSystemStatus', () => {
     const status = await hamtaSystemStatus()
 
     expect(status.profiler).toEqual({ antal: null, status: 'fel' })
-    expect(status.kontroller.at(-1)).toEqual({
+    expect(status.kontroller).toContainEqual({
       id: 'profiles-read',
       namn: 'Profiles-tabellen',
       status: 'fel',
