@@ -2,7 +2,11 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const select = vi.fn()
 const from = vi.fn(() => ({ select }))
-const skapaSupabaseServiceklient = vi.fn(() => ({ from }))
+const listUsers = vi.fn()
+const skapaSupabaseServiceklient = vi.fn(() => ({
+  auth: { admin: { listUsers } },
+  from,
+}))
 
 vi.mock('@/lib/supabase/service', () => ({ skapaSupabaseServiceklient }))
 
@@ -14,6 +18,7 @@ beforeEach(async () => {
   process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://example.supabase.co'
   process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY = 'publishable'
   process.env.SUPABASE_SERVICE_ROLE_KEY = 'service-role'
+  listUsers.mockResolvedValue({ data: { users: [] }, error: null })
   ;({ hamtaSystemStatus } = await import('@/lib/admin/system-status-server'))
 })
 
@@ -35,7 +40,14 @@ describe('hamtaSystemStatus', () => {
       status: 'varning',
       beskrivning: 'Mottagarlistan är inte driftkopplad ännu och kan därför inte ändras i portalen.',
     })
+    expect(status.kontroller).toContainEqual({
+      id: 'auth-admin-read',
+      namn: 'Supabase Auth Admin',
+      status: 'ok',
+      beskrivning: 'Worker:n kan läsa Auth-användare och bjuda in portalkonton server-side.',
+    })
     expect(from).toHaveBeenCalledWith('profiles')
+    expect(listUsers).toHaveBeenCalledWith({ page: 1, perPage: 1 })
   })
 
   it('rapporterar fel utan att skapa serviceklient om en obligatorisk secret saknas', async () => {
@@ -66,5 +78,20 @@ describe('hamtaSystemStatus', () => {
       status: 'fel',
       beskrivning: 'Worker:n kunde inte läsa profiles-tabellen via service role.',
     })
+  })
+
+  it('rapporterar fel om Auth Admin-API:t inte kan läsas', async () => {
+    select.mockResolvedValue({ count: 3, error: null })
+    listUsers.mockResolvedValue({ data: { users: [] }, error: new Error('auth nekad') })
+
+    const status = await hamtaSystemStatus()
+
+    expect(status.kontroller).toContainEqual({
+      id: 'auth-admin-read',
+      namn: 'Supabase Auth Admin',
+      status: 'fel',
+      beskrivning: 'Worker:n kunde inte läsa Supabase Auth Admin-API:t med service role.',
+    })
+    expect(status.profiler).toEqual({ antal: 3, status: 'ok' })
   })
 })

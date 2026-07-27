@@ -109,18 +109,34 @@ export async function hamtaSystemStatus(): Promise<SystemStatus> {
       }
     }
 
+    const { error: authError } = await supabase.auth.admin.listUsers({ page: 1, perPage: 1 })
+    const authAdminKontroll: SystemStatusKontroll = authError
+      ? {
+          id: 'auth-admin-read',
+          namn: 'Supabase Auth Admin',
+          status: 'fel',
+          beskrivning: 'Worker:n kunde inte läsa Supabase Auth Admin-API:t med service role.',
+        }
+      : {
+          id: 'auth-admin-read',
+          namn: 'Supabase Auth Admin',
+          status: 'ok',
+          beskrivning: 'Worker:n kan läsa Auth-användare och bjuda in portalkonton server-side.',
+        }
+
     return {
       kontroller: [
         ...kontroller,
-          {
-            id: 'profiles-read',
-            namn: 'Profiles-tabellen',
-            status: 'ok',
-            beskrivning: 'Worker:n kan läsa portalkonton från Supabase.',
-          },
-          ...konfigurationsKontroller,
-        ],
-        profiler: {
+        {
+          id: 'profiles-read',
+          namn: 'Profiles-tabellen',
+          status: 'ok',
+          beskrivning: 'Worker:n kan läsa portalkonton från Supabase.',
+        },
+        authAdminKontroll,
+        ...konfigurationsKontroller,
+      ],
+      profiler: {
         antal: count ?? 0,
         status: 'ok',
       },
