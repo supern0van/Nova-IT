@@ -14,6 +14,14 @@
     {
       "pattern": "admin.nova-it.se",
       "custom_domain": true
+    },
+    {
+      "pattern": "admin.novait.se",
+      "custom_domain": true
+    },
+    {
+      "pattern": "portal.novait.se",
+      "custom_domain": true
     }
   ],
   "secrets": {
