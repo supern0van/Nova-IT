@@ -26,7 +26,6 @@
  * fristående från varandra och ska inte blandas ihop.
  *
  * ── Kvar att göra i senare uppdrag (medvetet utanför detta steg) ───────────
- *   - Obligatorisk 2FA
  *   - Riktig lösenordsåterställning (`begarAterstallning` nedan är fortsatt
  *     en simulerad attrapp och pratar inte med Supabase)
  *
@@ -90,6 +89,35 @@ function giltigEpost(epost: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(epost)
 }
 
+function textFranMetadata(user: SupabaseUser, nycklar: string[]): string | null {
+  for (const nyckel of nycklar) {
+    const varde = user.user_metadata?.[nyckel]
+    if (typeof varde === 'string' && varde.trim()) return varde.trim()
+  }
+  return null
+}
+
+function namnFranSupabaseAnvandare(user: SupabaseUser) {
+  const epost = user.email ?? ''
+  const lokalDel = epost.split('@')[0] || 'admin'
+  return (
+    textFranMetadata(user, ['full_name', 'name', 'display_name', 'namn']) ??
+    lokalDel.replace(/[._-]+/g, ' ')
+  )
+}
+
+function initialerFranNamn(namn: string) {
+  return (
+    namn
+      .trim()
+      .split(/\s+/)
+      .map((del) => del[0])
+      .join('')
+      .slice(0, 2)
+      .toUpperCase() || '?'
+  )
+}
+
 /**
  * ── Tillfällig mappning: Supabase-användare → portalens Anvandare ─────────
  *
@@ -97,49 +125,32 @@ function giltigEpost(epost: string) {
  *   - id     ← `user.id`
  *   - epost  ← `user.email`
  *
- * Fält som sätts till tillfälliga standardvärden (ingen rollmodell finns än):
+ * Fält som sätts till tillfälliga standardvärden (ingen personalmodell finns än):
  *   - roll      → `'administrator'`
- *   - namn      → härleds ur e-postens lokal-del (t.ex. "webmaster")
- *   - initialer → härleds ur e-postens lokal-del
- *   - titel     → statisk platshållartext som tydligt märker kontot som tillfälligt
+ *   - namn      → hämtas från Supabase user_metadata om möjligt, annars e-postens lokal-del
+ *   - initialer → härleds ur namnet
+ *   - titel     → hämtas från Supabase user_metadata om möjligt, annars tydlig tillfällig text
  *   - aktiv     → alltid `true`
  *
- * Om e-postadressen råkar matcha en post i den befintliga demo-personallistan
- * (`demoAnvandare`, t.ex. admin@nova-it.se) återanvänds den postens namn,
- * titel och initialer för ett bättre gränssnitt i övriga vyer – men `id` och
- * `epost` kommer alltid från Supabase, och `roll` sätts alltid av denna
- * funktion (inte av demolistan).
- *
- * `webmaster@nova-it.se` – kontot som verifierar denna implementation – finns
- * inte i `demoAnvandare` och får därför ett helt syntetiskt `Anvandare`-
- * objekt enligt standardvärdena ovan.
- *
  * VIKTIGT: Detta är inte en behörighetsmodell. Så fort riktiga roller/profiler
- * införs i Supabase ska denna funktion ersättas av en uppslagning mot en
- * riktig users-/profiles-tabell, och `roll` sluta vara ett hårdkodat
- * standardvärde för alla inloggade konton.
- *
- * (`profiles`-tabellen finns nu, se `lib/auth/roll.ts` – men den är ännu
- * inte kopplad till just detta fält. Se modulens toppdokumentation.)
+ * införs för ärende-/teknikertilldelning ska `roll` sluta vara ett hårdkodat
+ * standardvärde för alla inloggade konton. Systembehörigheten hämtas redan
+ * separat via `/api/roll` och `profiles`.
  */
 function tillPortalAnvandare(user: SupabaseUser): Anvandare {
   const epost = user.email ?? ''
-  const befintlig = demoAnvandare.find((a) => a.epost.toLowerCase() === epost.toLowerCase())
-
-  if (befintlig) {
-    return { ...befintlig, id: user.id, epost }
-  }
-
-  const lokalDel = epost.split('@')[0] || 'admin'
-  const initialer = lokalDel.slice(0, 2).toUpperCase() || '?'
+  const namn = namnFranSupabaseAnvandare(user)
+  const titel =
+    textFranMetadata(user, ['title', 'titel', 'job_title']) ??
+    'Adminkonto (tillfällig personalmappning)'
 
   return {
     id: user.id,
-    namn: lokalDel,
+    namn,
     epost,
     roll: 'administrator',
-    initialer,
-    titel: 'Adminkonto (tillfällig mappning – ingen rollmodell införd än)',
+    initialer: initialerFranNamn(namn),
+    titel,
     aktiv: true,
   }
 }
