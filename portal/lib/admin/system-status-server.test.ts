@@ -41,10 +41,7 @@ describe('hamtaSystemStatus', () => {
     expect(status.profiler).toEqual({ antal: 3, status: 'ok' })
     expect(
       status.kontroller
-        .filter(
-          (kontroll) =>
-            !kontroll.id.startsWith('settings-') && kontroll.id !== 'worker-workers-dev',
-        )
+        .filter((kontroll) => !kontroll.id.startsWith('settings-'))
         .every((kontroll) => kontroll.status === 'ok'),
     ).toBe(true)
     expect(status.kontroller).toContainEqual({
@@ -68,9 +65,8 @@ describe('hamtaSystemStatus', () => {
     expect(status.kontroller).toContainEqual({
       id: 'worker-workers-dev',
       namn: 'workers.dev-ingång',
-      status: 'varning',
-      beskrivning:
-        'Workern är även nåbar via workers.dev tills exponeringsytan stängs i Cloudflare-konfigurationen.',
+      status: 'ok',
+      beskrivning: 'Workern är endast nåbar via konfigurerade custom domains.',
     })
     expect(from).toHaveBeenCalledWith('profiles')
     expect(listUsers).toHaveBeenCalledWith({ page: 1, perPage: 1 })

@@ -35,7 +35,7 @@ describe('admin Worker-konfiguration', () => {
 
     expect(config.name).toBe('nova-it-admin')
     expect(config.main).toBe('.open-next/worker.js')
-    expect(config.workers_dev).toBe(true)
+    expect(config.workers_dev).toBe(false)
     expect(config.preview_urls).toBe(false)
     expect(config.assets).toEqual({
       directory: '.open-next/assets',
