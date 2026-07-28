@@ -73,6 +73,43 @@ export async function uppdateraProfilRollIDatabasen(
   return data as ProfilRad
 }
 
+export async function uppdateraProfilNamnIDatabasen(
+  profilId: string,
+  namn: string,
+): Promise<ProfilRad | null> {
+  const supabase = skapaSupabaseServiceklient()
+  const normaliseratNamn = namn.trim()
+
+  const { data: authData, error: hamtaAuthFel } = await supabase.auth.admin.getUserById(profilId)
+  const user = authData.user
+  if (hamtaAuthFel || !user) return null
+
+  const userMetadata =
+    typeof user.user_metadata === 'object' && user.user_metadata !== null ? user.user_metadata : {}
+  const { error: authFel } = await supabase.auth.admin.updateUserById(profilId, {
+    user_metadata: {
+      ...userMetadata,
+      namn: normaliseratNamn,
+      full_name: normaliseratNamn,
+    },
+  })
+
+  if (authFel) return null
+
+  const { data, error } = await supabase
+    .from('profiles')
+    .update({ namn: normaliseratNamn })
+    .eq('id', profilId)
+    .select('id, epost, namn, roll, skapad, uppdaterad')
+    .maybeSingle()
+
+  if (error || !data) return null
+  return {
+    ...(data as ProfilRad),
+    kontoHalsa: kontoHalsaFranAuthAnvandare(user),
+  }
+}
+
 export async function bjudInPortalProfil({
   epost,
   namn,

@@ -124,6 +124,8 @@ export function SystemPanel() {
   const [nyEpost, setNyEpost] = useState('')
   const [nyRoll, setNyRoll] = useState<SystemRoll>('medarbetare')
   const [bjuderIn, setBjuderIn] = useState(false)
+  const [spararNamn, setSpararNamn] = useState<string | null>(null)
+  const [namnUtkast, setNamnUtkast] = useState<Record<string, string>>({})
 
   useEffect(() => {
     if (!kanSePersonal) {
@@ -216,6 +218,67 @@ export function SystemPanel() {
       })
     } finally {
       setSpararRoll(null)
+    }
+  }
+
+  async function uppdateraPortalkontoNamn(profil: ProfilRad) {
+    if (spararNamn) return
+
+    const namn = (namnUtkast[profil.id] ?? profil.namn).trim()
+    if (namn.length < 2 || namn.length > 120) {
+      toast.error('Namnet kan inte sparas', {
+        description: 'Ange ett namn mellan 2 och 120 tecken.',
+      })
+      return
+    }
+
+    if (namn === profil.namn.trim()) return
+
+    setSpararNamn(profil.id)
+
+    try {
+      const svar = await fetch(`/api/admin/profiler/${profil.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ namn }),
+      })
+
+      if (!svar.ok) {
+        toast.error('Kunde inte uppdatera namn', {
+          description: 'Kontrollera att sessionen fortfarande är AAL2-verifierad och försök igen.',
+        })
+        return
+      }
+
+      const data = (await svar.json()) as { profil?: ProfilRad }
+      if (!data.profil) {
+        toast.error('Kunde inte uppdatera namn', {
+          description: 'API:t svarade utan uppdaterad profil.',
+        })
+        return
+      }
+
+      setProfilStatus((nu) => ({
+        ...nu,
+        profiler: nu.profiler.map((rad) =>
+          rad.id === data.profil?.id ? { ...rad, ...data.profil } : rad,
+        ),
+      }))
+      setNamnUtkast((nu) => {
+        const kopia = { ...nu }
+        delete kopia[profil.id]
+        return kopia
+      })
+
+      toast.success('Namn uppdaterat', {
+        description: `${data.profil.epost} visas nu som ${data.profil.namn}.`,
+      })
+    } catch {
+      toast.error('Kunde inte uppdatera namn', {
+        description: 'Nätverket eller Worker-svaret avbröts.',
+      })
+    } finally {
+      setSpararNamn(null)
     }
   }
 
@@ -460,6 +523,11 @@ export function SystemPanel() {
                     .join('')
                     .slice(0, 2)
                     .toUpperCase()
+                  const namnVarde = namnUtkast[profil.id] ?? profil.namn
+                  const namnKanSparas =
+                    namnVarde.trim().length >= 2 &&
+                    namnVarde.trim().length <= 120 &&
+                    namnVarde.trim() !== profil.namn.trim()
 
                   return (
                     <li
@@ -482,6 +550,32 @@ export function SystemPanel() {
                       </div>
 
                       <dl className="flex flex-wrap items-start gap-x-8 gap-y-2">
+                        <Faltrad etikett="Namn">
+                          <div className="flex items-center gap-2">
+                            <Input
+                              value={namnVarde}
+                              onChange={(event) =>
+                                setNamnUtkast((nu) => ({
+                                  ...nu,
+                                  [profil.id]: event.target.value,
+                                }))
+                              }
+                              className="w-44 bg-card text-[13px]"
+                              aria-label={`Ändra namn för ${profil.epost}`}
+                              disabled={spararNamn !== null}
+                            />
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="outline"
+                              onClick={() => void uppdateraPortalkontoNamn(profil)}
+                              disabled={spararNamn !== null || !namnKanSparas}
+                            >
+                              {spararNamn === profil.id ? <Spinner data-icon="inline-start" /> : null}
+                              Spara
+                            </Button>
+                          </div>
+                        </Faltrad>
                         <Faltrad etikett="Systemroll">
                           <div className="flex items-center gap-2">
                             <RollIkon className="size-3.5 shrink-0" />

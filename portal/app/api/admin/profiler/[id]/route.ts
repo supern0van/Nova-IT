@@ -1,6 +1,10 @@
 import { NextResponse, type NextRequest } from 'next/server'
 
-import { harAdminAtkomst, uppdateraProfilRollIDatabasen } from '@/lib/auth/profiler-server'
+import {
+  harAdminAtkomst,
+  uppdateraProfilNamnIDatabasen,
+  uppdateraProfilRollIDatabasen,
+} from '@/lib/auth/profiler-server'
 import { arSystemRoll } from '@/lib/auth/roll'
 import { hamtaAutentiseradAnvandarId } from '@/lib/supabase/route-anvandare'
 
@@ -15,11 +19,6 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
     return NextResponse.json({ profil: null }, { status: 401 })
   }
 
-  const { id } = await params
-  if (id === anvandareId) {
-    return NextResponse.json({ profil: null }, { status: 400 })
-  }
-
   const arAdmin = await harAdminAtkomst(anvandareId)
   if (!arAdmin) {
     return NextResponse.json({ profil: null }, { status: 403 })
@@ -32,15 +31,38 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
     return NextResponse.json({ profil: null }, { status: 400 })
   }
 
+  const { id } = await params
   const roll = typeof body === 'object' && body !== null && 'roll' in body ? body.roll : null
-  if (!arSystemRoll(roll)) {
+  const namn = typeof body === 'object' && body !== null && 'namn' in body ? body.namn : null
+  const harRoll = roll !== null
+  const harNamn = namn !== null
+
+  if (harRoll === harNamn) {
     return NextResponse.json({ profil: null }, { status: 400 })
   }
 
-  const profil = await uppdateraProfilRollIDatabasen(id, roll)
+  if (harRoll && (id === anvandareId || !arSystemRoll(roll))) {
+    return NextResponse.json({ profil: null }, { status: 400 })
+  }
+
+  if (harNamn && !arGiltigtNamn(namn)) {
+    return NextResponse.json({ profil: null }, { status: 400 })
+  }
+
+  const profil = harRoll
+    ? await uppdateraProfilRollIDatabasen(id, roll)
+    : arGiltigtNamn(namn)
+      ? await uppdateraProfilNamnIDatabasen(id, namn.trim())
+      : null
   if (!profil) {
     return NextResponse.json({ profil: null }, { status: 404 })
   }
 
   return NextResponse.json({ profil })
+}
+
+function arGiltigtNamn(namn: unknown): namn is string {
+  if (typeof namn !== 'string') return false
+  const normaliseratNamn = namn.trim()
+  return normaliseratNamn.length >= 2 && normaliseratNamn.length <= 120
 }
