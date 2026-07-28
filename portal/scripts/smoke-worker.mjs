@@ -40,6 +40,7 @@ export const apiChecks = [
       meddelanden: [],
       aktiviteter: [],
       kundanteckningar: [],
+      personal: [],
     },
   },
 ]
