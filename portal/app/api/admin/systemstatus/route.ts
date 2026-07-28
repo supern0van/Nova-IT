@@ -16,6 +16,10 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ status: null }, { status: 403 })
   }
 
-  const status = await hamtaSystemStatus()
-  return NextResponse.json({ status })
+  try {
+    const status = await hamtaSystemStatus()
+    return NextResponse.json({ status })
+  } catch {
+    return NextResponse.json({ status: null }, { status: 500 })
+  }
 }

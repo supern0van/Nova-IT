@@ -27,10 +27,18 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
     return NextResponse.json({ ok: false }, { status: 400 })
   }
 
-  const resultat = await skickaLosenordsaterstallningForProfil(
-    id,
-    byggLosenordsAterstallningsUrl(request),
-  )
+  let resultat: Awaited<ReturnType<typeof skickaLosenordsaterstallningForProfil>>
+  try {
+    resultat = await skickaLosenordsaterstallningForProfil(
+      id,
+      byggLosenordsAterstallningsUrl(request),
+    )
+  } catch {
+    return NextResponse.json(
+      { ok: false, fel: 'Kunde inte skicka återställningslänken.' },
+      { status: 500 },
+    )
+  }
 
   if (!resultat.ok) {
     return NextResponse.json(

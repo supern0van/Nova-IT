@@ -53,11 +53,17 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
     return NextResponse.json({ profil: null }, { status: 400 })
   }
 
-  const profil = harRoll
-    ? await uppdateraProfilRollIDatabasen(id, roll)
-    : arGiltigtNamn(namn)
-      ? await uppdateraProfilNamnIDatabasen(id, namn.trim())
-      : null
+  let profil = null
+  try {
+    profil = harRoll
+      ? await uppdateraProfilRollIDatabasen(id, roll)
+      : arGiltigtNamn(namn)
+        ? await uppdateraProfilNamnIDatabasen(id, namn.trim())
+        : null
+  } catch {
+    return NextResponse.json({ profil: null }, { status: 500 })
+  }
+
   if (!profil) {
     return NextResponse.json({ profil: null }, { status: 404 })
   }

@@ -114,6 +114,17 @@ describe('PATCH /api/admin/profiler/[id]', () => {
     expect(uppdateraProfilRollIDatabasen).toHaveBeenCalledWith('user-2', 'medarbetare')
   })
 
+  it('fail-closed om rolländringen kastar ett oväntat fel', async () => {
+    hamtaAutentiseradAnvandarId.mockResolvedValue('user-1')
+    harAdminAtkomst.mockResolvedValue(true)
+    uppdateraProfilRollIDatabasen.mockRejectedValue(new Error('profiles nere'))
+
+    const svar = await PATCH(begaran({ roll: 'medarbetare' }), context())
+
+    expect(svar.status).toBe(500)
+    expect(await svar.json()).toEqual({ profil: null })
+  })
+
   it('nekar payload som försöker ändra både namn och roll samtidigt', async () => {
     hamtaAutentiseradAnvandarId.mockResolvedValue('user-1')
     harAdminAtkomst.mockResolvedValue(true)

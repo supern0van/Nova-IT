@@ -83,6 +83,20 @@ describe('POST /api/admin/profiler/[id]/losenord', () => {
     })
   })
 
+  it('fail-closed om återställningslänken kastar ett oväntat fel', async () => {
+    hamtaAutentiseradAnvandarId.mockResolvedValue('user-1')
+    harAdminAtkomst.mockResolvedValue(true)
+    skickaLosenordsaterstallningForProfil.mockRejectedValue(new Error('auth nere'))
+
+    const svar = await POST(begaran(), context())
+
+    expect(svar.status).toBe(500)
+    expect(await svar.json()).toEqual({
+      ok: false,
+      fel: 'Kunde inte skicka återställningslänken.',
+    })
+  })
+
   it('skickar lösenordsåterställning för administrator', async () => {
     hamtaAutentiseradAnvandarId.mockResolvedValue('user-1')
     harAdminAtkomst.mockResolvedValue(true)

@@ -65,4 +65,15 @@ describe('/api/admin/systemstatus', () => {
     expect(svar.status).toBe(200)
     expect(await svar.json()).toEqual({ status })
   })
+
+  it('fail-closed vid oväntat fel när systemstatus hämtas', async () => {
+    hamtaAutentiseradAnvandarId.mockResolvedValue('user-1')
+    harAdminAtkomst.mockResolvedValue(true)
+    hamtaSystemStatus.mockRejectedValue(new Error('status nere'))
+
+    const svar = await GET(begaran())
+
+    expect(svar.status).toBe(500)
+    expect(await svar.json()).toEqual({ status: null })
+  })
 })
