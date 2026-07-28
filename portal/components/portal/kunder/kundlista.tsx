@@ -10,8 +10,8 @@ import {
   XIcon,
 } from 'lucide-react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { useMemo, useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { useEffect, useMemo, useState } from 'react'
 
 import { useAuth } from '@/components/auth/auth-provider'
 import { FilterVal } from '@/components/portal/filter-val'
@@ -48,10 +48,15 @@ export function Kundlista() {
   const { db, laddar } = useDemoData()
   const { kan } = useAuth()
   const router = useRouter()
+  const params = useSearchParams()
   const [sok, setSok] = useState('')
   const [kundtyp, setKundtyp] = useState('alla')
   const [sortering, setSortering] = useState<Sortering>('senaste')
   const [nyKundOppen, setNyKundOppen] = useState(false)
+
+  useEffect(() => {
+    if (params.get('ny') === '1' && kan('redigera_kund')) setNyKundOppen(true)
+  }, [params, kan])
 
   const kunder = useMemo(() => {
     if (!db) return []

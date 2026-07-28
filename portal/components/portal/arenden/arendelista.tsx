@@ -11,7 +11,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 import { useAuth } from '@/components/auth/auth-provider'
 import { ArendeDialog } from '@/components/portal/arenden/arende-dialog'
@@ -90,6 +90,10 @@ export function Arendelista() {
   )
   const [sortering, setSortering] = useState<Sortering>(STANDARD.sortering)
   const [nyttArendeOppen, setNyttArendeOppen] = useState(false)
+
+  useEffect(() => {
+    if (params.get('ny') === '1' && kan('skapa_arende')) setNyttArendeOppen(true)
+  }, [params, kan])
 
   const personal = listaAnvandare()
 
