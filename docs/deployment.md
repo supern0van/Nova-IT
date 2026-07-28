@@ -123,15 +123,16 @@ Följande secrets måste finnas på `nova-it-admin`:
 - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
 - `SUPABASE_SERVICE_ROLE_KEY`
 
-Kontrollera namnen utan att skriva ut värden:
+Kontrollera att samtliga obligatoriska secrets finns utan att skriva ut värden:
+
+```bash
+pnpm worker:secrets:check
+```
+
+Vid manuell felsökning kan namnen och senaste deployhistorik listas med:
 
 ```bash
 pnpm worker:secrets
-```
-
-Kontrollera senaste deployhistorik:
-
-```bash
 pnpm worker:deployments
 ```
 
