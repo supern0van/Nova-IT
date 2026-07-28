@@ -83,6 +83,19 @@ const kontoStatusStil = {
   okand: 'bg-muted text-muted-foreground',
 } as const
 
+function adminAtgardsFelmeddelande(status: number): string {
+  if (status === 401) {
+    return 'Logga in igen och slutför tvåstegsverifieringen innan du försöker på nytt.'
+  }
+  if (status === 403) {
+    return 'Du har inte längre administratörsbehörighet på det här kontot.'
+  }
+  if (status >= 500) {
+    return 'Kunde inte slutföra åtgärden just nu. Försök igen om en stund.'
+  }
+  return 'Åtgärden nekades eller misslyckades. Kontrollera behörighet och sessionsstatus.'
+}
+
 function DriftIkon({ status }: { status: SystemStatusNiva }) {
   if (status === 'ok') return <CheckCircle2Icon className="size-3.5" />
   if (status === 'varning') return <TriangleAlertIcon className="size-3.5" />
@@ -211,7 +224,7 @@ export function SystemPanel() {
         const fallback =
           svar.status === 400
             ? 'Din egen roll kan inte ändras här, och rollen måste vara giltig.'
-            : 'Kontrollera att sessionen fortfarande är AAL2-verifierad och försök igen.'
+            : adminAtgardsFelmeddelande(svar.status)
 
         toast.error('Kunde inte ändra systemroll', { description: fallback })
         return
@@ -280,7 +293,7 @@ export function SystemPanel() {
 
       if (!svar.ok) {
         toast.error('Kunde inte uppdatera namn', {
-          description: 'Kontrollera att sessionen fortfarande är AAL2-verifierad och försök igen.',
+          description: adminAtgardsFelmeddelande(svar.status),
         })
         return
       }
@@ -344,7 +357,7 @@ export function SystemPanel() {
             ? 'Det finns redan ett portalkonto med den e-postadressen.'
             : svar.status === 400
               ? 'Kontrollera namn, e-postadress och systemroll.'
-              : 'Kontrollera att sessionen fortfarande är AAL2-verifierad och försök igen.'
+              : adminAtgardsFelmeddelande(svar.status)
         toast.error('Kunde inte bjuda in portalkonto', { description: beskrivning })
         return
       }

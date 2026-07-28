@@ -276,4 +276,35 @@ describe('SystemPanel', () => {
       })
     })
   })
+
+  it('visar behörighetsdiagnos om servern nekar rolländring med 403', async () => {
+    const user = userEvent.setup()
+    kan.mockReturnValue(true)
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(lyckadeInitSvar()[0])
+      .mockResolvedValueOnce(lyckadeInitSvar()[1])
+      .mockResolvedValueOnce({
+        status: 403,
+        ok: false,
+        json: vi.fn(),
+      })
+    vi.stubGlobal('fetch', fetchMock)
+
+    render(<SystemPanel />)
+
+    await waitFor(() => {
+      expect(screen.getByText('tekniker@nova-it.se')).toBeTruthy()
+    })
+
+    await user.click(screen.getByLabelText('Ändra systemroll för tekniker@nova-it.se'))
+    await user.click(await screen.findByRole('option', { name: 'Administratör' }))
+    await user.click(await screen.findByRole('button', { name: 'Ändra systemroll' }))
+
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith('Kunde inte ändra systemroll', {
+        description: 'Du har inte längre administratörsbehörighet på det här kontot.',
+      })
+    })
+  })
 })
