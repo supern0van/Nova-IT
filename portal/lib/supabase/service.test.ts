@@ -20,13 +20,17 @@ function listaKallfiler(rot: string): string[] {
 }
 
 describe('supabase service-rollklient', () => {
-  it('importeras inte från client-komponenter', () => {
-    const otillatnaImporter = listaKallfiler(portalRoot).filter((filvag) => {
+  it('importeras eller refereras inte från client-komponenter', () => {
+    const otillatnaReferenser = listaKallfiler(portalRoot).filter((filvag) => {
       const innehall = readFileSync(filvag, 'utf8')
       const arClientFil = /^\s*['"]use client['"]/.test(innehall)
-      return arClientFil && innehall.includes('@/lib/supabase/service')
+      return (
+        arClientFil &&
+        (innehall.includes('@/lib/supabase/service') ||
+          innehall.includes('SUPABASE_SERVICE_ROLE_KEY'))
+      )
     })
 
-    expect(otillatnaImporter.map((filvag) => path.relative(portalRoot, filvag))).toEqual([])
+    expect(otillatnaReferenser.map((filvag) => path.relative(portalRoot, filvag))).toEqual([])
   })
 })
