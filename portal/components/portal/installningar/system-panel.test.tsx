@@ -207,6 +207,38 @@ describe('SystemPanel', () => {
     })
   })
 
+  it('visar behörighetsdiagnos om MFA-återställning nekas utan servertext', async () => {
+    kan.mockReturnValue(true)
+    vi.stubGlobal(
+      'fetch',
+      vi
+        .fn()
+        .mockResolvedValueOnce(lyckadeInitSvar()[0])
+        .mockResolvedValueOnce(lyckadeInitSvar()[1])
+        .mockResolvedValueOnce({
+          status: 403,
+          ok: false,
+          json: vi.fn().mockResolvedValue({ ok: false }),
+        }),
+    )
+
+    render(<SystemPanel />)
+
+    await waitFor(() => {
+      expect(screen.getByText('tekniker@nova-it.se')).toBeTruthy()
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Återställ' }))
+    await screen.findByText('Återställ MFA för tekniker@nova-it.se?')
+    fireEvent.click(screen.getByRole('button', { name: 'Återställ MFA' }))
+
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith('Kunde inte återställa MFA', {
+        description: 'Du har inte längre administratörsbehörighet på det här kontot.',
+      })
+    })
+  })
+
   it('visar fail-closed fel om lösenordsåterställning svarar med trasig JSON', async () => {
     kan.mockReturnValue(true)
     vi.stubGlobal(
@@ -235,6 +267,38 @@ describe('SystemPanel', () => {
     await waitFor(() => {
       expect(toast.error).toHaveBeenCalledWith('Kunde inte skicka lösenordslänk', {
         description: 'Nätverket eller Worker-svaret avbröts.',
+      })
+    })
+  })
+
+  it('visar behörighetsdiagnos om lösenordsåterställning nekas utan servertext', async () => {
+    kan.mockReturnValue(true)
+    vi.stubGlobal(
+      'fetch',
+      vi
+        .fn()
+        .mockResolvedValueOnce(lyckadeInitSvar()[0])
+        .mockResolvedValueOnce(lyckadeInitSvar()[1])
+        .mockResolvedValueOnce({
+          status: 403,
+          ok: false,
+          json: vi.fn().mockResolvedValue({ ok: false }),
+        }),
+    )
+
+    render(<SystemPanel />)
+
+    await waitFor(() => {
+      expect(screen.getByText('tekniker@nova-it.se')).toBeTruthy()
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Skicka länk' }))
+    await screen.findByText('Skicka lösenordsåterställning?')
+    fireEvent.click(screen.getAllByRole('button', { name: 'Skicka länk' }).at(-1)!)
+
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith('Kunde inte skicka lösenordslänk', {
+        description: 'Du har inte längre administratörsbehörighet på det här kontot.',
       })
     })
   })

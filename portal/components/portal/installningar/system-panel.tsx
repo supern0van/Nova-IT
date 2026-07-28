@@ -417,7 +417,7 @@ export function SystemPanel() {
 
       if (!svar.ok || !data.ok) {
         toast.error('Kunde inte återställa MFA', {
-          description: data.fel ?? 'Kontrollera att sessionen fortfarande är AAL2-verifierad.',
+          description: data.fel ?? adminAtgardsFelmeddelande(svar.status),
         })
         return
       }
@@ -472,7 +472,7 @@ export function SystemPanel() {
 
       if (!svar.ok || !data.ok) {
         toast.error('Kunde inte skicka lösenordslänk', {
-          description: data.fel ?? 'Kontrollera att sessionen fortfarande är AAL2-verifierad.',
+          description: data.fel ?? adminAtgardsFelmeddelande(svar.status),
         })
         return
       }
