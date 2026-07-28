@@ -21,11 +21,14 @@ import {
   uppdateraOperativKundanteckning,
   uppdateraOperativtArende,
 } from '@/lib/admin/operativa-server'
-import { harAdminAtkomst } from '@/lib/auth/profiler-server'
+import { arAdministrator } from '@/lib/auth/roll'
+import { hamtaRollFranDatabasen } from '@/lib/auth/roll-server'
+import { harBehorighet, type Behorighet } from '@/lib/auth/supabase-auth'
 import { hamtaAutentiseradAnvandarId } from '@/lib/supabase/route-anvandare'
+import type { Roll } from '@/lib/types'
 
 export async function GET(request: NextRequest) {
-  const atkomst = await verifieraAdmin(request)
+  const atkomst = await verifieraOperativAtkomst(request)
 
   if (atkomst.status !== 200) {
     return NextResponse.json(tomtOperativtSvar(), { status: atkomst.status })
@@ -39,7 +42,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const atkomst = await verifieraAdmin(request)
+  const atkomst = await verifieraOperativAtkomst(request)
 
   if (atkomst.status !== 200) {
     return NextResponse.json({ ok: false }, { status: atkomst.status })
@@ -54,6 +57,19 @@ export async function POST(request: NextRequest) {
 
   if (!arObjekt(payload) || typeof payload.typ !== 'string' || !arObjekt(payload.data)) {
     return NextResponse.json({ ok: false }, { status: 400 })
+  }
+
+  // `skapa_kund` och `lagg_till_kundanteckning` kräver `redigera_kund` –
+  // samma behörighet som klientens kunddialoger/-anteckningar redan
+  // gatear bakom (se KundDialog/KundAnteckningar). `skapa_arende`,
+  // `skapa_bokning` och `lagg_till_meddelande` kräver ingen extra kontroll
+  // här: `skapa_arende`, `hantera_bokningar` och `svara_kund` finns redan
+  // hos båda operativa nivåerna i `behorigheter`.
+  if (
+    (payload.typ === 'skapa_kund' || payload.typ === 'lagg_till_kundanteckning') &&
+    !atkomst.harBehorighet('redigera_kund')
+  ) {
+    return NextResponse.json({ ok: false }, { status: 403 })
   }
 
   try {
@@ -96,7 +112,7 @@ export async function POST(request: NextRequest) {
 }
 
 export async function PATCH(request: NextRequest) {
-  const atkomst = await verifieraAdmin(request)
+  const atkomst = await verifieraOperativAtkomst(request)
 
   if (atkomst.status !== 200) {
     return NextResponse.json({ ok: false }, { status: atkomst.status })
@@ -111,6 +127,31 @@ export async function PATCH(request: NextRequest) {
 
   if (!arObjekt(payload) || typeof payload.typ !== 'string' || !arObjekt(payload.data)) {
     return NextResponse.json({ ok: false }, { status: 400 })
+  }
+
+  // `uppdatera_kund`, `uppdatera_kundanteckning` och `ta_bort_kundanteckning`
+  // kräver `redigera_kund` – speglar KundDialog/KundAnteckningar.
+  if (
+    (payload.typ === 'uppdatera_kund' ||
+      payload.typ === 'uppdatera_kundanteckning' ||
+      payload.typ === 'ta_bort_kundanteckning') &&
+    !atkomst.harBehorighet('redigera_kund')
+  ) {
+    return NextResponse.json({ ok: false }, { status: 403 })
+  }
+
+  // Att byta ansvarig tekniker kräver `tilldela_arende` – i klienten är
+  // ansvarig-väljaren bara synlig/aktiv för den som har den behörigheten
+  // (se ArendeAtgarder). Status- och prioritetsändringar kräver ingen
+  // extra kontroll: `andra_status`/`andra_prioritet` finns hos båda
+  // operativa nivåerna.
+  if (
+    payload.typ === 'uppdatera_arende' &&
+    arObjekt(payload.data.andringar) &&
+    'ansvarigId' in payload.data.andringar &&
+    !atkomst.harBehorighet('tilldela_arende')
+  ) {
+    return NextResponse.json({ ok: false }, { status: 403 })
   }
 
   try {
@@ -189,22 +230,41 @@ export async function PATCH(request: NextRequest) {
   }
 }
 
-async function verifieraAdmin(request: NextRequest): Promise<{ status: 200 | 401 | 403 | 500 }> {
+type OperativAtkomst =
+  | { status: 200; harBehorighet: (behorighet: Behorighet) => boolean }
+  | { status: 401 | 500 }
+
+/**
+ * Kräver enbart en giltig, AAL2-verifierad portalsession – till skillnad
+ * från adminprofil-routrarna (`/api/admin/profiler` m.fl.) som kräver
+ * `SystemRoll: administrator`. Operativt data (kunder/ärenden/bokningar)
+ * ska vara tillgängligt för alla inloggade portalkonton, precis som den
+ * klientsidiga `Behorighet`-modellen (`administrator`/`tekniker`) redan
+ * förutsätter.
+ *
+ * Det finns ännu ingen egen personal-/teknikerroll-tabell (se separat
+ * analys av `lib/auth/demo-auth.ts`), så `SystemRoll` återanvänds som den
+ * enda idag tillgängliga signalen för vilken operativ nivå ett konto har:
+ * `administrator` → full operativ behörighet, `medarbetare` → `tekniker`.
+ * Detta ska bytas ut den dagen en riktig personalmodell finns.
+ */
+async function verifieraOperativAtkomst(request: NextRequest): Promise<OperativAtkomst> {
   const anvandareId = await hamtaAutentiseradAnvandarId(request)
+  if (!anvandareId) return { status: 401 }
 
-  if (!anvandareId) {
-    return { status: 401 }
-  }
-
+  let systemRoll: Awaited<ReturnType<typeof hamtaRollFranDatabasen>>
   try {
-    if (!(await harAdminAtkomst(anvandareId))) {
-      return { status: 403 }
-    }
+    systemRoll = await hamtaRollFranDatabasen(anvandareId)
   } catch {
     return { status: 500 }
   }
+  if (!systemRoll) return { status: 500 }
 
-  return { status: 200 }
+  const operativRoll: Roll = arAdministrator(systemRoll) ? 'administrator' : 'tekniker'
+  return {
+    status: 200,
+    harBehorighet: (behorighet) => harBehorighet(operativRoll, behorighet),
+  }
 }
 
 function arObjekt(data: unknown): data is Record<string, unknown> {
