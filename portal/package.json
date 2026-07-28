@@ -12,6 +12,7 @@
     "worker:secrets": "wrangler secret list --name nova-it-admin",
     "worker:secrets:check": "node scripts/check-worker-secrets.mjs",
     "smoke:worker": "node scripts/smoke-worker.mjs",
+    "release:check": "pnpm test && pnpm lint && pnpm exec tsc --noEmit --pretty false && pnpm worker:secrets:check && pnpm smoke:worker",
     "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
     "deploy:dry-run": "opennextjs-cloudflare build && wrangler deploy --dry-run",
     "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy"

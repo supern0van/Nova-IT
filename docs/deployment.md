@@ -96,10 +96,10 @@ Adminportalen använder `portal/middleware.ts` som OpenNext-kompatibel ingång t
 Kör från `portal/`:
 
 ```bash
-pnpm test
-pnpm lint
-pnpm exec tsc --noEmit --pretty false
+pnpm release:check
 ```
+
+Det samlade kommandot kör portalens tester, lint, typkontroll, Worker-secret-kontroll och live-smoke mot de kopplade domänerna.
 
 OpenNext Worker-bygget ska verifieras i Linux/WSL eftersom OpenNext kan slå i Windows symlink-begränsningar:
 
