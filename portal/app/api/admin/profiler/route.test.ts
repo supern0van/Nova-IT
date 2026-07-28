@@ -178,14 +178,16 @@ describe('/api/admin/profiler', () => {
     harAdminAtkomst.mockResolvedValue(true)
     bjudInPortalProfil.mockResolvedValue({ ok: true, profil })
 
-    const svar = await POST(begaran({ namn: 'Ny Admin', epost: 'NY@NOVA-IT.SE', roll: 'medarbetare' }))
+    const svar = await POST(
+      begaran({ namn: '  Ny Admin  ', epost: '  NY@NOVA-IT.SE  ', roll: 'medarbetare' }),
+    )
     const body = await svar.json()
 
     expect(svar.status).toBe(201)
     expect(body).toEqual({ profil })
     expect(bjudInPortalProfil).toHaveBeenCalledWith({
       namn: 'Ny Admin',
-      epost: 'NY@NOVA-IT.SE',
+      epost: 'ny@nova-it.se',
       roll: 'medarbetare',
       redirectTo: 'https://admin.nova-it.se/logga-in?aterstall=1',
     })

@@ -62,10 +62,13 @@ export async function POST(request: NextRequest) {
     )
   }
 
+  const normaliseradEpost = epost.trim().toLowerCase()
+  const normaliseratNamn = namn.trim()
+
   try {
     const resultat = await bjudInPortalProfil({
-      epost,
-      namn,
+      epost: normaliseradEpost,
+      namn: normaliseratNamn,
       roll,
       redirectTo: byggLosenordsAterstallningsUrl(request),
     })
