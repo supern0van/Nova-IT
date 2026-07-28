@@ -109,6 +109,14 @@ pnpm release:predeploy
 
 Detta kör portalens CI-kedja, OpenNext-build, `wrangler deploy --dry-run`, Worker-secret-kontroll och live-smoke i samma fördeploysteg. Det publicerar inte Workern.
 
+När fördeploysteget är grönt publiceras admin-Workern från `portal/` i WSL:
+
+```bash
+pnpm deploy:production
+```
+
+Använd `pnpm run deploy` om det äldre `deploy`-scriptet behövs; `pnpm deploy` utan `run` är pnpm:s egna workspace-kommando och publicerar inte Workern.
+
 Efter deploy ska live-Worker-smoken köras:
 
 ```bash

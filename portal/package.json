@@ -17,6 +17,7 @@
     "release:predeploy": "pnpm run ci && pnpm deploy:dry-run && pnpm worker:secrets:check && pnpm smoke:worker",
     "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
     "deploy:dry-run": "opennextjs-cloudflare build && wrangler deploy --dry-run",
+    "deploy:production": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
     "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy"
   },
   "dependencies": {
