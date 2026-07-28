@@ -104,8 +104,7 @@ pnpm exec tsc --noEmit --pretty false
 OpenNext Worker-bygget ska verifieras i Linux/WSL eftersom OpenNext kan slå i Windows symlink-begränsningar:
 
 ```bash
-pnpm exec opennextjs-cloudflare build
-pnpm exec wrangler deploy --dry-run
+pnpm deploy:dry-run
 ```
 
 Efter deploy ska live-Worker-smoken köras:

@@ -10,6 +10,7 @@
     "test": "vitest run",
     "smoke:worker": "node scripts/smoke-worker.mjs",
     "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
+    "deploy:dry-run": "opennextjs-cloudflare build && wrangler deploy --dry-run",
     "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy"
   },
   "dependencies": {
