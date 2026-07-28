@@ -29,6 +29,43 @@ beforeEach(async () => {
 })
 
 describe('authAdapter Supabase-identitet', () => {
+  it('nekar inloggning utan e-post eller lösenord innan Supabase anropas', async () => {
+    await expect(authAdapter.loggaIn('', 'hemligt', false)).resolves.toEqual({
+      ok: false,
+      fel: 'saknade_uppgifter',
+    })
+    await expect(authAdapter.loggaIn('admin@nova-it.se', '', false)).resolves.toEqual({
+      ok: false,
+      fel: 'saknade_uppgifter',
+    })
+    expect(signInWithPassword).not.toHaveBeenCalled()
+  })
+
+  it('nekar ogiltig e-post innan Supabase anropas', async () => {
+    await expect(authAdapter.loggaIn('inte-epost', 'hemligt', false)).resolves.toEqual({
+      ok: false,
+      fel: 'ogiltig_epost',
+    })
+
+    expect(signInWithPassword).not.toHaveBeenCalled()
+  })
+
+  it('returnerar fel_uppgifter när Supabase nekar inloggningen', async () => {
+    signInWithPassword.mockResolvedValue({
+      data: { session: null, user: null },
+      error: new Error('invalid credentials'),
+    })
+
+    await expect(authAdapter.loggaIn('Admin@Nova-IT.se', 'fel-losenord', true)).resolves.toEqual({
+      ok: false,
+      fel: 'fel_uppgifter',
+    })
+    expect(signInWithPassword).toHaveBeenCalledWith({
+      email: 'admin@nova-it.se',
+      password: 'fel-losenord',
+    })
+  })
+
   it('bygger portalens användarvisning från Supabase user_metadata i stället för demopersonal', async () => {
     signInWithPassword.mockResolvedValue({
       data: {
