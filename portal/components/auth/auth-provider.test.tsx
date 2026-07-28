@@ -1,7 +1,8 @@
 // @vitest-environment jsdom
-import { cleanup, render, screen, waitFor } from '@testing-library/react'
+import { act, cleanup, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
+import type { Session } from '@/lib/auth/supabase-auth'
 import type { Anvandare } from '@/lib/types'
 
 const replace = vi.fn()
@@ -44,17 +45,22 @@ const anvandare: Anvandare = {
   aktiv: true,
 }
 
-const session = {
+const session: Session = {
   anvandareId: 'user-1',
+  epost: 'admin@nova-it.se',
+  roll: 'administrator',
   upphorVid: Date.now() + 60_000,
+  ihagkommen: false,
 }
 
 function Probe() {
-  const { roll, laddarRoll } = useAuth()
+  const { anvandare, roll, laddarRoll, sessionUtgick } = useAuth()
   return (
     <div>
+      <span data-testid="anvandare">{anvandare?.id ?? 'ingen-anvandare'}</span>
       <span data-testid="roll">{roll ?? 'ingen-roll'}</span>
       <span data-testid="laddar-roll">{laddarRoll ? 'laddar' : 'klar'}</span>
+      <span data-testid="session-utgick">{sessionUtgick ? 'utgången' : 'aktiv'}</span>
     </div>
   )
 }
@@ -72,6 +78,7 @@ describe('AuthProvider – systemroll från /api/roll', () => {
     vi.clearAllMocks()
     cleanup()
     vi.unstubAllGlobals()
+    vi.useRealTimers()
   })
 
   it('fail-closed till roll=null vid nätverksfel', async () => {
@@ -146,5 +153,82 @@ describe('AuthProvider – systemroll från /api/roll', () => {
       expect(screen.getByTestId('laddar-roll').textContent).toBe('klar')
     })
     expect(screen.getByTestId('roll').textContent).toBe('ingen-roll')
+  })
+
+  it('loggar ut lokalt och markerar sessionen som utgången när token-tiden passerat', async () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2026-07-28T12:00:00.000Z'))
+    hamtaSession.mockResolvedValue({
+      session: {
+        ...session,
+        upphorVid: new Date('2026-07-28T12:00:10.000Z').getTime(),
+      },
+      anvandare,
+    })
+    lyssnaPaSessionsandringar.mockReturnValue(vi.fn())
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: vi.fn().mockResolvedValue({ roll: 'administrator' }),
+      }),
+    )
+
+    renderaProvider()
+
+    await act(async () => {
+      await Promise.resolve()
+      await Promise.resolve()
+    })
+    expect(screen.getByTestId('anvandare').textContent).toBe('user-1')
+
+    await act(async () => {
+      vi.setSystemTime(new Date('2026-07-28T12:00:31.000Z'))
+      vi.advanceTimersByTime(30_000)
+    })
+
+    expect(screen.getByTestId('anvandare').textContent).toBe('ingen-anvandare')
+    expect(screen.getByTestId('session-utgick').textContent).toBe('utgången')
+    expect(replace).toHaveBeenCalledWith('/logga-in')
+  })
+
+  it('hämtar om rollen direkt när Supabase bekräftar MFA-utmaningen', async () => {
+    let sessionsCallback:
+      | Parameters<typeof import('@/lib/auth/supabase-auth').authAdapter.lyssnaPaSessionsandringar>[0]
+      | null = null
+    hamtaSession.mockResolvedValue({ session, anvandare })
+    lyssnaPaSessionsandringar.mockImplementation((callback) => {
+      sessionsCallback = callback
+      return vi.fn()
+    })
+    vi.stubGlobal(
+      'fetch',
+      vi
+        .fn()
+        .mockResolvedValueOnce({
+          ok: false,
+          json: vi.fn(),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: vi.fn().mockResolvedValue({ roll: 'administrator' }),
+        }),
+    )
+
+    renderaProvider()
+
+    await waitFor(() => {
+      expect(fetch).toHaveBeenCalledTimes(1)
+      expect(screen.getByTestId('roll').textContent).toBe('ingen-roll')
+    })
+
+    await act(async () => {
+      sessionsCallback?.({ session, anvandare }, 'MFA_CHALLENGE_VERIFIED')
+    })
+
+    await waitFor(() => {
+      expect(fetch).toHaveBeenCalledTimes(2)
+      expect(screen.getByTestId('roll').textContent).toBe('administrator')
+    })
   })
 })
