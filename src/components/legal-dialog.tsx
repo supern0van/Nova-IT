@@ -166,9 +166,9 @@ const documents: Record<
         heading: "Därför finns ingen samtyckesbanner",
         body: (
           <p>
-            Eftersom webbplatsen inte använder valfria kakor finns det inget samtycke att fråga om.
-            Om vi inför besöksstatistik, annonsering eller annan valfri lagring får du ett tydligt
-            val innan sådan teknik används.
+            Webbplatsen visar en samtyckesbanner där du kan neka alla valfria kategorier, spara ett
+            eget val eller godkänna alla. I nuläget aktiveras inga statistik- eller
+            marknadsföringsskript utan ett uttryckligt val.
           </p>
         ),
       },
