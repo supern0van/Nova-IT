@@ -111,6 +111,16 @@ describe('POST /api/mfa/aterstall', () => {
     expect(aterstallMfaForEpost).not.toHaveBeenCalled()
   })
 
+  it('400 om e-postadress inte är en sträng', async () => {
+    hamtaAutentiseradAnvandarId.mockResolvedValue('user-admin')
+    hamtaRollFranDatabasen.mockResolvedValue('administrator')
+
+    const svar = await POST(fakeRequest({ epost: 123 }))
+
+    expect(svar.status).toBe(400)
+    expect(aterstallMfaForEpost).not.toHaveBeenCalled()
+  })
+
   it('400 om e-postadress har ogiltigt format', async () => {
     hamtaAutentiseradAnvandarId.mockResolvedValue('user-admin')
     hamtaRollFranDatabasen.mockResolvedValue('administrator')
@@ -128,6 +138,19 @@ describe('POST /api/mfa/aterstall', () => {
     hamtaAutentiseradAnvandarId.mockResolvedValue('user-admin')
     hamtaRollFranDatabasen.mockResolvedValue('administrator')
     maybeSingle.mockResolvedValue({ data: null, error: new Error('profiles nere') })
+
+    const svar = await POST(fakeRequest({ epost: 'utelast@nova-it.se' }))
+    const data = await svar.json()
+
+    expect(svar.status).toBe(500)
+    expect(data).toEqual({ ok: false, fel: 'Kunde inte verifiera administratörskontot.' })
+    expect(aterstallMfaForEpost).not.toHaveBeenCalled()
+  })
+
+  it('500 om administratörens egen profil saknar giltig e-post', async () => {
+    hamtaAutentiseradAnvandarId.mockResolvedValue('user-admin')
+    hamtaRollFranDatabasen.mockResolvedValue('administrator')
+    maybeSingle.mockResolvedValue({ data: { epost: '' }, error: null })
 
     const svar = await POST(fakeRequest({ epost: 'utelast@nova-it.se' }))
     const data = await svar.json()

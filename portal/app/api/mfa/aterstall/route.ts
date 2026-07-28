@@ -51,10 +51,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ ok: false, fel: 'Ogiltig begäran.' }, { status: 400 })
   }
 
-  const epost =
-    typeof kropp === 'object' && kropp !== null && 'epost' in kropp
-      ? String((kropp as { epost: unknown }).epost ?? '').trim()
-      : ''
+  const epost = hamtaEpostFranBody(kropp)
 
   if (!epost) {
     return NextResponse.json({ ok: false, fel: 'Ange en e-postadress.' }, { status: 400 })
@@ -70,7 +67,7 @@ export async function POST(request: NextRequest) {
   // Skyddar mot att en administratör (av misstag) återställer sitt eget
   // konto via den här endpointen – hämtar den inloggade adminens e-post via
   // service-klienten (aldrig den från klientens inskickade `epost`-fält).
-  let egenProfil: { epost?: string | null } | null = null
+  let egenEpost: string | null = null
   try {
     const service = skapaSupabaseServiceklient()
     const { data, error } = await service
@@ -86,7 +83,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    egenProfil = data
+    egenEpost = hamtaEpostFranProfil(data)
   } catch {
     return NextResponse.json(
       { ok: false, fel: 'Kunde inte verifiera administratörskontot.' },
@@ -94,7 +91,14 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  if (egenProfil?.epost?.toLowerCase() === epost.toLowerCase()) {
+  if (!egenEpost) {
+    return NextResponse.json(
+      { ok: false, fel: 'Kunde inte verifiera administratörskontot.' },
+      { status: 500 },
+    )
+  }
+
+  if (egenEpost === epost.toLowerCase()) {
     return NextResponse.json(
       {
         ok: false,
@@ -124,4 +128,18 @@ export async function POST(request: NextRequest) {
   }
 
   return NextResponse.json({ ok: true, antalBorttagnaFaktorer: resultat.antalBorttagnaFaktorer })
+}
+
+function hamtaEpostFranBody(kropp: unknown): string {
+  if (typeof kropp !== 'object' || kropp === null || !('epost' in kropp)) return ''
+  const epost = kropp.epost
+  return typeof epost === 'string' ? epost.trim().toLowerCase() : ''
+}
+
+function hamtaEpostFranProfil(profil: unknown): string | null {
+  if (typeof profil !== 'object' || profil === null || !('epost' in profil)) return null
+  const epost = profil.epost
+  if (typeof epost !== 'string') return null
+  const normaliserad = epost.trim().toLowerCase()
+  return EPOST_MONSTER.test(normaliserad) ? normaliserad : null
 }
