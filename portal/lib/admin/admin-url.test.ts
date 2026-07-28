@@ -30,4 +30,13 @@ describe('admin-url', () => {
       'https://admin.nova-it.se/logga-in?aterstall=1',
     )
   })
+
+  it('faller tillbaka till huvuddomänen om en känd host saknar https', () => {
+    expect(hamtaSakerAdminOrigin(request('http://admin.nova-it.se'))).toBe(
+      'https://admin.nova-it.se',
+    )
+    expect(byggLosenordsAterstallningsUrl(request('http://portal.novait.se'))).toBe(
+      'https://admin.nova-it.se/logga-in?aterstall=1',
+    )
+  })
 })
