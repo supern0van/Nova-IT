@@ -4,13 +4,14 @@ import {
   CheckCircle2Icon,
   KeyRoundIcon,
   MailPlusIcon,
+  RefreshCwIcon,
   ShieldCheckIcon,
   ShieldIcon,
   TriangleAlertIcon,
   UserRoundIcon,
   XCircleIcon,
 } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { toast } from 'sonner'
 
 import { useAuth } from '@/components/auth/auth-provider'
@@ -142,51 +143,75 @@ export function SystemPanel() {
   const [namnUtkast, setNamnUtkast] = useState<Record<string, string>>({})
   const [aterstallerMfa, setAterstallerMfa] = useState<string | null>(null)
   const [skickarLosenord, setSkickarLosenord] = useState<string | null>(null)
+  const [uppdaterar, setUppdaterar] = useState(false)
+  const [senastUppdaterad, setSenastUppdaterad] = useState<string | null>(null)
 
-  useEffect(() => {
+  const hamtaAdminStatus = useCallback(async (signal?: AbortSignal) => {
     if (!kanSePersonal) {
       setProfilStatus({ status: 'nekad', profiler: [] })
       setDriftStatus({ status: 'nekad', drift: null })
       return
     }
 
-    let avbruten = false
     setProfilStatus({ status: 'laddar', profiler: [] })
     setDriftStatus({ status: 'laddar', drift: null })
 
-    fetch('/api/admin/profiler')
-      .then(async (svar) => {
-        if (svar.status === 403) return { status: 'nekad' as const, profiler: [] }
-        if (!svar.ok) return { status: 'fel' as const, profiler: [] }
-        const data = (await svar.json()) as { profiler?: ProfilRad[] }
-        return { status: 'klar' as const, profiler: data.profiler ?? [] }
-      })
-      .then((data) => {
-        if (!avbruten) setProfilStatus(data)
-      })
-      .catch(() => {
-        if (!avbruten) setProfilStatus({ status: 'fel', profiler: [] })
-      })
+    try {
+      const [profilerSvar, driftSvar] = await Promise.all([
+        fetch('/api/admin/profiler', { signal }),
+        fetch('/api/admin/systemstatus', { signal }),
+      ])
 
-    fetch('/api/admin/systemstatus')
-      .then(async (svar) => {
-        if (svar.status === 403) return { status: 'nekad' as const, drift: null }
-        if (!svar.ok) return { status: 'fel' as const, drift: null }
-        const data = (await svar.json()) as { status?: SystemStatusSvar | null }
+      const nästaProfilStatus: ProfilStatus = await (async () => {
+        if (profilerSvar.status === 401 || profilerSvar.status === 403) {
+          return { status: 'nekad', profiler: [] }
+        }
+        if (!profilerSvar.ok) return { status: 'fel' as const, profiler: [] }
+        const data = (await profilerSvar.json()) as { profiler?: ProfilRad[] }
+        return { status: 'klar' as const, profiler: data.profiler ?? [] }
+      })()
+
+      const nästaDriftStatus: DriftStatus = await (async () => {
+        if (driftSvar.status === 401 || driftSvar.status === 403) {
+          return { status: 'nekad', drift: null }
+        }
+        if (!driftSvar.ok) return { status: 'fel' as const, drift: null }
+        const data = (await driftSvar.json()) as { status?: SystemStatusSvar | null }
         if (!data.status) return { status: 'fel' as const, drift: null }
         return { status: 'klar' as const, drift: data.status }
-      })
-      .then((data) => {
-        if (!avbruten) setDriftStatus(data)
-      })
-      .catch(() => {
-        if (!avbruten) setDriftStatus({ status: 'fel', drift: null })
-      })
+      })()
 
-    return () => {
-      avbruten = true
+      setProfilStatus(nästaProfilStatus)
+      setDriftStatus(nästaDriftStatus)
+      setSenastUppdaterad(new Date().toISOString())
+    } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') return
+      setProfilStatus({ status: 'fel', profiler: [] })
+      setDriftStatus({ status: 'fel', drift: null })
     }
   }, [kanSePersonal])
+
+  useEffect(() => {
+    const controller = new AbortController()
+    void hamtaAdminStatus(controller.signal)
+
+    return () => {
+      controller.abort()
+    }
+  }, [hamtaAdminStatus])
+
+  async function uppdateraAdminStatus() {
+    if (uppdaterar) return
+    setUppdaterar(true)
+    try {
+      await hamtaAdminStatus()
+      toast.success('Adminstatus uppdaterad', {
+        description: 'Profiler och driftkontroller hämtades om från Worker:n.',
+      })
+    } finally {
+      setUppdaterar(false)
+    }
+  }
 
   async function andraSystemroll(profil: ProfilRad, nyRoll: SystemRoll) {
     if (profil.roll === nyRoll || spararRoll) return
@@ -452,11 +477,40 @@ export function SystemPanel() {
       {kanSePersonal ? (
         <>
           <Yta className="flex flex-col gap-4 p-3.5">
-            <Sektionsrubrik>Driftstatus</Sektionsrubrik>
+            <Sektionsrubrik
+              atgard={
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => void uppdateraAdminStatus()}
+                  disabled={
+                    uppdaterar ||
+                    profilStatus.status === 'laddar' ||
+                    driftStatus.status === 'laddar'
+                  }
+                >
+                  {uppdaterar ? (
+                    <Spinner data-icon="inline-start" />
+                  ) : (
+                    <RefreshCwIcon data-icon="inline-start" />
+                  )}
+                  Uppdatera
+                </Button>
+              }
+            >
+              Driftstatus
+            </Sektionsrubrik>
 
             <p className="text-[12px] leading-relaxed text-muted-foreground">
               Kontrollerna körs server-side i Worker:n och visar om de obligatoriska
               Supabase-inställningarna och profiles-tabellen är tillgängliga.
+              {senastUppdaterad ? (
+                <>
+                  {' '}
+                  Senast uppdaterad {formateraDatumTid(senastUppdaterad)}.
+                </>
+              ) : null}
             </p>
 
             {driftStatus.status === 'laddar' && (
