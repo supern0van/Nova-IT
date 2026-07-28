@@ -88,8 +88,16 @@ export async function uppdateraSessionOchSkyddaPortal(request: NextRequest) {
   // Kör ingen kod mellan createServerClient och getClaims(). Enligt Supabase
   // kan även ett litet misstag här göra det väldigt svårt att felsöka
   // användare som slumpmässigt loggas ut.
-  const { data } = await supabase.auth.getClaims()
-  const claims = data?.claims
+  let claims:
+    | NonNullable<Awaited<ReturnType<typeof supabase.auth.getClaims>>['data']>['claims']
+    | null
+  try {
+    const { data } = await supabase.auth.getClaims()
+    claims = data?.claims ?? null
+  } catch {
+    claims = null
+  }
+
   const inloggad = Boolean(claims)
   // `aal` saknas aldrig i praktiken när `claims` finns (obligatoriskt claim
   // enligt Supabase), men faller stängt (`aal1`) om det ändå skulle saknas.

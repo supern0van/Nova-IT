@@ -59,4 +59,10 @@ describe('hamtaAutentiseradAnvandarId (skydd för protected server functions, t.
     getClaims.mockResolvedValueOnce({ data: { claims: { sub: '   ', aal: 'aal2' } } })
     await expect(hamtaAutentiseradAnvandarId(fakeRequest())).resolves.toBeNull()
   })
+
+  it('fail-closed om Supabase getClaims kastar', async () => {
+    getClaims.mockRejectedValue(new Error('jwt nere'))
+
+    await expect(hamtaAutentiseradAnvandarId(fakeRequest())).resolves.toBeNull()
+  })
 })

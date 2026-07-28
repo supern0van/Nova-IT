@@ -88,6 +88,16 @@ describe('uppdateraSessionOchSkyddaPortal – obligatorisk MFA', () => {
       expect(mal?.searchParams.get('next')).toBe('/portal/kunder')
     })
 
+    it('fail-closed: fel vid claims-läsning behandlas som saknad session', async () => {
+      getClaims.mockRejectedValue(new Error('jwt nere'))
+
+      const svar = await uppdateraSessionOchSkyddaPortal(begaran('/portal/installningar'))
+      const mal = omdirigeringsmal(svar)
+
+      expect(mal?.pathname).toBe('/logga-in')
+      expect(mal?.searchParams.get('next')).toBe('/portal/installningar')
+    })
+
     it('blockerad åtkomst före MFA: inloggad men aal1 skickas till /mfa, inte in i portalen', async () => {
       sessionMedNiva('aal1')
       const svar = await uppdateraSessionOchSkyddaPortal(begaran('/portal/arenden'))

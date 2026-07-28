@@ -41,8 +41,16 @@ export async function hamtaAutentiseradAnvandarId(request: NextRequest): Promise
     },
   })
 
-  const { data } = await supabase.auth.getClaims()
-  const claims = data?.claims
+  let claims:
+    | NonNullable<Awaited<ReturnType<typeof supabase.auth.getClaims>>['data']>['claims']
+    | null
+  try {
+    const { data } = await supabase.auth.getClaims()
+    claims = data?.claims ?? null
+  } catch {
+    return null
+  }
+
   if (!claims) return null
   if (!harUppnattAal2(claims.aal)) return null
 
