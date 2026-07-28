@@ -277,6 +277,40 @@ describe('SystemPanel', () => {
     })
   })
 
+  it('avbryter systemrolländring utan PATCH och kan öppna dialogen igen', async () => {
+    const user = userEvent.setup()
+    kan.mockReturnValue(true)
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(lyckadeInitSvar()[0])
+      .mockResolvedValueOnce(lyckadeInitSvar()[1])
+    vi.stubGlobal('fetch', fetchMock)
+
+    render(<SystemPanel />)
+
+    await waitFor(() => {
+      expect(screen.getByText('tekniker@nova-it.se')).toBeTruthy()
+    })
+
+    await user.click(screen.getByLabelText('Ändra systemroll för tekniker@nova-it.se'))
+    await user.click(await screen.findByRole('option', { name: 'Administratör' }))
+
+    expect(await screen.findByText('Ändra systemroll för tekniker@nova-it.se?')).toBeTruthy()
+
+    await user.click(screen.getByRole('button', { name: 'Avbryt' }))
+
+    await waitFor(() => {
+      expect(screen.queryByText('Ändra systemroll för tekniker@nova-it.se?')).toBeNull()
+    })
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+
+    await user.click(screen.getByLabelText('Ändra systemroll för tekniker@nova-it.se'))
+    await user.click(await screen.findByRole('option', { name: 'Administratör' }))
+
+    expect(await screen.findByText('Ändra systemroll för tekniker@nova-it.se?')).toBeTruthy()
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+  })
+
   it('visar behörighetsdiagnos om servern nekar rolländring med 403', async () => {
     const user = userEvent.setup()
     kan.mockReturnValue(true)
@@ -304,6 +338,41 @@ describe('SystemPanel', () => {
     await waitFor(() => {
       expect(toast.error).toHaveBeenCalledWith('Kunde inte ändra systemroll', {
         description: 'Du har inte längre administratörsbehörighet på det här kontot.',
+      })
+    })
+  })
+
+  it.each([
+    [401, 'Logga in igen och slutför tvåstegsverifieringen innan du försöker på nytt.'],
+    [500, 'Kunde inte slutföra åtgärden just nu. Försök igen om en stund.'],
+    [418, 'Åtgärden nekades eller misslyckades. Kontrollera behörighet och sessionsstatus.'],
+  ])('visar diagnostisk rolländringscopy för HTTP %s', async (status, description) => {
+    const user = userEvent.setup()
+    kan.mockReturnValue(true)
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(lyckadeInitSvar()[0])
+      .mockResolvedValueOnce(lyckadeInitSvar()[1])
+      .mockResolvedValueOnce({
+        status,
+        ok: false,
+        json: vi.fn(),
+      })
+    vi.stubGlobal('fetch', fetchMock)
+
+    render(<SystemPanel />)
+
+    await waitFor(() => {
+      expect(screen.getByText('tekniker@nova-it.se')).toBeTruthy()
+    })
+
+    await user.click(screen.getByLabelText('Ändra systemroll för tekniker@nova-it.se'))
+    await user.click(await screen.findByRole('option', { name: 'Administratör' }))
+    await user.click(await screen.findByRole('button', { name: 'Ändra systemroll' }))
+
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith('Kunde inte ändra systemroll', {
+        description,
       })
     })
   })
