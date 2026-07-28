@@ -113,7 +113,7 @@ Efter deploy ska live-Worker-smoken köras:
 pnpm smoke:worker
 ```
 
-Den verifierar att samtliga admin-/portal-domäner svarar med inloggningsredirect och att skyddade API:er (`/api/roll`, `/api/admin/systemstatus`, `/api/admin/profiler`) nekar oinloggad trafik fail-closed.
+Den verifierar att samtliga admin-/portal-domäner svarar med inloggningsredirect och att skyddade API:er (`/api/roll`, `/api/admin/systemstatus`, `/api/admin/profiler`) nekar oinloggad trafik fail-closed på varje kopplad domän.
 
 ### Obligatoriska Worker-secrets
 

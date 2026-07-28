@@ -16,7 +16,7 @@ systems:
 
 Adminportalen verifieras nu som en separat Cloudflare Worker i både lokal process och GitHub Actions. CI har ett eget adminportaljobb för `portal/`, bygger den faktiska OpenNext Worker-bundlen och root-projektets Bun-lint ignorerar portalens separata Next/pnpm-app.
 
-Ett nytt kommando, `pnpm smoke:worker`, lades till för att kontrollera live-domänerna och de fail-closed API-svaren efter deploy.
+Ett nytt kommando, `pnpm smoke:worker`, lades till för att kontrollera live-domänerna och de fail-closed API-svaren efter deploy. Kontrollen går över alla fyra kopplade domäner så både admin- och tillfälliga portaladresser verifieras.
 
 ## Varför?
 
