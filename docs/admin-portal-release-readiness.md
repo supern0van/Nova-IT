@@ -3,10 +3,10 @@
 ## Utgångsläge
 
 ```
-HEAD:           5fb60f0 (main, origin/main, origin/HEAD)
+HEAD:           26fd26f (main, origin/main, origin/HEAD)
 Arbetsyta:      ren, inget diff mot HEAD
-Senast deploy:  version d81ccba0-a958-425f-90eb-580ad846d2ce, 2026-07-28T19:29:05Z
-                (motsvarar ungefär commit 6365ec6 — 3 senare commits är INTE live ännu)
+Senast deploy:  version 5e735ced-52c4-46f3-9a93-2c0da3856302, 2026-07-28 (efter detta pass)
+                Live-Workern matchar nu HEAD (26fd26f) — se "Deploy" nedan.
 ```
 
 Relevanta commits sedan föregående större pass:
@@ -40,8 +40,8 @@ Windows-lokal `pnpm run deploy:dry-run` träffar det kända EPERM-symlinkfelet (
 | # | Kontroll | Status | Underlag |
 | --- | --- | --- | --- |
 | 1 | Oinloggad åtkomst till `/portal/*` | **VERIFIERAD** | `lib/supabase/proxy.test.ts` ("blockerad åtkomst: utloggad → /logga-in") + live smoke: alla 4 domäner ger 307 → `/logga-in?next=...` |
-| 2 | AAL1-session nekas skyddat innehåll | **VERIFIERAD** (kod/test) · **EJ VERIFIERAD** (levande webbläsarsession) | `proxy.test.ts` ("aal1 skickas till /mfa, inte in i portalen"), `route-anvandare.test.ts`. Ingen levande aal1-session har körts genom webbläsaren — kräver ett riktigt konto som loggat in men inte klarat MFA. |
-| 3 | Full AAL2-session ger åtkomst | **VERIFIERAD** (kod/test) · **EJ VERIFIERAD** (levande webbläsarsession) | `proxy.test.ts` ("aal2 släpps igenom"), `mfa.test.ts`. Jag anger aldrig lösenord/TOTP åt dig — kräver en människa med ett riktigt konto. |
+| 2 | AAL1-session nekas skyddat innehåll | **VERIFIERAD** (kod/test) · **Bekräftad av användaren** (levande webbläsarsession, ej utförd av Claude) | `proxy.test.ts` ("aal1 skickas till /mfa, inte in i portalen"), `route-anvandare.test.ts`. Den levande webbläsarverifieringen kräver ett riktigt konto och har bekräftats av kontoägaren själv — Claude anger aldrig lösenord/TOTP och har inte utfört den delen personligen. |
+| 3 | Full AAL2-session ger åtkomst | **VERIFIERAD** (kod/test) · **Bekräftad av användaren** (levande webbläsarsession, ej utförd av Claude) | `proxy.test.ts` ("aal2 släpps igenom"), `mfa.test.ts`. Samma begränsning som ovan — bekräftad av kontoägaren, inte av Claude. |
 | 4 | Admin- och medarbetarbehörigheter | **VERIFIERAD** | `app/api/admin/operativt/route.test.ts` (27 tester: administrator vs medarbetare per skriv-typ, inkl. `redigera_kund`/`tilldela_arende`-gating) |
 | 5 | Skapa kund + hård refresh | **VERIFIERAD** (kod/test) · **EJ VERIFIERAD** (levande klick-igenom) | `kund-dialog.test.tsx`; server skriver till `admin_kunder` (verifierat schema live), `useOperativAdminData` läser om från samma API vid varje mount inkl. hård refresh — ingen localStorage-väg i produktion |
 | 6 | Skapa ärende + hård refresh | Samma som ovan | `arende-dialog.test.tsx`, `admin_arenden`-schema verifierat live |
@@ -61,27 +61,19 @@ Windows-lokal `pnpm run deploy:dry-run` träffar det kända EPERM-symlinkfelet (
 
 **Blockerande kodfel hittade i denna omgång: inga.** Ingen ny kodändring krävdes — alla kontroller ovan bygger på redan existerande, gröna tester plus färsk live-verifiering.
 
-## Kräver manuell åtgärd — kan inte kallas klart förrän gjort
+## Manuella åtgärder — status
 
-### 1. Deploya de tre senaste commits till produktion
+### 1. Deploy till produktion — ✅ GENOMFÖRD
 
-Live-Workern kör fortfarande ungefär commit `6365ec6` (senast deploy 2026-07-28T19:29Z). Commits `c9926d6`, `6c656a1`, `d3e2e56`, `ebf01e8` och `5fb60f0` är verifierade i kod/test men inte live.
+Deployad från WSL (`~/nova-it/portal`, `pnpm run deploy:production`) efter push av `26fd26f` till `origin/main`.
 
-1. **Var:** Lokal maskin (WSL, `~/nova-it/portal` — Windows träffar EPERM-symlinkfelet) eller CI/annan Linux-miljö.
-2. **Kommando:** `git pull && pnpm install --frozen-lockfile && pnpm run deploy:production`
-3. **Förväntat resultat:** Ny Worker-version publiceras för `nova-it-admin`, synlig via `wrangler deployments list`.
-4. **Verifiering:** `node scripts/smoke-worker.mjs` grönt igen, samt manuell koll att en obefintlig URL nu visar den nya svenska 404-sidan (inte Next.js standard).
-5. **Rollback:** `wrangler rollback --name nova-it-admin` till versionen `d81ccba0-a958-425f-90eb-580ad846d2ce` (nuvarande live-version) om något oväntat upptäcks.
+- **Ny version:** `5e735ced-52c4-46f3-9a93-2c0da3856302`, publicerad på alla fyra custom domains.
+- **Verifiering:** `node scripts/smoke-worker.mjs` grönt igen (alla 4 domäner: 307 → `/logga-in`, samtliga API:er 401 med tomma svar). Dessutom visuellt bekräftat i webbläsaren att en obefintlig URL nu ger den nya svenska 404-sidan ("Sidan hittades inte") i stället för Next.js standardsida — direkt bevis på att den nya koden är live, inte bara en ombyggd kopia av det gamla.
+- **Rollback vid behov:** `wrangler rollback --name nova-it-admin` till föregående version `d81ccba0-a958-425f-90eb-580ad846d2ce`.
 
-### 2. Manuell AAL2- och webbläsarverifiering av en människa
+### 2. Manuell AAL2- och webbläsarverifiering — ✅ BEKRÄFTAD AV ANVÄNDAREN
 
-Jag anger aldrig lösenord eller TOTP-koder åt dig — det är en gräns jag inte kan eller ska kringgå, oavsett att det är er egen adminportal. Följande måste köras av en människa med ett riktigt kontos uppgifter, efter att steg 1 ovan är klart:
-
-1. **Var:** `https://admin.nova-it.se/logga-in`
-2. **Åtgärd:** Logga in med ett konto som INTE har MFA konfigurerat ännu → verifiera att `/mfa`-enrollment visas, inte skyddat innehåll. Logga sedan in med ett konto med aktiv MFA, ange fel TOTP en gång → verifiera att åtkomst fortfarande nekas. Ange rätt TOTP → verifiera att `/portal` visas.
-3. **Förväntat resultat:** Ingen skyddad data renderas förrän AAL2 uppnåtts, exakt enligt `lib/supabase/proxy.ts`s dokumenterade beteende.
-4. **Verifiering:** Visuell kontroll i webbläsaren, eventuellt komplettera med Network-fliken för att se att `/api/admin/operativt` ger riktig data (inte 401) efter godkänd AAL2.
-5. **Rollback:** Ej tillämpligt (läsverifiering, ingen skrivning).
+Kontoägaren har bekräftat att detta är genomfört. Claude anger aldrig lösenord eller TOTP-koder åt användaren och har därför inte utfört själva inloggningsflödet personligen — den bekräftelsen kommer från kontoägaren, dokumenterat här för spårbarhet.
 
 ## Kvarvarande framtidsfunktioner (inga blockerare)
 
@@ -97,9 +89,15 @@ Jag anger aldrig lösenord eller TOTP-koder åt dig — det är en gräns jag in
 
 ## Slutbedömning
 
-**CONDITIONAL GO** — all kod är redo (tester, lint, typecheck, build, OpenNext-build, dry-run och secret-list gröna; inga blockerande kod- eller driftsproblem hittades), men två manuella externa steg återstår innan skarp produktion kan bekräftas fullt ut:
+**GO** — skarpt redo.
 
-1. Deploy av de tre senaste commits (kodändringar redan granskade och testade, men inte publicerade live).
-2. Manuell AAL2-/webbläsarverifiering av en människa med riktiga kontouppgifter — kan inte utföras av mig.
+Samtliga sex GO-villkor uppfyllda:
 
-GO kan inte användas förrän båda dessa är genomförda och bekräftade.
+1. All adminfunktionalitet är verklig — kunder/ärenden/bokningar/personal läses och skrivs mot riktiga Supabase-tabeller (`admin_kunder`, `admin_arenden`, `admin_bokningar`, `public.profiles`), verifierat i kod, tester och live-schema.
+2. Inga produktionsflöden är demo-/localStorage-baserade — explicit testat (`store.test.ts`, `use-operativ-admin-data.test.tsx`).
+3. Säkerhetskontrollerna är verifierade — AAL2 fail-closed, behörighetsgating per roll, RLS/grants/SECURITY DEFINER-härdning, generiska felresponser.
+4. Tester/build/typecheck/lint passerar — 51 filer/366 tester, lint, tsc, `pnpm build`, OpenNext-build och `wrangler deploy --dry-run` alla gröna.
+5. Cloudflare-konfigurationen är verifierad — Worker-namn, domäner, secrets (namn only), HSTS, TLS-cert, ingen konfigurationskonflikt.
+6. Manuell AAL2- och webbläsarkontroll är genomförd — bekräftad av kontoägaren.
+
+Deploy är genomförd och verifierad live (version `5e735ced-52c4-46f3-9a93-2c0da3856302`). Inga blockerande kod- eller driftsproblem kvarstår.
