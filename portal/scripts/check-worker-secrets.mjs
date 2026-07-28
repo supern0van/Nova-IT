@@ -18,10 +18,79 @@ export function resolveWranglerInvocation() {
 
 /**
  * @param {string} jsonc
+ * @returns {string}
+ */
+export function stripJsoncComments(jsonc) {
+  let result = ''
+  let inString = false
+  let stringQuote = ''
+  let escaped = false
+
+  for (let index = 0; index < jsonc.length; index += 1) {
+    const char = jsonc[index]
+    const nextChar = jsonc[index + 1]
+
+    if (inString) {
+      result += char
+
+      if (escaped) {
+        escaped = false
+      } else if (char === '\\') {
+        escaped = true
+      } else if (char === stringQuote) {
+        inString = false
+        stringQuote = ''
+      }
+
+      continue
+    }
+
+    if (char === '"' || char === "'") {
+      inString = true
+      stringQuote = char
+      result += char
+      continue
+    }
+
+    if (char === '/' && nextChar === '/') {
+      while (index < jsonc.length && jsonc[index] !== '\n') {
+        index += 1
+      }
+
+      if (index < jsonc.length) {
+        result += jsonc[index]
+      }
+
+      continue
+    }
+
+    if (char === '/' && nextChar === '*') {
+      index += 2
+
+      while (index < jsonc.length && !(jsonc[index] === '*' && jsonc[index + 1] === '/')) {
+        if (jsonc[index] === '\n') {
+          result += '\n'
+        }
+
+        index += 1
+      }
+
+      index += 1
+      continue
+    }
+
+    result += char
+  }
+
+  return result
+}
+
+/**
+ * @param {string} jsonc
  * @returns {unknown}
  */
 export function parseJsonc(jsonc) {
-  return JSON.parse(jsonc.replace(/^\s*\/\/.*$/gm, ''))
+  return JSON.parse(stripJsoncComments(jsonc))
 }
 
 /**

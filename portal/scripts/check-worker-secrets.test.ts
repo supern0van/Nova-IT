@@ -5,15 +5,38 @@ import {
   listWorkerSecrets,
   parseJsonc,
   resolveWranglerInvocation,
+  stripJsoncComments,
 } from './check-worker-secrets.mjs'
 
 describe('check-worker-secrets', () => {
-  it('läser JSONC med kommentar-rader', () => {
+  it('tar bort JSONC-kommentarer utan att röra URL:er i strängar', () => {
+    expect(
+      stripJsoncComments(`{
+        "url": "https://admin.nova-it.se", // inline-kommentar
+        "escaped": "säg \\"// behåll\\"",
+        /*
+         * blockkommentar
+         */
+        "name": "nova-it-admin"
+      }`),
+    ).toContain('"url": "https://admin.nova-it.se"')
+    expect(
+      stripJsoncComments(`{
+        "url": "https://admin.nova-it.se", // inline-kommentar
+        "escaped": "säg \\"// behåll\\""
+      }`),
+    ).not.toContain('inline-kommentar')
+  })
+
+  it('läser JSONC med rad-, inline- och blockkommentarer', () => {
     expect(
       parseJsonc(`{
         // Worker-namn
-        "name": "nova-it-admin",
+        "name": "nova-it-admin", // inline-kommentar
         "secrets": {
+          /*
+           * Obligatoriska secrets
+           */
           // Obligatoriska secrets
           "required": ["NEXT_PUBLIC_SUPABASE_URL"]
         }
