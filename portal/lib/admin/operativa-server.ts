@@ -29,6 +29,11 @@ export class OperativtAdminFel extends Error {
   }
 }
 
+// Max antal försök vid unik-constraint-krock (23505) på arendenummer, se
+// skapaOperativtArende(). Räknas som app-side mildring, inte en garanti –
+// se rapporten om DB-sekvens/RPC för en robust lösning.
+const ARENDENUMMER_MAX_FORSOK = 3
+
 export interface NyOperativKund {
   namn: string
   kundtyp: Kundtyp
@@ -221,47 +226,63 @@ export async function skapaOperativtArende(uppgifter: NyttOperativtArende): Prom
   const kund = normaliseraKundRad(kundRad)
   if (!kund) throw new Error('Kunden kunde inte läsas.')
 
-  const arendenummer = await nastaArendenummer()
-  const { data, error } = await supabase
-    .from('admin_arenden')
-    .insert({
-      arendenummer,
-      rubrik,
-      kund_id: kund.id,
-      kund_namn: kund.namn,
-      kundtyp: kund.kundtyp,
-      organisation: kund.organisation,
-      epost: kund.epost,
-      telefon: kund.telefon,
-      kategori: uppgifter.kategori,
-      underkategori: text(uppgifter.underkategori),
-      prioritet: uppgifter.prioritet,
-      kanal: uppgifter.kanal,
-      beskrivning,
-    })
-    .select('*')
-    .single()
+  // `arendenummer` beräknas app-side (högsta befintliga + 1), inte via en
+  // DB-sekvens. Vid parallella skapanden kan två anrop räkna ut samma nästa
+  // nummer och kollidera mot den unika constrainten (23505). Vi försöker
+  // därför om upp till ARENDENUMMER_MAX_FORSOK gånger och räknar ut ett nytt
+  // arendenummer varje gång – den rad som orsakade konflikten är då synlig i
+  // nästa SELECT, så nästa försök får ett genuint ledigt nummer. Detta är en
+  // säker mildring utan schemaändring, inte en fullständig lösning – se
+  // rekommendationen om DB-sekvens/RPC i rapporten.
+  for (let forsok = 0; forsok < ARENDENUMMER_MAX_FORSOK; forsok++) {
+    const arendenummer = await nastaArendenummer()
+    const { data, error } = await supabase
+      .from('admin_arenden')
+      .insert({
+        arendenummer,
+        rubrik,
+        kund_id: kund.id,
+        kund_namn: kund.namn,
+        kundtyp: kund.kundtyp,
+        organisation: kund.organisation,
+        epost: kund.epost,
+        telefon: kund.telefon,
+        kategori: uppgifter.kategori,
+        underkategori: text(uppgifter.underkategori),
+        prioritet: uppgifter.prioritet,
+        kanal: uppgifter.kanal,
+        beskrivning,
+      })
+      .select('*')
+      .single()
 
-  if (error) {
-    if (arPostgresFelkod(error, '23505')) {
-      throw new OperativtAdminFel('Kunde inte skapa ärendet just nu — försök igen.', 409)
+    if (error) {
+      if (arPostgresFelkod(error, '23505')) {
+        if (forsok < ARENDENUMMER_MAX_FORSOK - 1) continue
+        throw new OperativtAdminFel('Kunde inte skapa ärendet just nu — försök igen.', 409)
+      }
+      throw new Error('Kunde inte skapa ärende.')
     }
-    throw new Error('Kunde inte skapa ärende.')
+
+    const arende = normaliseraArendeRad(data)
+    if (!arende) throw new Error('Ärendet skapades men kunde inte läsas.')
+
+    await Promise.all([
+      supabase.from('admin_kunder').update({ senaste_kontakt: new Date().toISOString() }).eq('id', kund.id),
+      supabase.from('admin_aktiviteter').insert({
+        arende_id: arende.id,
+        typ: 'skapat',
+        beskrivning: `Ärende registrerat manuellt via ${uppgifter.kanal === 'telefon' ? 'telefon' : 'e-post'}`,
+        aktor: text(uppgifter.aktor) || 'Okänd',
+      }),
+    ])
+
+    return arende
   }
-  const arende = normaliseraArendeRad(data)
-  if (!arende) throw new Error('Ärendet skapades men kunde inte läsas.')
 
-  await Promise.all([
-    supabase.from('admin_kunder').update({ senaste_kontakt: new Date().toISOString() }).eq('id', kund.id),
-    supabase.from('admin_aktiviteter').insert({
-      arende_id: arende.id,
-      typ: 'skapat',
-      beskrivning: `Ärende registrerat manuellt via ${uppgifter.kanal === 'telefon' ? 'telefon' : 'e-post'}`,
-      aktor: text(uppgifter.aktor) || 'Okänd',
-    }),
-  ])
-
-  return arende
+  // Ouppnåeligt i praktiken (loopen returnerar eller kastar alltid inom sig
+  // själv), men krävs för TypeScripts kontrollflödesanalys.
+  throw new OperativtAdminFel('Kunde inte skapa ärendet just nu — försök igen.', 409)
 }
 
 export async function skapaOperativBokning(uppgifter: NyOperativBokning): Promise<Bokning> {
@@ -585,23 +606,23 @@ export async function taBortOperativKundanteckning(anteckningId: string): Promis
   return anteckningId
 }
 
+/**
+ * Ärendenummer genereras atomärt av en Postgres-sekvens via RPC
+ * (`nasta_admin_arendenummer`, se migrationen
+ * 20260728165341_admin_arendenummer_sekvens.sql), inte längre app-side
+ * "SELECT MAX + 1". Sekvensen garanterar unikhet oavsett samtidighet, så
+ * retry-loopen i skapaOperativtArende() ovan är nu bara ett skyddsnät för
+ * oväntade fel, inte den primära krockskyddet.
+ */
 async function nastaArendenummer(): Promise<string> {
   const supabase = skapaSupabaseServiceklient()
-  const { data, error } = await supabase
-    .from('admin_arenden')
-    .select('arendenummer')
-    .order('skapad', { ascending: false })
-    .limit(100)
+  const { data, error } = await supabase.rpc('nasta_admin_arendenummer')
 
-  if (error) throw new Error('Kunde inte beräkna ärendenummer.')
+  if (error || typeof data !== 'string' || !data) {
+    throw new Error('Kunde inte beräkna ärendenummer.')
+  }
 
-  const hogsta = (data ?? [])
-    .map((rad) => (arObjekt(rad) ? text(rad.arendenummer) : ''))
-    .map((nummer) => Number(nummer.replace(/^NIT-/, '')))
-    .filter((nummer) => Number.isFinite(nummer))
-    .reduce((max, nummer) => Math.max(max, nummer), 2400)
-
-  return `NIT-${hogsta + 1}`
+  return data
 }
 
 function normaliseraBokningsandringar(andringar: OperativaBokningsandringar) {
