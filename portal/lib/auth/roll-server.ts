@@ -52,6 +52,18 @@ export async function hamtaEgenProfilFranDatabasen(
     .eq('id', anvandareId)
     .maybeSingle()
 
-  if (error || !data) return null
-  return data as EgenProfil
+  if (error || !data || !arGiltigEgenProfil(data)) return null
+  return data
+}
+
+function arGiltigEgenProfil(data: unknown): data is EgenProfil {
+  if (typeof data !== 'object' || data === null) return false
+  if (!('epost' in data) || !('namn' in data)) return false
+
+  return (
+    typeof data.epost === 'string' &&
+    data.epost.trim().length > 0 &&
+    typeof data.namn === 'string' &&
+    data.namn.trim().length > 0
+  )
 }
