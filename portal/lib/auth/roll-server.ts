@@ -26,15 +26,19 @@ import { skapaSupabaseServiceklient } from '@/lib/supabase/service'
  * om frågan misslyckas.
  */
 export async function hamtaRollFranDatabasen(anvandareId: string): Promise<SystemRoll | null> {
-  const supabase = skapaSupabaseServiceklient()
-  const { data, error } = await supabase
-    .from('profiles')
-    .select('roll')
-    .eq('id', anvandareId)
-    .maybeSingle()
+  try {
+    const supabase = skapaSupabaseServiceklient()
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('roll')
+      .eq('id', anvandareId)
+      .maybeSingle()
 
-  if (error || !data || !arSystemRoll(data.roll)) return null
-  return data.roll
+    if (error || !data || !arSystemRoll(data.roll)) return null
+    return data.roll
+  } catch {
+    return null
+  }
 }
 
 export interface EgenProfil {
@@ -45,15 +49,19 @@ export interface EgenProfil {
 export async function hamtaEgenProfilFranDatabasen(
   anvandareId: string,
 ): Promise<EgenProfil | null> {
-  const supabase = skapaSupabaseServiceklient()
-  const { data, error } = await supabase
-    .from('profiles')
-    .select('epost, namn')
-    .eq('id', anvandareId)
-    .maybeSingle()
+  try {
+    const supabase = skapaSupabaseServiceklient()
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('epost, namn')
+      .eq('id', anvandareId)
+      .maybeSingle()
 
-  if (error || !data || !arGiltigEgenProfil(data)) return null
-  return data
+    if (error || !data || !arGiltigEgenProfil(data)) return null
+    return data
+  } catch {
+    return null
+  }
 }
 
 function arGiltigEgenProfil(data: unknown): data is EgenProfil {

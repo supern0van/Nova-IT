@@ -38,6 +38,12 @@ describe('hamtaRollFranDatabasen', () => {
     maybeSingle.mockResolvedValueOnce({ data: null, error: new Error('profiles nere') })
     await expect(hamtaRollFranDatabasen('user-fel')).resolves.toBeNull()
   })
+
+  it('returnerar null om databasuppslaget kastar', async () => {
+    maybeSingle.mockRejectedValue(new Error('profiles timeout'))
+
+    await expect(hamtaRollFranDatabasen('user-timeout')).resolves.toBeNull()
+  })
 })
 
 describe('hamtaEgenProfilFranDatabasen', () => {
@@ -69,5 +75,11 @@ describe('hamtaEgenProfilFranDatabasen', () => {
 
     maybeSingle.mockResolvedValueOnce({ data: { epost: 'admin@nova-it.se' }, error: null })
     await expect(hamtaEgenProfilFranDatabasen('user-trasig')).resolves.toBeNull()
+  })
+
+  it('returnerar null om egen profil-frågan kastar', async () => {
+    maybeSingle.mockRejectedValue(new Error('profiles timeout'))
+
+    await expect(hamtaEgenProfilFranDatabasen('user-timeout')).resolves.toBeNull()
   })
 })
