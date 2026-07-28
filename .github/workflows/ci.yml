@@ -83,5 +83,5 @@ jobs:
       - name: Run typecheck
         run: pnpm exec tsc --noEmit --pretty false
 
-      - name: Build
-        run: pnpm build
+      - name: Build OpenNext Worker bundle
+        run: pnpm exec opennextjs-cloudflare build
