@@ -8,7 +8,9 @@ const INLOGGNINGSVAG = '/logga-in'
 const STANDARDVAG_EFTER_INLOGGNING = '/portal'
 
 /**
- * Portalens serversidesskydd (Next.js 16 Proxy – se `../../proxy.ts`).
+ * Portalens serversidesskydd. Implementationens namn följer Supabases
+ * proxy-hjälparmönster, men Next/OpenNext kör den via `portal/middleware.ts`
+ * tills OpenNext stödjer Next.js 16:s root-`proxy.ts`.
  *
  * Bygger på Supabases officiella mönster för `@supabase/ssr` i Next.js App
  * Router (https://supabase.com/docs/guides/auth/server-side/nextjs): en

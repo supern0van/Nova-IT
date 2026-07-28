@@ -10,10 +10,10 @@ import type { Behorighet } from '@/lib/auth/supabase-auth'
 /**
  * Skyddar portalens sidor på klienten.
  *
- * Det faktiska säkerhetsskyddet sker numera på servern, i `proxy.ts` (Next.js
- * 16) – se `lib/supabase/proxy.ts`. En oautentiserad klient nekas där redan
- * innan någon route renderas, så ingen skyddad data skickas någonsin till
- * webbläsaren i första hand.
+ * Det faktiska säkerhetsskyddet sker numera på servern, via
+ * `portal/middleware.ts` som anropar implementationen i `lib/supabase/proxy.ts`.
+ * En oautentiserad klient nekas där redan innan någon route renderas, så ingen
+ * skyddad data skickas någonsin till webbläsaren i första hand.
  *
  * Den här komponenten är ett kompletterande UI-lager, inte säkerhetsgränsen:
  * den visar ett laddningsläge medan sessionen läses in på klienten och
