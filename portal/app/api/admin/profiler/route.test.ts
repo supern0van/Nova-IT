@@ -22,8 +22,8 @@ vi.mock('@/lib/auth/profiler-server', () => ({
 
 import { GET, POST } from './route'
 
-function begaran(body?: unknown) {
-  return new NextRequest('https://admin.nova-it.se/api/admin/profiler', {
+function begaran(body?: unknown, url = 'https://admin.nova-it.se/api/admin/profiler') {
+  return new NextRequest(url, {
     method: body === undefined ? 'GET' : 'POST',
     body: body === undefined ? undefined : JSON.stringify(body),
     headers: body === undefined ? undefined : { 'Content-Type': 'application/json' },
@@ -186,6 +186,36 @@ describe('/api/admin/profiler', () => {
     expect(bjudInPortalProfil).toHaveBeenCalledWith({
       namn: 'Ny Admin',
       epost: 'NY@NOVA-IT.SE',
+      roll: 'medarbetare',
+      redirectTo: 'https://admin.nova-it.se/logga-in?aterstall=1',
+    })
+  })
+
+  it('använder säker fallback-origin för inbjudningslänk om host inte är en Worker-domän', async () => {
+    const profil = {
+      id: 'user-3',
+      epost: 'ny@nova-it.se',
+      namn: 'Ny Admin',
+      roll: 'medarbetare',
+      skapad: '2026-07-28T00:00:00.000Z',
+      uppdaterad: '2026-07-28T00:00:00.000Z',
+    }
+
+    hamtaAutentiseradAnvandarId.mockResolvedValue('user-1')
+    harAdminAtkomst.mockResolvedValue(true)
+    bjudInPortalProfil.mockResolvedValue({ ok: true, profil })
+
+    const svar = await POST(
+      begaran(
+        { namn: 'Ny Admin', epost: 'ny@nova-it.se', roll: 'medarbetare' },
+        'https://extern.example/api/admin/profiler',
+      ),
+    )
+
+    expect(svar.status).toBe(201)
+    expect(bjudInPortalProfil).toHaveBeenCalledWith({
+      namn: 'Ny Admin',
+      epost: 'ny@nova-it.se',
       roll: 'medarbetare',
       redirectTo: 'https://admin.nova-it.se/logga-in?aterstall=1',
     })

@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
 
+import { byggLosenordsAterstallningsUrl } from '@/lib/admin/admin-url'
 import { arSystemRoll } from '@/lib/auth/roll'
 import {
   bjudInPortalProfil,
@@ -62,12 +63,11 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const redirectTo = new URL('/logga-in?aterstall=1', request.nextUrl.origin).toString()
     const resultat = await bjudInPortalProfil({
       epost,
       namn,
       roll,
-      redirectTo,
+      redirectTo: byggLosenordsAterstallningsUrl(request),
     })
 
     if (!resultat.ok) {

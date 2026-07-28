@@ -19,8 +19,8 @@ vi.mock('@/lib/auth/profiler-server', () => ({
 
 import { POST } from './route'
 
-function begaran() {
-  return new NextRequest('https://admin.nova-it.se/api/admin/profiler/user-2/losenord', {
+function begaran(url = 'https://admin.nova-it.se/api/admin/profiler/user-2/losenord') {
+  return new NextRequest(url, {
     method: 'POST',
   })
 }
@@ -84,6 +84,26 @@ describe('POST /api/admin/profiler/[id]/losenord', () => {
 
     expect(svar.status).toBe(200)
     expect(await svar.json()).toEqual({ ok: true, epost: 'medarbetare@nova-it.se' })
+    expect(skickaLosenordsaterstallningForProfil).toHaveBeenCalledWith(
+      'user-2',
+      'https://admin.nova-it.se/logga-in?aterstall=1',
+    )
+  })
+
+  it('använder säker fallback-origin för återställningslänk om host inte är en Worker-domän', async () => {
+    hamtaAutentiseradAnvandarId.mockResolvedValue('user-1')
+    harAdminAtkomst.mockResolvedValue(true)
+    skickaLosenordsaterstallningForProfil.mockResolvedValue({
+      ok: true,
+      epost: 'medarbetare@nova-it.se',
+    })
+
+    const svar = await POST(
+      begaran('https://extern.example/api/admin/profiler/user-2/losenord'),
+      context(),
+    )
+
+    expect(svar.status).toBe(200)
     expect(skickaLosenordsaterstallningForProfil).toHaveBeenCalledWith(
       'user-2',
       'https://admin.nova-it.se/logga-in?aterstall=1',

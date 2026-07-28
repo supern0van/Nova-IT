@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
 
+import { byggLosenordsAterstallningsUrl } from '@/lib/admin/admin-url'
 import {
   harAdminAtkomst,
   skickaLosenordsaterstallningForProfil,
@@ -22,8 +23,10 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
   }
 
   const { id } = await params
-  const redirectTo = new URL('/logga-in?aterstall=1', request.nextUrl.origin).toString()
-  const resultat = await skickaLosenordsaterstallningForProfil(id, redirectTo)
+  const resultat = await skickaLosenordsaterstallningForProfil(
+    id,
+    byggLosenordsAterstallningsUrl(request),
+  )
 
   if (!resultat.ok) {
     return NextResponse.json(
