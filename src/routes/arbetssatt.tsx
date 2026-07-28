@@ -1,5 +1,6 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { ClipboardList, MonitorCog, ShieldCheck } from "lucide-react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { ArrowRight, ClipboardList, MonitorCog, ShieldCheck } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Container, PageHeader } from "@/components/design-system";
 
 export const Route = createFileRoute("/arbetssatt")({
@@ -70,6 +71,22 @@ function WorkMethodPage() {
               </li>
             ))}
           </ol>
+        </Container>
+      </section>
+
+      <section className="nova-section border-t border-white/10">
+        <Container className="flex flex-col items-start gap-5 py-14 sm:flex-row sm:items-center sm:justify-between sm:py-16">
+          <div>
+            <p className="eyebrow">Nästa steg</p>
+            <h2 className="mt-3 max-w-xl text-2xl font-semibold tracking-normal text-balance">
+              Redo att beskriva vad som krånglar?
+            </h2>
+          </div>
+          <Button asChild size="lg" className="shrink-0">
+            <Link to="/kontakt" search={{ form: "request", service: undefined }}>
+              Beskriv ärende <ArrowRight className="h-4 w-4" />
+            </Link>
+          </Button>
         </Container>
       </section>
     </>

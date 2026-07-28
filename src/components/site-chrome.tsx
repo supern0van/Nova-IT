@@ -8,6 +8,8 @@ import { LegalDialogTrigger } from "@/components/legal-dialog";
 
 const nav = [
   { to: "/", label: "Hem" },
+  { to: "/privatpersoner", label: "Privatpersoner" },
+  { to: "/foretag-foreningar", label: "Företag & föreningar" },
   { to: "/tjanster", label: "Tjänster" },
   { to: "/arbetssatt", label: "Så arbetar vi" },
   { to: "/faq", label: "FAQ" },

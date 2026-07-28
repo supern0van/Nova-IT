@@ -30,10 +30,13 @@ det som listas här är verifierade, konkreta fynd, inte en fullständig poängs
    betyder att förfrågan inte finns registrerad någonstans. Detta är den centrala
    arkitekturbristen som Grind 5 ska åtgärda (kopplat ärendeintag mot adminportalens
    `admin_kunder`/`admin_arenden`).
-2. **`/assistent` är en ren återvändsgränd.** Sidan finns och fungerar, men är inte länkad
-   från header, footer eller startsidan — enda referensen i kodbasen är att
-   `SupportBotLauncher` döljer sig själv när `pathname === "/assistent"`. En besökare hittar
-   den bara via en direkt URL eller sökmotor, aldrig via navigering.
+2. **Den fristående `/assistent`-sidan saknar intern länk.** Själva assistentupplevelsen
+   (`SupportGuide`) är nåbar överallt via den flytande "Förbered ärende"-knappen
+   (`SupportBotLauncher`, döljer bara sig själv på `/assistent` för att undvika dubblett) —
+   detta är INTE en total återvändsgränd som ursprungligen noterat. Men den dedikerade,
+   SEO-vänliga sidan `/assistent` (egen URL, egna metadata, delningsbar länk) har ingen
+   länk från header, footer eller startsida. Värt att lägga till en direktlänk dit, lägre
+   prioritet än ursprungligen bedömt.
 3. **Turnstile/spamskydd saknas**, bekräftat i `docs/project-status.md`s egen att-göra-lista
    — kontaktformuläret är exponerat utan botskydd.
 
