@@ -23,6 +23,7 @@ import { BokningDialog } from '@/components/portal/bokningar/bokning-dialog'
 import { FilterVal } from '@/components/portal/filter-val'
 import {
   BokningStatusChip,
+  DriftFelBanner,
   Sektionsrubrik,
   Sida,
   Sidhuvud,
@@ -43,6 +44,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Spinner } from '@/components/ui/spinner'
 import { useOperativAdminData } from '@/hooks/use-operativ-admin-data'
 import { anvandarNamn, listaTilldelningsbara } from '@/lib/auth/demo-auth'
 import { bokningStatusLabel, bokningTypLabel } from '@/lib/labels'
@@ -88,7 +90,7 @@ function veckonummer(d: Date) {
  * Kalenderkänsla utan tunga rutnät, vilket fungerar bättre på små skärmar.
  */
 export function Bokningsvy() {
-  const { db, laddar } = useOperativAdminData()
+  const { db, laddar, fel, uppdatera } = useOperativAdminData()
   const { anvandare, kan } = useAuth()
   const params = useSearchParams()
 
@@ -97,6 +99,7 @@ export function Bokningsvy() {
   const [tekniker, setTekniker] = useState('alla')
   const [dialogOppen, setDialogOppen] = useState(false)
   const [redigerad, setRedigerad] = useState<Bokning | undefined>(undefined)
+  const [avbokarId, setAvbokarId] = useState<string | null>(null)
 
   const kanHantera = kan('hantera_bokningar')
 
@@ -135,7 +138,7 @@ export function Bokningsvy() {
     [filtrerade, iDag, veckansDatum],
   )
 
-  const personal = listaTilldelningsbara()
+  const personal = useMemo(() => listaTilldelningsbara(), [])
   const veckoEtikett = `Vecka ${veckonummer(veckoStart)} · ${dagar[0].toLocaleDateString('sv-SE', { day: 'numeric', month: 'short' })}–${dagar[6].toLocaleDateString('sv-SE', { day: 'numeric', month: 'short', year: 'numeric' })}`
 
   function flyttaVecka(steg: number) {
@@ -145,8 +148,18 @@ export function Bokningsvy() {
   }
 
   async function avboka(bokning: Bokning) {
-    await avbokaBokning(bokning.id, anvandare?.namn ?? 'Okänd')
-    toast.success('Bokningen avbokades', { description: 'Kunden meddelas inte automatiskt ännu.' })
+    if (avbokarId) return
+    setAvbokarId(bokning.id)
+    try {
+      await avbokaBokning(bokning.id, anvandare?.namn ?? 'Okänd')
+      toast.success('Bokningen avbokades', { description: 'Kunden meddelas inte automatiskt ännu.' })
+    } catch (error) {
+      toast.error('Kunde inte avboka bokningen', {
+        description: error instanceof Error ? error.message : 'Försök igen.',
+      })
+    } finally {
+      setAvbokarId(null)
+    }
   }
 
   function oppnaNy() {
@@ -170,6 +183,8 @@ export function Bokningsvy() {
           Ny bokning
         </Button>
       </Sidhuvud>
+
+      {fel && <DriftFelBanner vidForsokIgen={uppdatera} />}
 
       <Yta className="flex flex-col gap-4 p-3.5">
         {/* Veckonavigering och filter */}
@@ -285,6 +300,8 @@ export function Bokningsvy() {
                             key={bokning.id}
                             bokning={bokning}
                             kanHantera={kanHantera}
+                            avbokas={avbokarId === bokning.id}
+                            avbokningPagar={avbokarId !== null}
                             vidAndra={() => oppnaAndra(bokning)}
                             vidAvboka={() => avboka(bokning)}
                           />
@@ -374,11 +391,15 @@ export function Bokningsvy() {
 function BokningRad({
   bokning,
   kanHantera,
+  avbokas,
+  avbokningPagar,
   vidAndra,
   vidAvboka,
 }: {
   bokning: Bokning
   kanHantera: boolean
+  avbokas: boolean
+  avbokningPagar: boolean
   vidAndra: () => void
   vidAvboka: () => void
 }) {
@@ -442,9 +463,13 @@ function BokningRad({
                     variant="ghost"
                     size="sm"
                     className="text-destructive"
-                    disabled={!kanHantera}
+                    disabled={!kanHantera || avbokningPagar}
                   >
-                    <Trash2Icon data-icon="inline-start" />
+                    {avbokas ? (
+                      <Spinner data-icon="inline-start" />
+                    ) : (
+                      <Trash2Icon data-icon="inline-start" />
+                    )}
                     Avboka
                   </Button>
                 }

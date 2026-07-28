@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { toast } from 'sonner'
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
 const anvandare = {
@@ -164,5 +165,52 @@ describe('KundDialog – validering speglar server-constraints', () => {
     await user.click(screen.getByRole('button', { name: 'Lägg upp kund' }))
 
     expect(skapaKund).toHaveBeenCalledTimes(1)
+  })
+
+  it('visar ett begripligt felmeddelande om API:t kastar, och låser inte knappen', async () => {
+    const user = userEvent.setup()
+    skapaKund.mockRejectedValue(new Error('Kunde inte spara i den operativa databasen.'))
+    renderaDialog()
+
+    await fyllIObligatoriskaFalt(user)
+    await user.click(screen.getByRole('button', { name: 'Lägg upp kund' }))
+
+    expect(toast.error).toHaveBeenCalledWith('Kunde inte lägga upp kunden', {
+      description: 'Kunde inte spara i den operativa databasen.',
+    })
+    expect(
+      (screen.getByRole('button', { name: 'Lägg upp kund' }) as HTMLButtonElement).disabled,
+    ).toBe(false)
+  })
+
+  it('skickar bara en gång även vid dubbelklick medan sparning pågår', async () => {
+    const user = userEvent.setup()
+    let losUpp: (() => void) | undefined
+    skapaKund.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          losUpp = () =>
+            resolve({
+              id: 'k-ny',
+              namn: 'Ny Kund',
+              kundtyp: 'privatperson',
+              epost: 'ny.kund@exempel.se',
+              telefon: '070-123 45 67',
+              adress: '',
+              ort: '',
+              senasteKontakt: new Date().toISOString(),
+              skapad: new Date().toISOString(),
+            })
+        }),
+    )
+    renderaDialog()
+
+    await fyllIObligatoriskaFalt(user)
+    const knapp = screen.getByRole('button', { name: 'Lägg upp kund' })
+    await user.click(knapp)
+    await user.click(knapp)
+
+    expect(skapaKund).toHaveBeenCalledTimes(1)
+    losUpp?.()
   })
 })

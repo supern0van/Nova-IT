@@ -1,7 +1,7 @@
 'use client'
 
 import { CalendarPlusIcon, CheckCircle2Icon, LockIcon } from 'lucide-react'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { toast } from 'sonner'
 
 import { useAuth } from '@/components/auth/auth-provider'
@@ -32,8 +32,11 @@ import type { Arende, ArendeStatus, Prioritet } from '@/lib/types'
 
 /**
  * Åtgärdsraden på ärendedetaljsidan: status, prioritet, ansvarig, bokning och
- * avslut. Varje kontroll speglar behörigheterna i `lib/auth/demo-auth.ts` –
- * en tekniker kan till exempel inte byta ansvarig tekniker.
+ * avslut. Varje kontroll speglar behörigheterna i `Behorighet`-systemet
+ * (`kan()` från `useAuth()`, se `lib/auth/supabase-auth.ts`) – en tekniker
+ * kan till exempel inte byta ansvarig tekniker. `lib/auth/demo-auth.ts`
+ * bidrar bara med personallistan (namn/id) som fylls i valen nedan, den
+ * innehåller ingen behörighetslogik.
  */
 export function ArendeAtgarder({
   arende,
@@ -44,48 +47,73 @@ export function ArendeAtgarder({
 }) {
   const { anvandare, kan } = useAuth()
   const [sparar, setSparar] = useState<string | null>(null)
-  const tekniker = listaTilldelningsbara()
+  const tekniker = useMemo(() => listaTilldelningsbara(), [])
   const aktor = anvandare?.namn ?? 'Okänd'
 
   const kanTilldela = kan('tilldela_arende')
   const avslutat = arende.status === 'lost' || arende.status === 'stangd'
 
+  function felmeddelande(error: unknown) {
+    return error instanceof Error ? error.message : 'Kunde inte spara ändringen. Försök igen.'
+  }
+
   async function bytStatus(ny: ArendeStatus) {
-    if (ny === arende.status) return
+    if (ny === arende.status || sparar) return
     setSparar('status')
-    await andraStatus(arende.id, ny, aktor, statusLabel[arende.status], statusLabel[ny])
-    setSparar(null)
-    toast.success(`Status: ${statusLabel[ny]}`)
+    try {
+      await andraStatus(arende.id, ny, aktor, statusLabel[arende.status], statusLabel[ny])
+      toast.success(`Status: ${statusLabel[ny]}`)
+    } catch (error) {
+      toast.error('Kunde inte ändra status', { description: felmeddelande(error) })
+    } finally {
+      setSparar(null)
+    }
   }
 
   async function bytPrioritet(ny: Prioritet) {
-    if (ny === arende.prioritet) return
+    if (ny === arende.prioritet || sparar) return
     setSparar('prioritet')
-    await andraPrioritet(
-      arende.id,
-      ny,
-      aktor,
-      prioritetLabel[arende.prioritet],
-      prioritetLabel[ny],
-    )
-    setSparar(null)
-    toast.success(`Prioritet: ${prioritetLabel[ny]}`)
+    try {
+      await andraPrioritet(
+        arende.id,
+        ny,
+        aktor,
+        prioritetLabel[arende.prioritet],
+        prioritetLabel[ny],
+      )
+      toast.success(`Prioritet: ${prioritetLabel[ny]}`)
+    } catch (error) {
+      toast.error('Kunde inte ändra prioritet', { description: felmeddelande(error) })
+    } finally {
+      setSparar(null)
+    }
   }
 
   async function bytAnsvarig(nyttId: string) {
     const ansvarigId = nyttId === 'ingen' ? null : nyttId
-    if (ansvarigId === arende.ansvarigId) return
+    if (ansvarigId === arende.ansvarigId || sparar) return
     setSparar('ansvarig')
-    await tilldelaArende(arende.id, ansvarigId, aktor, anvandarNamn(ansvarigId))
-    setSparar(null)
-    toast.success(ansvarigId ? `Tilldelat ${anvandarNamn(ansvarigId)}` : 'Tilldelningen togs bort')
+    try {
+      await tilldelaArende(arende.id, ansvarigId, aktor, anvandarNamn(ansvarigId))
+      toast.success(ansvarigId ? `Tilldelat ${anvandarNamn(ansvarigId)}` : 'Tilldelningen togs bort')
+    } catch (error) {
+      toast.error('Kunde inte ändra ansvarig', { description: felmeddelande(error) })
+    } finally {
+      setSparar(null)
+    }
   }
 
   async function avsluta() {
+    if (sparar) return
     setSparar('lost')
-    await markeraSomLost(arende.id, aktor)
-    setSparar(null)
-    toast.success('Ärendet är markerat som löst')
+    try {
+      await markeraSomLost(arende.id, aktor)
+      toast.success('Ärendet är markerat som löst')
+    } catch (error) {
+      toast.error('Kunde inte markera ärendet som löst', { description: felmeddelande(error) })
+    } finally {
+      setSparar(null)
+    }
   }
 
   const ansvarigVarden: Record<string, string> = {

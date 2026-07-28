@@ -151,6 +151,7 @@ export function KundDialog({
   }
 
   async function spara() {
+    if (sparar) return
     if (!validera()) return
     setSparar(true)
     const forfattare = anvandare?.namn ?? 'Okänd'
@@ -189,6 +190,10 @@ export function KundDialog({
         vidSkapad?.(kund)
       }
       setOppen(false)
+    } catch (error) {
+      toast.error(befintlig ? 'Kunde inte spara kunduppgifterna' : 'Kunde inte lägga upp kunden', {
+        description: error instanceof Error ? error.message : 'Försök igen.',
+      })
     } finally {
       setSparar(false)
     }

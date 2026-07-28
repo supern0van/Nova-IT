@@ -63,7 +63,7 @@ export function BokningDialog({
   kunder: Kund[]
 }) {
   const { anvandare } = useAuth()
-  const tekniker = listaTilldelningsbara()
+  const tekniker = useMemo(() => listaTilldelningsbara(), [])
   const redigerar = Boolean(befintlig)
 
   const imorgon = useMemo(() => {
@@ -131,6 +131,7 @@ export function BokningDialog({
   }
 
   async function spara() {
+    if (sparar) return
     if (!validera()) return
     setSparar(true)
     const kund = kunder.find((k) => k.id === kundId)
@@ -175,6 +176,10 @@ export function BokningDialog({
         })
       }
       setOppen(false)
+    } catch (error) {
+      toast.error(redigerar ? 'Kunde inte spara bokningsändringen' : 'Kunde inte skapa bokningen', {
+        description: error instanceof Error ? error.message : 'Försök igen.',
+      })
     } finally {
       setSparar(false)
     }

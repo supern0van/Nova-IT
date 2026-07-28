@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { toast } from 'sonner'
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
 import type { Arendekategori, Kund } from '@/lib/types'
@@ -142,5 +143,22 @@ describe('ArendeDialog – validering speglar server-constraints', () => {
     await user.click(screen.getByRole('button', { name: 'Registrera ärende' }))
 
     expect(skapaArende).toHaveBeenCalledTimes(1)
+  })
+
+  it('visar ett begripligt felmeddelande om API:t kastar', async () => {
+    const user = userEvent.setup()
+    skapaArende.mockRejectedValue(new Error('Kunde inte spara i den operativa databasen.'))
+    renderaDialog()
+
+    await user.type(screen.getByLabelText('Rubrik'), 'Giltig rubrik')
+    await user.click(screen.getByText('Välj kategori'))
+    await user.click(await screen.findByRole('option', { name: 'Datorer och vardags-IT' }))
+    await user.type(screen.getByLabelText('Beskrivning'), 'Beskrivning som räcker.')
+    await user.click(screen.getByRole('button', { name: 'Registrera ärende' }))
+
+    expect(toast.error).toHaveBeenCalledWith('Kunde inte registrera ärendet', {
+      description: 'Kunde inte spara i den operativa databasen.',
+    })
+    expect(push).not.toHaveBeenCalled()
   })
 })

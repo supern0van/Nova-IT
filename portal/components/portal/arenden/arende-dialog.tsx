@@ -153,6 +153,10 @@ export function ArendeDialog({
       })
       setOppen(false)
       router.push(`/portal/arenden/${nytt.id}`)
+    } catch (error) {
+      toast.error('Kunde inte registrera ärendet', {
+        description: error instanceof Error ? error.message : 'Försök igen.',
+      })
     } finally {
       setSparar(false)
     }

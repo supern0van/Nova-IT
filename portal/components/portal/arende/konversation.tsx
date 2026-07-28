@@ -54,7 +54,7 @@ export function Konversation({
 
   async function skicka() {
     const rensad = text.trim()
-    if (!rensad) return
+    if (!rensad || skickar) return
     setSkickar(true)
     try {
       await laggTillMeddelande(arendeId, rensad, internt, anvandare?.namn ?? 'Okänd')
@@ -63,6 +63,10 @@ export function Konversation({
         description: internt
           ? 'Anteckningen visas aldrig för kunden.'
           : 'Kunden får inget automatiskt e-postmeddelande ännu.',
+      })
+    } catch (error) {
+      toast.error(internt ? 'Kunde inte spara anteckningen' : 'Kunde inte skicka svaret', {
+        description: error instanceof Error ? error.message : 'Försök igen.',
       })
     } finally {
       setSkickar(false)

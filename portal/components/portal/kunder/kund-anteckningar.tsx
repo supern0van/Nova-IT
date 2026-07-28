@@ -48,37 +48,56 @@ export function KundAnteckningar({
   const [nyText, setNyText] = useState('')
   const [visaNy, setVisaNy] = useState(false)
   const [sparar, setSparar] = useState(false)
+  const [tarBortId, setTarBortId] = useState<string | null>(null)
   const [redigerarId, setRedigerarId] = useState<string | null>(null)
   const [redigeraText, setRedigeraText] = useState('')
 
   async function skapa() {
-    if (!nyText.trim()) return
+    if (!nyText.trim() || sparar) return
     setSparar(true)
     try {
       await laggTillKundanteckning(kundId, nyText, anvandare?.namn ?? 'Okänd')
       setNyText('')
       setVisaNy(false)
       toast.success('Anteckningen sparades', { description: 'Den visas endast internt.' })
+    } catch (error) {
+      toast.error('Kunde inte spara anteckningen', {
+        description: error instanceof Error ? error.message : 'Försök igen.',
+      })
     } finally {
       setSparar(false)
     }
   }
 
   async function sparaAndring(anteckningId: string) {
-    if (!redigeraText.trim()) return
+    if (!redigeraText.trim() || sparar) return
     setSparar(true)
     try {
       await uppdateraKundanteckning(anteckningId, redigeraText)
       setRedigerarId(null)
       toast.success('Anteckningen uppdaterades')
+    } catch (error) {
+      toast.error('Kunde inte uppdatera anteckningen', {
+        description: error instanceof Error ? error.message : 'Försök igen.',
+      })
     } finally {
       setSparar(false)
     }
   }
 
   async function taBort(anteckningId: string) {
-    await taBortKundanteckning(anteckningId)
-    toast.success('Anteckningen togs bort')
+    if (tarBortId) return
+    setTarBortId(anteckningId)
+    try {
+      await taBortKundanteckning(anteckningId)
+      toast.success('Anteckningen togs bort')
+    } catch (error) {
+      toast.error('Kunde inte ta bort anteckningen', {
+        description: error instanceof Error ? error.message : 'Försök igen.',
+      })
+    } finally {
+      setTarBortId(null)
+    }
   }
 
   return (
@@ -213,8 +232,17 @@ export function KundAnteckningar({
                           <AlertDialog>
                             <AlertDialogTrigger
                               render={
-                                <Button variant="ghost" size="sm" className="text-destructive">
-                                  <Trash2Icon data-icon="inline-start" />
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="text-destructive"
+                                  disabled={tarBortId !== null}
+                                >
+                                  {tarBortId === anteckning.id ? (
+                                    <Spinner data-icon="inline-start" />
+                                  ) : (
+                                    <Trash2Icon data-icon="inline-start" />
+                                  )}
                                   Ta bort
                                 </Button>
                               }

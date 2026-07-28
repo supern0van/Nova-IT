@@ -28,6 +28,7 @@ import { Tidslinje } from '@/components/portal/arende/tidslinje'
 import { BokningDialog } from '@/components/portal/bokningar/bokning-dialog'
 import {
   BokningStatusChip,
+  DriftFelBanner,
   Faltrad,
   KopieraKnapp,
   KundtypChip,
@@ -50,6 +51,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Spinner } from '@/components/ui/spinner'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { useOperativAdminData } from '@/hooks/use-operativ-admin-data'
 import { anvandarNamn } from '@/lib/auth/demo-auth'
@@ -73,10 +75,11 @@ import type { Bokning } from '@/lib/types'
  * admin-API:t och uppdateras automatiskt efter varje skrivning.
  */
 export function ArendeDetalj({ arendeId }: { arendeId: string }) {
-  const { db, laddar } = useOperativAdminData()
+  const { db, laddar, fel, uppdatera } = useOperativAdminData()
   const { anvandare, kan } = useAuth()
   const [bokningOppen, setBokningOppen] = useState(false)
   const [redigeraBokning, setRedigeraBokning] = useState<Bokning | undefined>(undefined)
+  const [avbokarId, setAvbokarId] = useState<string | null>(null)
 
   const arende = db?.arenden.find((a) => a.id === arendeId)
   const kund = arende ? db?.kunder.find((k) => k.id === arende.kundId) : undefined
@@ -137,12 +140,24 @@ export function ArendeDetalj({ arendeId }: { arendeId: string }) {
     .join('\n')
 
   async function avboka(bokning: Bokning) {
-    await avbokaBokning(bokning.id, anvandare?.namn ?? 'Okänd')
-    toast.success('Bokningen avbokades', { description: 'Kunden meddelas inte automatiskt ännu.' })
+    if (avbokarId) return
+    setAvbokarId(bokning.id)
+    try {
+      await avbokaBokning(bokning.id, anvandare?.namn ?? 'Okänd')
+      toast.success('Bokningen avbokades', { description: 'Kunden meddelas inte automatiskt ännu.' })
+    } catch (error) {
+      toast.error('Kunde inte avboka bokningen', {
+        description: error instanceof Error ? error.message : 'Försök igen.',
+      })
+    } finally {
+      setAvbokarId(null)
+    }
   }
 
   return (
     <Sida bred className="lg:py-6">
+      {fel && <DriftFelBanner vidForsokIgen={uppdatera} />}
+
       {/* Sidhuvud med ärendenummer och navigering tillbaka */}
       <div className="flex flex-col gap-3">
         <Button
@@ -431,10 +446,14 @@ export function ArendeDetalj({ arendeId }: { arendeId: string }) {
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                disabled={!kan('hantera_bokningar')}
+                                disabled={!kan('hantera_bokningar') || avbokarId !== null}
                                 className="text-destructive"
                               >
-                                <Trash2Icon data-icon="inline-start" />
+                                {avbokarId === bokning.id ? (
+                                  <Spinner data-icon="inline-start" />
+                                ) : (
+                                  <Trash2Icon data-icon="inline-start" />
+                                )}
                                 Avboka
                               </Button>
                             }
