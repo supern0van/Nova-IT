@@ -46,5 +46,5 @@ export async function hamtaAutentiseradAnvandarId(request: NextRequest): Promise
   if (!claims) return null
   if (!harUppnattAal2(claims.aal)) return null
 
-  return claims.sub ?? null
+  return typeof claims.sub === 'string' && claims.sub.trim() ? claims.sub : null
 }

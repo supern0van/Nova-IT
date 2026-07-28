@@ -51,4 +51,12 @@ describe('hamtaAutentiseradAnvandarId (skydd för protected server functions, t.
     const id = await hamtaAutentiseradAnvandarId(fakeRequest())
     expect(id).toBeNull()
   })
+
+  it('saknat eller tomt sub-claim ger null även efter aal2', async () => {
+    getClaims.mockResolvedValueOnce({ data: { claims: { aal: 'aal2' } } })
+    await expect(hamtaAutentiseradAnvandarId(fakeRequest())).resolves.toBeNull()
+
+    getClaims.mockResolvedValueOnce({ data: { claims: { sub: '   ', aal: 'aal2' } } })
+    await expect(hamtaAutentiseradAnvandarId(fakeRequest())).resolves.toBeNull()
+  })
 })
