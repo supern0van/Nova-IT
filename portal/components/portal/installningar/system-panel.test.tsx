@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
-import { cleanup, render, screen, waitFor } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { toast } from 'sonner'
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
 import type { Anvandare } from '@/lib/types'
@@ -34,6 +35,45 @@ const anvandare: Anvandare = {
   initialer: 'AN',
   titel: 'Administratör',
   aktiv: true,
+}
+
+function skapaProfil(overrides: Record<string, unknown> = {}) {
+  return {
+    id: 'user-tekniker',
+    epost: 'tekniker@nova-it.se',
+    namn: 'Tekniker Nova',
+    roll: 'medarbetare',
+    skapad: '2026-07-27T00:00:00.000Z',
+    uppdaterad: '2026-07-28T00:00:00.000Z',
+    kontoHalsa: {
+      epostBekraftad: true,
+      senastInloggad: null,
+      authSkapad: '2026-07-27T00:00:00.000Z',
+      mfaAntalFaktorer: 1,
+      mfaVerifieradeFaktorer: 1,
+    },
+    ...overrides,
+  }
+}
+
+function lyckadeInitSvar(profiler = [skapaProfil()]) {
+  return [
+    {
+      status: 200,
+      ok: true,
+      json: vi.fn().mockResolvedValue({ profiler }),
+    },
+    {
+      status: 200,
+      ok: true,
+      json: vi.fn().mockResolvedValue({
+        status: {
+          kontroller: [],
+          profiler: { antal: profiler.length, status: 'ok' },
+        },
+      }),
+    },
+  ]
 }
 
 describe('SystemPanel', () => {
@@ -98,21 +138,12 @@ describe('SystemPanel', () => {
           ok: true,
           json: vi.fn().mockResolvedValue({
             profiler: [
-              {
+              skapaProfil({
                 id: 'user-admin',
                 epost: 'admin@nova-it.se',
                 namn: 'Admin Nova',
                 roll: 'administrator',
-                skapad: '2026-07-27T00:00:00.000Z',
-                uppdaterad: '2026-07-28T00:00:00.000Z',
-                kontoHalsa: {
-                  epostBekraftad: true,
-                  senastInloggad: null,
-                  authSkapad: '2026-07-27T00:00:00.000Z',
-                  mfaAntalFaktorer: 1,
-                  mfaVerifieradeFaktorer: 1,
-                },
-              },
+              }),
             ],
           }),
         })
@@ -141,5 +172,69 @@ describe('SystemPanel', () => {
     expect((screen.getByRole('button', { name: 'Återställ' }) as HTMLButtonElement).disabled).toBe(
       true,
     )
+  })
+
+  it('visar fail-closed fel om MFA-återställning svarar med trasig JSON', async () => {
+    kan.mockReturnValue(true)
+    vi.stubGlobal(
+      'fetch',
+      vi
+        .fn()
+        .mockResolvedValueOnce(lyckadeInitSvar()[0])
+        .mockResolvedValueOnce(lyckadeInitSvar()[1])
+        .mockResolvedValueOnce({
+          status: 200,
+          ok: true,
+          json: vi.fn().mockRejectedValue(new Error('trasig json')),
+        }),
+    )
+
+    render(<SystemPanel />)
+
+    await waitFor(() => {
+      expect(screen.getByText('tekniker@nova-it.se')).toBeTruthy()
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Återställ' }))
+    await screen.findByText('Återställ MFA för tekniker@nova-it.se?')
+    fireEvent.click(screen.getByRole('button', { name: 'Återställ MFA' }))
+
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith('Kunde inte återställa MFA', {
+        description: 'Nätverket eller Worker-svaret avbröts.',
+      })
+    })
+  })
+
+  it('visar fail-closed fel om lösenordsåterställning svarar med trasig JSON', async () => {
+    kan.mockReturnValue(true)
+    vi.stubGlobal(
+      'fetch',
+      vi
+        .fn()
+        .mockResolvedValueOnce(lyckadeInitSvar()[0])
+        .mockResolvedValueOnce(lyckadeInitSvar()[1])
+        .mockResolvedValueOnce({
+          status: 200,
+          ok: true,
+          json: vi.fn().mockRejectedValue(new Error('trasig json')),
+        }),
+    )
+
+    render(<SystemPanel />)
+
+    await waitFor(() => {
+      expect(screen.getByText('tekniker@nova-it.se')).toBeTruthy()
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Skicka länk' }))
+    await screen.findByText('Skicka lösenordsåterställning?')
+    fireEvent.click(screen.getAllByRole('button', { name: 'Skicka länk' }).at(-1)!)
+
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith('Kunde inte skicka lösenordslänk', {
+        description: 'Nätverket eller Worker-svaret avbröts.',
+      })
+    })
   })
 })
