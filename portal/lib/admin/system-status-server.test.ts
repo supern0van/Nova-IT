@@ -43,16 +43,16 @@ describe('hamtaSystemStatus', () => {
       status.kontroller
         .filter(
           (kontroll) =>
-            !kontroll.id.startsWith('settings-') && kontroll.id !== 'operations-demo-storage',
+            !kontroll.id.startsWith('settings-'),
         )
         .every((kontroll) => kontroll.status === 'ok'),
     ).toBe(true)
     expect(status.kontroller).toContainEqual({
-      id: 'operations-demo-storage',
+      id: 'operations-database',
       namn: 'Ärenden, kunder och bokningar',
-      status: 'varning',
+      status: 'ok',
       beskrivning:
-        'Operativa flöden använder fortfarande demodatalager/localStorage tills databasmodell och RLS för adminärenden är beslutade.',
+        'Operativa Supabase-tabeller finns och kan läsas av Worker:n. Nästa steg är att koppla UI-skrivningar till API:t.',
     })
     expect(status.kontroller).toContainEqual({
       id: 'settings-recipients-storage',
@@ -174,6 +174,23 @@ describe('hamtaSystemStatus', () => {
       namn: 'Profiles-tabellen',
       status: 'ok',
       beskrivning: 'Worker:n kan läsa portalkonton från Supabase.',
+    })
+    expect(status.profiler).toEqual({ antal: 3, status: 'ok' })
+  })
+
+  it('rapporterar varning när operativa tabeller inte är applicerade ännu', async () => {
+    select
+      .mockResolvedValueOnce({ count: 3, error: null })
+      .mockResolvedValueOnce({ count: null, error: new Error('tabell saknas') })
+
+    const status = await hamtaSystemStatus()
+
+    expect(status.kontroller).toContainEqual({
+      id: 'operations-database',
+      namn: 'Ärenden, kunder och bokningar',
+      status: 'varning',
+      beskrivning:
+        'Operativa tabeller är inte läsbara ännu. Portalen använder demodatalager tills migrationen är applicerad och UI/API-bytet är klart.',
     })
     expect(status.profiler).toEqual({ antal: 3, status: 'ok' })
   })

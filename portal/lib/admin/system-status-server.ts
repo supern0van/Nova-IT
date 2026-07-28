@@ -55,13 +55,6 @@ function arHttpsUrl(varde: string) {
 
 const konfigurationsKontroller: SystemStatusKontroll[] = [
   {
-    id: 'operations-demo-storage',
-    namn: 'Ärenden, kunder och bokningar',
-    status: 'varning',
-    beskrivning:
-      'Operativa flöden använder fortfarande demodatalager/localStorage tills databasmodell och RLS för adminärenden är beslutade.',
-  },
-  {
     id: 'settings-notifications-storage',
     namn: 'Aviseringsinställningar',
     status: 'varning',
@@ -188,6 +181,8 @@ export async function hamtaSystemStatus(): Promise<SystemStatus> {
           beskrivning: 'Worker:n kunde inte läsa Supabase Auth Admin-API:t med service role.',
         }
 
+    const operativaTabellerKontroll = await hamtaOperativaTabellerKontroll(supabase)
+
     return {
       kontroller: [
         ...kontroller,
@@ -198,6 +193,7 @@ export async function hamtaSystemStatus(): Promise<SystemStatus> {
           beskrivning: 'Worker:n kan läsa portalkonton från Supabase.',
         },
         authAdminKontroll,
+        operativaTabellerKontroll,
         ...konfigurationsKontroller,
       ],
       profiler: {
@@ -221,6 +217,42 @@ export async function hamtaSystemStatus(): Promise<SystemStatus> {
         antal: null,
         status: 'fel',
       },
+    }
+  }
+}
+
+async function hamtaOperativaTabellerKontroll(
+  supabase: ReturnType<typeof skapaSupabaseServiceklient>,
+): Promise<SystemStatusKontroll> {
+  try {
+    const { error } = await supabase
+      .from('admin_kunder')
+      .select('id', { count: 'exact', head: true })
+
+    if (error) {
+      return {
+        id: 'operations-database',
+        namn: 'Ärenden, kunder och bokningar',
+        status: 'varning',
+        beskrivning:
+          'Operativa tabeller är inte läsbara ännu. Portalen använder demodatalager tills migrationen är applicerad och UI/API-bytet är klart.',
+      }
+    }
+
+    return {
+      id: 'operations-database',
+      namn: 'Ärenden, kunder och bokningar',
+      status: 'ok',
+      beskrivning:
+        'Operativa Supabase-tabeller finns och kan läsas av Worker:n. Nästa steg är att koppla UI-skrivningar till API:t.',
+    }
+  } catch {
+    return {
+      id: 'operations-database',
+      namn: 'Ärenden, kunder och bokningar',
+      status: 'varning',
+      beskrivning:
+        'Operativa tabeller kunde inte verifieras just nu. Portalen använder demodatalager tills databasläget är bekräftat.',
     }
   }
 }
