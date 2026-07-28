@@ -33,7 +33,14 @@ export const apiChecks = [
   {
     path: '/api/admin/operativt',
     expectedStatus: 401,
-    expectedBody: { kunder: [], arenden: [], bokningar: [] },
+    expectedBody: {
+      kunder: [],
+      arenden: [],
+      bokningar: [],
+      meddelanden: [],
+      aktiviteter: [],
+      kundanteckningar: [],
+    },
   },
 ]
 

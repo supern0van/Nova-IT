@@ -36,7 +36,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
 import { Skeleton } from '@/components/ui/skeleton'
-import { useDemoData } from '@/hooks/use-demo-data'
+import { useOperativAdminData } from '@/hooks/use-operativ-admin-data'
 import { anvandarNamn } from '@/lib/auth/demo-auth'
 import {
   bokningTypLabel,
@@ -51,11 +51,11 @@ const OPPNA: Arende['status'][] = ['ny', 'pagaende', 'vantar_pa_kund', 'bokad']
 
 /**
  * Kundprofil: kontaktuppgifter, ärendehistorik, kommande bokningar och
- * interna anteckningar. Anteckningarna sparas via demodatalagret och är
+ * interna anteckningar. Anteckningarna sparas via portalens operativa adminlager och är
  * skrivskyddade för roller utan behörigheten `redigera_kund`.
  */
 export function KundProfil({ kundId }: { kundId: string }) {
-  const { db, laddar } = useDemoData()
+  const { db, laddar } = useOperativAdminData()
   const { kan } = useAuth()
   const [bokningOppen, setBokningOppen] = useState(false)
   const [redigeraOppen, setRedigeraOppen] = useState(false)
@@ -102,7 +102,7 @@ export function KundProfil({ kundId }: { kundId: string }) {
             </EmptyMedia>
             <EmptyTitle>Kunden hittades inte</EmptyTitle>
             <EmptyDescription>
-              Kunden kan ha tagits bort, eller så har demodatan återställts i den här sessionen.
+              Kunden kan ha tagits bort, eller så finns den inte längre.
             </EmptyDescription>
           </EmptyHeader>
           <Button variant="outline" size="sm" render={<Link href="/portal/kunder" />}>

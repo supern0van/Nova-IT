@@ -62,7 +62,7 @@ export function Konversation({
       toast.success(internt ? 'Intern anteckning sparad' : 'Svaret är skickat', {
         description: internt
           ? 'Anteckningen visas aldrig för kunden.'
-          : 'I demoläget skickas ingen riktig e-post.',
+          : 'Kunden får inget automatiskt e-postmeddelande ännu.',
       })
     } finally {
       setSkickar(false)

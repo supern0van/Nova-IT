@@ -43,7 +43,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
 import { Skeleton } from '@/components/ui/skeleton'
-import { useDemoData } from '@/hooks/use-demo-data'
+import { useOperativAdminData } from '@/hooks/use-operativ-admin-data'
 import { anvandarNamn, listaTilldelningsbara } from '@/lib/auth/demo-auth'
 import { bokningStatusLabel, bokningTypLabel } from '@/lib/labels'
 import { avbokaBokning, bokningTyper } from '@/lib/store'
@@ -88,7 +88,7 @@ function veckonummer(d: Date) {
  * Kalenderkänsla utan tunga rutnät, vilket fungerar bättre på små skärmar.
  */
 export function Bokningsvy() {
-  const { db, laddar } = useDemoData()
+  const { db, laddar } = useOperativAdminData()
   const { anvandare, kan } = useAuth()
   const params = useSearchParams()
 
@@ -146,7 +146,7 @@ export function Bokningsvy() {
 
   async function avboka(bokning: Bokning) {
     await avbokaBokning(bokning.id, anvandare?.namn ?? 'Okänd')
-    toast.success('Bokningen avbokades', { description: 'Kunden aviseras inte i demoläget.' })
+    toast.success('Bokningen avbokades', { description: 'Kunden meddelas inte automatiskt ännu.' })
   }
 
   function oppnaNy() {
@@ -456,7 +456,7 @@ function BokningRad({
                   </AlertDialogMedia>
                   <AlertDialogTitle>Avboka tiden?</AlertDialogTitle>
                   <AlertDialogDescription>
-                    {`${bokning.kundNamn} kl. ${bokning.tid} markeras som ${bokningStatusLabel.avbokad.toLowerCase()}. Ingen avisering skickas i demoläget.`}
+                    {`${bokning.kundNamn} kl. ${bokning.tid} markeras som ${bokningStatusLabel.avbokad.toLowerCase()}. Ingen avisering skickas till kunden ännu.`}
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>

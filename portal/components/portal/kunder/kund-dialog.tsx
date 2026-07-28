@@ -160,7 +160,7 @@ export function KundDialog({
           forfattare,
         )
         toast.success('Kunden lades upp', {
-          description: 'Kunden sparas i demosessionen och syns direkt i registret.',
+          description: 'Kunden är sparad och syns direkt i registret.',
         })
         vidSkapad?.(kund)
       }
@@ -178,7 +178,7 @@ export function KundDialog({
           <DialogDescription>
             {redigerar
               ? 'Namn och kundtyp är låsta eftersom de används i ärendehistoriken.'
-              : 'Kunden sparas i demosessionen. Inga uppgifter skickas vidare.'}
+              : 'Kunduppgifterna sparas i Nova IT:s system.'}
           </DialogDescription>
         </DialogHeader>
 

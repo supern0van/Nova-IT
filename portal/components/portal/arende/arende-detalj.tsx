@@ -51,7 +51,7 @@ import { Button } from '@/components/ui/button'
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import { useDemoData } from '@/hooks/use-demo-data'
+import { useOperativAdminData } from '@/hooks/use-operativ-admin-data'
 import { anvandarNamn } from '@/lib/auth/demo-auth'
 import {
   bokningTypLabel,
@@ -69,11 +69,11 @@ import type { Bokning } from '@/lib/types'
  * Ärendedetaljsidan – portalens arbetsyta.
  *
  * Vänster kolumn är ärendets innehåll och dialog, höger kolumn är fakta,
- * bilagor, bokningar och händelselogg. All data läses från demodatalagret via
- * `useDemoData`, som uppdateras automatiskt efter varje skrivning.
+ * bilagor, bokningar och händelselogg. Operativ data läses via det skyddade
+ * admin-API:t och uppdateras automatiskt efter varje skrivning.
  */
 export function ArendeDetalj({ arendeId }: { arendeId: string }) {
-  const { db, laddar } = useDemoData()
+  const { db, laddar } = useOperativAdminData()
   const { anvandare, kan } = useAuth()
   const [bokningOppen, setBokningOppen] = useState(false)
   const [redigeraBokning, setRedigeraBokning] = useState<Bokning | undefined>(undefined)
@@ -114,7 +114,7 @@ export function ArendeDetalj({ arendeId }: { arendeId: string }) {
             </EmptyMedia>
             <EmptyTitle>Ärendet hittades inte</EmptyTitle>
             <EmptyDescription>
-              Ärendet kan ha tagits bort, eller så har demodatan återställts i den här sessionen.
+              Ärendet kan ha tagits bort, eller så finns det inte längre.
             </EmptyDescription>
           </EmptyHeader>
           <Button variant="outline" size="sm" render={<Link href="/portal/arenden" />}>
@@ -138,7 +138,7 @@ export function ArendeDetalj({ arendeId }: { arendeId: string }) {
 
   async function avboka(bokning: Bokning) {
     await avbokaBokning(bokning.id, anvandare?.namn ?? 'Okänd')
-    toast.success('Bokningen avbokades', { description: 'Kunden aviseras inte i demoläget.' })
+    toast.success('Bokningen avbokades', { description: 'Kunden meddelas inte automatiskt ännu.' })
   }
 
   return (
@@ -344,7 +344,7 @@ export function ArendeDetalj({ arendeId }: { arendeId: string }) {
                         {bilaga.storlek} · {relativTid(bilaga.uppladdad)}
                       </span>
                     </span>
-                    {/* Filhantering är attrapp i demon – ingen riktig lagring finns. */}
+                    {/* Filhantering är inte kopplad till riktig lagring ännu. */}
                     <Tooltip>
                       <TooltipTrigger
                         render={
@@ -353,7 +353,7 @@ export function ArendeDetalj({ arendeId }: { arendeId: string }) {
                           </Button>
                         }
                       />
-                      <TooltipContent>Filhämtning saknas i demoläget</TooltipContent>
+                      <TooltipContent>Filhämtning är inte tillgänglig ännu</TooltipContent>
                     </Tooltip>
                   </li>
                 ))}

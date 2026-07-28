@@ -47,7 +47,7 @@ function standardPlats(typ: BokningTyp, kund?: Kund, telefon?: string) {
 
 /**
  * Skapar eller ändrar en bokning. Används både från ärendedetaljsidan och från
- * bokningsvyn. Skrivningarna går via demodatalagret i `lib/store.ts`.
+ * bokningsvyn. Skrivningarna går via portalens operativa adminlager.
  */
 export function BokningDialog({
   oppen,
@@ -171,7 +171,7 @@ export function BokningDialog({
           aktor,
         )
         toast.success('Bokningen skapades', {
-          description: 'Kunden aviseras inte i demoläget.',
+          description: 'Kunden meddelas inte automatiskt ännu.',
         })
       }
       setOppen(false)
@@ -188,7 +188,7 @@ export function BokningDialog({
           <DialogDescription>
             {arende
               ? `Kopplas till ärende ${arende.arendenummer} – ${arende.kundNamn}.`
-              : 'Bokningen sparas i demosessionen. Ingen kalenderinbjudan skickas.'}
+              : 'Bokningen sparas i Nova IT:s system. Ingen kalenderinbjudan skickas ännu.'}
           </DialogDescription>
         </DialogHeader>
 

@@ -34,7 +34,7 @@ import {
 } from '@/components/ui/input-group'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { useDemoData } from '@/hooks/use-demo-data'
+import { useOperativAdminData } from '@/hooks/use-operativ-admin-data'
 import { anvandarNamn, listaAnvandare } from '@/lib/auth/demo-auth'
 import {
   kanalLabel,
@@ -69,12 +69,11 @@ const STANDARD = {
 }
 
 /**
- * Ärendelistan. Filtren är helt klientnära och arbetar mot demodatalagret –
- * vid ett riktigt API flyttas urvalet lämpligen till serversidan med samma
- * parametrar som nedan.
+ * Ärendelistan. Filtren är klientnära ovanpå den operativa admin-datan; vid
+ * större datamängder kan urvalet flyttas till serversidan med samma parametrar.
  */
 export function Arendelista() {
-  const { db, laddar } = useDemoData()
+  const { db, laddar } = useOperativAdminData()
   const { anvandare, kan } = useAuth()
   const router = useRouter()
   const params = useSearchParams()

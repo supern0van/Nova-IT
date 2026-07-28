@@ -12,6 +12,7 @@
     "worker:deployments": "wrangler deployments list --name nova-it-admin",
     "worker:secrets": "wrangler secret list --name nova-it-admin",
     "worker:secrets:check": "node scripts/check-worker-secrets.mjs",
+    "operations:db:check": "node scripts/check-operations-database.mjs",
     "smoke:worker": "node scripts/smoke-worker.mjs",
     "release:check": "pnpm test && pnpm lint && pnpm exec tsc --noEmit --pretty false && pnpm worker:secrets:check && pnpm smoke:worker",
     "release:predeploy": "pnpm run ci && pnpm deploy:dry-run && pnpm worker:secrets:check && pnpm smoke:worker",

@@ -130,6 +130,84 @@ function id(prefix: string) {
   return `${prefix}-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`
 }
 
+async function skapaViaOperativApi<T>(
+  typ:
+    | 'skapa_kund'
+    | 'skapa_arende'
+    | 'skapa_bokning'
+    | 'lagg_till_meddelande'
+    | 'lagg_till_kundanteckning',
+  data: Record<string, unknown>,
+  svarsNyckel: string,
+): Promise<T | null> {
+  if (!isBrowser()) return null
+
+  let svar: Response
+  try {
+    svar = await fetch('/api/admin/operativt', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ typ, data }),
+    })
+  } catch {
+    // Lokal/offline-fallback: behåll det gamla demoflödet om API:t inte går att nå alls.
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('Kunde inte nå det operativa API:t.')
+    }
+    return null
+  }
+
+  if (!svar.ok) {
+    throw new Error('Kunde inte spara i den operativa databasen.')
+  }
+
+  const json = (await svar.json()) as Record<string, unknown>
+  if (json.ok !== true || typeof json[svarsNyckel] !== 'object' || json[svarsNyckel] === null) {
+    throw new Error('Servern returnerade ett oväntat svar.')
+  }
+
+  return json[svarsNyckel] as T
+}
+
+async function andraViaOperativApi<T>(
+  typ:
+    | 'uppdatera_kund'
+    | 'uppdatera_bokning'
+    | 'avboka_bokning'
+    | 'uppdatera_arende'
+    | 'uppdatera_kundanteckning'
+    | 'ta_bort_kundanteckning',
+  data: Record<string, unknown>,
+  svarsNyckel: string,
+): Promise<T | null> {
+  if (!isBrowser()) return null
+
+  let svar: Response
+  try {
+    svar = await fetch('/api/admin/operativt', {
+      method: 'PATCH',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ typ, data }),
+    })
+  } catch {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('Kunde inte nå det operativa API:t.')
+    }
+    return null
+  }
+
+  if (!svar.ok) {
+    throw new Error('Kunde inte spara i den operativa databasen.')
+  }
+
+  const json = (await svar.json()) as Record<string, unknown>
+  if (json.ok !== true || json[svarsNyckel] === undefined || json[svarsNyckel] === null) {
+    throw new Error('Servern returnerade ett oväntat svar.')
+  }
+
+  return json[svarsNyckel] as T
+}
+
 // ─── Läsning ────────────────────────────────────────────────────────────────
 
 export function hamtaDatabas(): Databas {
@@ -199,6 +277,23 @@ export async function andraStatus(
   franLabel: string,
   tillLabel: string,
 ) {
+  const apiArende = await andraViaOperativApi<Arende>(
+    'uppdatera_arende',
+    {
+      id: arendeId,
+      andringar: { status },
+      aktivitet: { typ: 'status', beskrivning: `Status ändrades från ${franLabel} till ${tillLabel}`, aktor },
+    },
+    'arende',
+  )
+  if (apiArende) {
+    const db = las()
+    const index = db.arenden.findIndex((a) => a.id === apiArende.id)
+    if (index >= 0) db.arenden[index] = apiArende
+    skriv(db)
+    return
+  }
+
   await latens()
   const db = las()
   const arende = db.arenden.find((a) => a.id === arendeId)
@@ -222,6 +317,27 @@ export async function andraPrioritet(
   franLabel: string,
   tillLabel: string,
 ) {
+  const apiArende = await andraViaOperativApi<Arende>(
+    'uppdatera_arende',
+    {
+      id: arendeId,
+      andringar: { prioritet },
+      aktivitet: {
+        typ: 'prioritet',
+        beskrivning: `Prioritet ändrades från ${franLabel} till ${tillLabel}`,
+        aktor,
+      },
+    },
+    'arende',
+  )
+  if (apiArende) {
+    const db = las()
+    const index = db.arenden.findIndex((a) => a.id === apiArende.id)
+    if (index >= 0) db.arenden[index] = apiArende
+    skriv(db)
+    return
+  }
+
   await latens()
   const db = las()
   const arende = db.arenden.find((a) => a.id === arendeId)
@@ -244,6 +360,27 @@ export async function tilldelaArende(
   aktor: string,
   ansvarigNamn: string,
 ) {
+  const apiArende = await andraViaOperativApi<Arende>(
+    'uppdatera_arende',
+    {
+      id: arendeId,
+      andringar: { ansvarigId },
+      aktivitet: {
+        typ: 'tilldelning',
+        beskrivning: ansvarigId ? `Tilldelades ${ansvarigNamn}` : 'Tilldelningen togs bort',
+        aktor,
+      },
+    },
+    'arende',
+  )
+  if (apiArende) {
+    const db = las()
+    const index = db.arenden.findIndex((a) => a.id === apiArende.id)
+    if (index >= 0) db.arenden[index] = apiArende
+    skriv(db)
+    return
+  }
+
   await latens()
   const db = las()
   const arende = db.arenden.find((a) => a.id === arendeId)
@@ -271,6 +408,29 @@ export async function laggTillMeddelande(
   internt: boolean,
   avsandareNamn: string,
 ) {
+  const apiMeddelande = await skapaViaOperativApi<Meddelande>(
+    'lagg_till_meddelande',
+    { arendeId, text, internt, avsandareNamn },
+    'meddelande',
+  )
+  if (apiMeddelande) {
+    const db = las()
+    if (!db.meddelanden.some((m) => m.id === apiMeddelande.id)) {
+      db.meddelanden.push(apiMeddelande)
+    }
+    const arende = db.arenden.find((a) => a.id === arendeId)
+    if (arende) {
+      const nu = apiMeddelande.tidpunkt
+      arende.uppdaterad = nu
+      if (!internt) {
+        arende.sistaSvar = nu
+        if (arende.status === 'ny') arende.status = 'pagaende'
+      }
+    }
+    skriv(db)
+    return
+  }
+
   await latens(400)
   const db = las()
   const arende = db.arenden.find((a) => a.id === arendeId)
@@ -305,6 +465,23 @@ export async function laggTillMeddelande(
 }
 
 export async function markeraSomLost(arendeId: string, aktor: string) {
+  const apiArende = await andraViaOperativApi<Arende>(
+    'uppdatera_arende',
+    {
+      id: arendeId,
+      andringar: { status: 'lost' },
+      aktivitet: { typ: 'status', beskrivning: 'Ärendet markerades som löst', aktor },
+    },
+    'arende',
+  )
+  if (apiArende) {
+    const db = las()
+    const index = db.arenden.findIndex((a) => a.id === apiArende.id)
+    if (index >= 0) db.arenden[index] = apiArende
+    skriv(db)
+    return
+  }
+
   await latens()
   const db = las()
   const arende = db.arenden.find((a) => a.id === arendeId)
@@ -355,6 +532,20 @@ export interface NyttArende {
  * ärenden i demodatan är strukturerade.
  */
 export async function skapaArende(uppgifter: NyttArende, aktor: string): Promise<Arende> {
+  const apiArende = await skapaViaOperativApi<Arende>(
+    'skapa_arende',
+    { ...uppgifter, aktor },
+    'arende',
+  )
+  if (apiArende) {
+    const db = las()
+    if (!db.arenden.some((arende) => arende.id === apiArende.id)) db.arenden.push(apiArende)
+    const kund = db.kunder.find((k) => k.id === apiArende.kundId)
+    if (kund) kund.senasteKontakt = apiArende.skapad
+    skriv(db)
+    return apiArende
+  }
+
   await latens(420)
   const db = las()
 
@@ -405,6 +596,25 @@ export async function skapaBokning(
   bokning: Omit<Bokning, 'id'>,
   aktor: string,
 ): Promise<Bokning> {
+  const apiBokning = await skapaViaOperativApi<Bokning>(
+    'skapa_bokning',
+    { ...bokning, aktor },
+    'bokning',
+  )
+  if (apiBokning) {
+    const db = las()
+    if (!db.bokningar.some((b) => b.id === apiBokning.id)) db.bokningar.push(apiBokning)
+    if (apiBokning.arendeId) {
+      const arende = db.arenden.find((a) => a.id === apiBokning.arendeId)
+      if (arende) {
+        arende.status = 'bokad'
+        arende.uppdaterad = new Date().toISOString()
+      }
+    }
+    skriv(db)
+    return apiBokning
+  }
+
   await latens(400)
   const db = las()
   const ny: Bokning = { ...bokning, id: id('bok') }
@@ -428,6 +638,19 @@ export async function uppdateraBokning(
   andringar: Partial<Pick<Bokning, 'datum' | 'tid' | 'typ' | 'status' | 'notering' | 'tekniker' | 'langdMinuter'>>,
   aktor: string,
 ) {
+  const apiBokning = await andraViaOperativApi<Bokning>(
+    'uppdatera_bokning',
+    { id: bokningId, andringar, aktor },
+    'bokning',
+  )
+  if (apiBokning) {
+    const db = las()
+    const index = db.bokningar.findIndex((b) => b.id === apiBokning.id)
+    if (index >= 0) db.bokningar[index] = apiBokning
+    skriv(db)
+    return
+  }
+
   await latens()
   const db = las()
   const bokning = db.bokningar.find((b) => b.id === bokningId)
@@ -440,6 +663,23 @@ export async function uppdateraBokning(
 }
 
 export async function avbokaBokning(bokningId: string, aktor: string) {
+  const apiBokning = await andraViaOperativApi<Bokning>(
+    'avboka_bokning',
+    { id: bokningId, aktor },
+    'bokning',
+  )
+  if (apiBokning) {
+    const db = las()
+    const index = db.bokningar.findIndex((b) => b.id === apiBokning.id)
+    if (index >= 0) db.bokningar[index] = apiBokning
+    if (apiBokning.arendeId) {
+      const arende = db.arenden.find((a) => a.id === apiBokning.arendeId)
+      if (arende && arende.status === 'bokad') arende.status = 'pagaende'
+    }
+    skriv(db)
+    return
+  }
+
   await latens()
   const db = las()
   const bokning = db.bokningar.find((b) => b.id === bokningId)
@@ -483,6 +723,20 @@ export async function laggTillKundanteckning(
   text: string,
   forfattare: string,
 ): Promise<void> {
+  const apiAnteckning = await skapaViaOperativApi<Kundanteckning>(
+    'lagg_till_kundanteckning',
+    { kundId, text, forfattare },
+    'anteckning',
+  )
+  if (apiAnteckning) {
+    const db = las()
+    if (!db.kundanteckningar.some((a) => a.id === apiAnteckning.id)) {
+      db.kundanteckningar.push(apiAnteckning)
+    }
+    skriv(db)
+    return
+  }
+
   await latens(320)
   const db = las()
   if (!db.kunder.some((k) => k.id === kundId)) return
@@ -497,6 +751,19 @@ export async function laggTillKundanteckning(
 }
 
 export async function uppdateraKundanteckning(anteckningId: string, text: string) {
+  const apiAnteckning = await andraViaOperativApi<Kundanteckning>(
+    'uppdatera_kundanteckning',
+    { id: anteckningId, text },
+    'anteckning',
+  )
+  if (apiAnteckning) {
+    const db = las()
+    const index = db.kundanteckningar.findIndex((a) => a.id === apiAnteckning.id)
+    if (index >= 0) db.kundanteckningar[index] = apiAnteckning
+    skriv(db)
+    return
+  }
+
   await latens(300)
   const db = las()
   const anteckning = db.kundanteckningar.find((a) => a.id === anteckningId)
@@ -507,6 +774,18 @@ export async function uppdateraKundanteckning(anteckningId: string, text: string
 }
 
 export async function taBortKundanteckning(anteckningId: string) {
+  const apiId = await andraViaOperativApi<string>(
+    'ta_bort_kundanteckning',
+    { id: anteckningId },
+    'id',
+  )
+  if (apiId) {
+    const db = las()
+    db.kundanteckningar = db.kundanteckningar.filter((a) => a.id !== anteckningId)
+    skriv(db)
+    return
+  }
+
   await latens(220)
   const db = las()
   db.kundanteckningar = db.kundanteckningar.filter((a) => a.id !== anteckningId)
@@ -519,6 +798,25 @@ export type Kundandringar = Partial<
 >
 
 export async function uppdateraKund(kundId: string, andringar: Kundandringar) {
+  const apiKund = await andraViaOperativApi<Kund>(
+    'uppdatera_kund',
+    { id: kundId, andringar },
+    'kund',
+  )
+  if (apiKund) {
+    const db = las()
+    const index = db.kunder.findIndex((k) => k.id === apiKund.id)
+    if (index >= 0) db.kunder[index] = apiKund
+    for (const arende of db.arenden) {
+      if (arende.kundId !== apiKund.id) continue
+      arende.epost = apiKund.epost
+      arende.telefon = apiKund.telefon
+      arende.organisation = apiKund.organisation
+    }
+    skriv(db)
+    return
+  }
+
   await latens(380)
   const db = las()
   const kund = db.kunder.find((k) => k.id === kundId)
@@ -565,6 +863,28 @@ export interface NyKund {
  * portalen läser, så den syns i kundlistan, bokningsdialogen och sökningar.
  */
 export async function skapaKund(uppgifter: NyKund, forfattare: string): Promise<Kund> {
+  const apiKund = await skapaViaOperativApi<Kund>(
+    'skapa_kund',
+    { ...uppgifter, forfattare },
+    'kund',
+  )
+  if (apiKund) {
+    const db = las()
+    if (!db.kunder.some((kund) => kund.id === apiKund.id)) db.kunder.push(apiKund)
+    const forsta = uppgifter.forstaAnteckning?.trim()
+    if (forsta) {
+      db.kundanteckningar.push({
+        id: id('kant'),
+        kundId: apiKund.id,
+        text: forsta,
+        forfattare,
+        skapad: apiKund.skapad,
+      })
+    }
+    skriv(db)
+    return apiKund
+  }
+
   await latens(480)
   const db = las()
   const nu = new Date().toISOString()

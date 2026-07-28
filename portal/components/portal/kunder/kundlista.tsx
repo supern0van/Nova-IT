@@ -26,7 +26,7 @@ import {
   InputGroupInput,
 } from '@/components/ui/input-group'
 import { Skeleton } from '@/components/ui/skeleton'
-import { useDemoData } from '@/hooks/use-demo-data'
+import { useOperativAdminData } from '@/hooks/use-operativ-admin-data'
 import { kundtypLabel, relativTid } from '@/lib/labels'
 import type { Arende, Kund } from '@/lib/types'
 
@@ -45,7 +45,7 @@ const sorteringLabel: Record<Sortering, string> = {
  * personalen kan hitta kunden med den uppgift de råkar ha framför sig.
  */
 export function Kundlista() {
-  const { db, laddar } = useDemoData()
+  const { db, laddar } = useOperativAdminData()
   const { kan } = useAuth()
   const router = useRouter()
   const params = useSearchParams()

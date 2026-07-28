@@ -31,7 +31,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
 import { Skeleton } from '@/components/ui/skeleton'
-import { useDemoData } from '@/hooks/use-demo-data'
+import { useOperativAdminData } from '@/hooks/use-operativ-admin-data'
 import { anvandarNamn } from '@/lib/auth/demo-auth'
 import { bokningTypLabel, prioritetVikt, relativTid } from '@/lib/labels'
 import type { Aktivitet, Arende, Bokning, BokningTyp } from '@/lib/types'
@@ -49,7 +49,7 @@ const bokningIkon: Record<BokningTyp, typeof PhoneIcon> = {
 }
 
 export function OversiktVy() {
-  const { db, laddar } = useDemoData()
+  const { db, laddar } = useOperativAdminData()
   const { anvandare } = useAuth()
 
   const data = useMemo(() => {

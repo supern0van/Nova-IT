@@ -31,8 +31,8 @@ import {
 import type { Kundanteckning } from '@/lib/types'
 
 /**
- * Interna anteckningar på kundnivå. Skrivningarna går via demodatalagret, som
- * i sin tur uppdaterar alla monterade vyer. Roller utan `redigera_kund` får
+ * Interna anteckningar på kundnivå. Skrivningarna går via portalens operativa
+ * adminlager, som i sin tur uppdaterar alla monterade vyer. Roller utan `redigera_kund` får
  * läsa men inte ändra.
  */
 export function KundAnteckningar({
