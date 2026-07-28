@@ -1,5 +1,5 @@
+import { arSystemRoll, type SystemRoll } from '@/lib/auth/roll'
 import { skapaSupabaseServiceklient } from '@/lib/supabase/service'
-import type { SystemRoll } from '@/lib/auth/roll'
 
 /**
  * SERVER-ONLY. Databasåtkomst för systemrollen.
@@ -33,8 +33,8 @@ export async function hamtaRollFranDatabasen(anvandareId: string): Promise<Syste
     .eq('id', anvandareId)
     .maybeSingle()
 
-  if (error || !data) return null
-  return data.roll as SystemRoll
+  if (error || !data || !arSystemRoll(data.roll)) return null
+  return data.roll
 }
 
 export interface EgenProfil {
