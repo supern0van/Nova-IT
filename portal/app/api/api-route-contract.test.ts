@@ -53,4 +53,23 @@ describe('admin API route-kontrakt', () => {
       expect(harRollKontroll, relativ).toBe(true)
     }
   })
+
+  it('läcker inte råa interna felobjekt i route-svar', () => {
+    const forbjudnaFelLackor = [
+      /\.message\b/,
+      /\.stack\b/,
+      /String\(\s*(error|fel)\s*\)/,
+      /JSON\.stringify\(\s*(error|fel)\s*\)/,
+      /NextResponse\.json\(\s*(error|fel)\b/,
+    ]
+
+    for (const route of listaRouteFiler(apiRoot)) {
+      const relativ = relativApiPath(route)
+      const innehall = readFileSync(route, 'utf8')
+
+      for (const monster of forbjudnaFelLackor) {
+        expect(innehall, `${relativ} får inte exponera ${monster}`).not.toMatch(monster)
+      }
+    }
+  })
 })
