@@ -1,6 +1,7 @@
 import {
   adminWorkerDomäner,
   adminWorkerNamn,
+  adminWorkerWorkersDevAktiv,
   obligatoriskaWorkerSecrets,
 } from '@/lib/admin/worker-konfiguration'
 import { skapaSupabaseServiceklient } from '@/lib/supabase/service'
@@ -91,6 +92,14 @@ const workerKontroller: SystemStatusKontroll[] = [
     namn: 'Worker-domäner',
     status: 'ok',
     beskrivning: `Konfigurerade routes: ${adminWorkerDomäner.join(', ')}.`,
+  },
+  {
+    id: 'worker-workers-dev',
+    namn: 'workers.dev-ingång',
+    status: adminWorkerWorkersDevAktiv ? 'varning' : 'ok',
+    beskrivning: adminWorkerWorkersDevAktiv
+      ? 'Workern är även nåbar via workers.dev tills exponeringsytan stängs i Cloudflare-konfigurationen.'
+      : 'Workern är endast nåbar via konfigurerade custom domains.',
   },
 ]
 

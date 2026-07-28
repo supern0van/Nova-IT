@@ -10,6 +10,7 @@ describe('admin Worker-konfiguration', () => {
     return parseJsonc(await readFile(new URL('../wrangler.jsonc', import.meta.url), 'utf8')) as {
       name?: unknown
       main?: unknown
+      workers_dev?: unknown
       preview_urls?: unknown
       assets?: { directory?: unknown; binding?: unknown }
       routes?: Array<{ pattern?: unknown; custom_domain?: unknown }>
@@ -34,6 +35,7 @@ describe('admin Worker-konfiguration', () => {
 
     expect(config.name).toBe('nova-it-admin')
     expect(config.main).toBe('.open-next/worker.js')
+    expect(config.workers_dev).toBe(true)
     expect(config.preview_urls).toBe(false)
     expect(config.assets).toEqual({
       directory: '.open-next/assets',

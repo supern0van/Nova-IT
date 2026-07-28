@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url'
 import {
   adminWorkerDomäner,
   adminWorkerNamn,
+  adminWorkerWorkersDevAktiv,
   obligatoriskaWorkerSecrets,
 } from '@/lib/admin/worker-konfiguration'
 import { parseJsonc } from '../../scripts/check-worker-secrets.mjs'
@@ -40,7 +41,10 @@ describe('hamtaSystemStatus', () => {
     expect(status.profiler).toEqual({ antal: 3, status: 'ok' })
     expect(
       status.kontroller
-        .filter((kontroll) => !kontroll.id.startsWith('settings-'))
+        .filter(
+          (kontroll) =>
+            !kontroll.id.startsWith('settings-') && kontroll.id !== 'worker-workers-dev',
+        )
         .every((kontroll) => kontroll.status === 'ok'),
     ).toBe(true)
     expect(status.kontroller).toContainEqual({
@@ -60,6 +64,13 @@ describe('hamtaSystemStatus', () => {
       namn: 'Cloudflare Worker',
       status: 'ok',
       beskrivning: 'Källkonfigurationen pekar på Worker:n nova-it-admin.',
+    })
+    expect(status.kontroller).toContainEqual({
+      id: 'worker-workers-dev',
+      namn: 'workers.dev-ingång',
+      status: 'varning',
+      beskrivning:
+        'Workern är även nåbar via workers.dev tills exponeringsytan stängs i Cloudflare-konfigurationen.',
     })
     expect(from).toHaveBeenCalledWith('profiles')
     expect(listUsers).toHaveBeenCalledWith({ page: 1, perPage: 1 })
@@ -167,11 +178,13 @@ describe('worker-konfiguration', () => {
     const wranglerPath = fileURLToPath(new URL('../../wrangler.jsonc', import.meta.url))
     const wrangler = parseJsonc(readFileSync(wranglerPath, 'utf8')) as {
       name?: string
+      workers_dev?: boolean
       routes?: Array<{ pattern?: string; custom_domain?: boolean }>
       secrets?: { required?: string[] }
     }
 
     expect(wrangler.name).toBe(adminWorkerNamn)
+    expect(wrangler.workers_dev).toBe(adminWorkerWorkersDevAktiv)
     expect(wrangler.routes?.map((route) => route.pattern)).toEqual([...adminWorkerDomäner])
     expect(wrangler.routes?.every((route) => route.custom_domain === true)).toBe(true)
     expect(wrangler.secrets?.required).toEqual([...obligatoriskaWorkerSecrets])

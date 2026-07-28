@@ -1,5 +1,7 @@
 export const adminWorkerNamn = 'nova-it-admin'
 
+export const adminWorkerWorkersDevAktiv = true
+
 export const adminWorkerDomäner = [
   'admin.nova-it.se',
   'admin.novait.se',
