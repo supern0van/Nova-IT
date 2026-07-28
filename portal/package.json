@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint .",
     "test": "vitest run",
+    "ci": "pnpm test && pnpm lint && pnpm exec tsc --noEmit --pretty false && pnpm exec opennextjs-cloudflare build",
     "worker:deployments": "wrangler deployments list --name nova-it-admin",
     "worker:secrets": "wrangler secret list --name nova-it-admin",
     "worker:secrets:check": "node scripts/check-worker-secrets.mjs",

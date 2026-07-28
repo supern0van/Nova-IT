@@ -138,7 +138,7 @@ pnpm worker:deployments
 
 ### Adminportal i GitHub Actions
 
-CI har ett separat jobb för `portal/`. Det kör portalens egna pnpm-baserade verifiering och bygger den faktiska OpenNext Worker-bundlen. Root-projektets Bun-baserade lint/build ska inte lint-köra `portal/`, eftersom adminportalen är en separat Next/pnpm-app med egen ESLint-konfiguration.
+CI har ett separat jobb för `portal/`. Det kör `pnpm run ci`, portalens egna pnpm-baserade verifiering, och bygger den faktiska OpenNext Worker-bundlen i Linux. Kör samma kommando i WSL vid lokal felsökning, eftersom OpenNext-bundlingen kan falla på Windows symlink-begränsningar. Root-projektets Bun-baserade lint/build ska inte lint-köra `portal/`, eftersom adminportalen är en separat Next/pnpm-app med egen ESLint-konfiguration.
 
 ## Kvar för full kontakt- och e-postdrift
 
