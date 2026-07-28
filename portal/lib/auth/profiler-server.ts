@@ -1,6 +1,6 @@
 import type { User } from '@supabase/supabase-js'
 
-import { arAdministrator, type SystemRoll } from '@/lib/auth/roll'
+import { arAdministrator, arSystemRoll, type SystemRoll } from '@/lib/auth/roll'
 import { hamtaRollFranDatabasen } from '@/lib/auth/roll-server'
 import { skapaSupabaseServiceklient } from '@/lib/supabase/service'
 
@@ -58,7 +58,10 @@ export async function listaProfilerFranDatabasen(): Promise<ProfilRad[]> {
     throw new Error('Kunde inte läsa profiler från Supabase.')
   }
 
-  const profiler = (data ?? []) as ProfilRad[]
+  const profiler = (data ?? []).flatMap((rad) => {
+    const profil = normaliseraProfilRad(rad)
+    return profil ? [profil] : []
+  })
   const authAnvandare = await listaAuthAnvandare()
   const authKarta = new Map(authAnvandare.map((user) => [user.id, user]))
   const mfaKarta = await listaMfaHalsa(profiler.map((profil) => profil.id))
@@ -82,7 +85,7 @@ export async function uppdateraProfilRollIDatabasen(
     .maybeSingle()
 
   if (error || !data) return null
-  return data as ProfilRad
+  return normaliseraProfilRad(data)
 }
 
 export async function uppdateraProfilNamnIDatabasen(
@@ -115,9 +118,10 @@ export async function uppdateraProfilNamnIDatabasen(
     .select('id, epost, namn, roll, skapad, uppdaterad')
     .maybeSingle()
 
-  if (error || !data) return null
+  const profil = normaliseraProfilRad(data)
+  if (error || !profil) return null
   return {
-    ...(data as ProfilRad),
+    ...profil,
     kontoHalsa: kontoHalsaFranAuthAnvandare(user),
   }
 }
@@ -171,14 +175,15 @@ export async function bjudInPortalProfil({
     .select('id, epost, namn, roll, skapad, uppdaterad')
     .maybeSingle()
 
-  if (profilFel || !profil) {
+  const sparadProfil = normaliseraProfilRad(profil)
+  if (profilFel || !sparadProfil) {
     return { ok: false, fel: 'kunde_inte_spara_profil' }
   }
 
   return {
     ok: true,
     profil: {
-      ...(profil as ProfilRad),
+      ...sparadProfil,
       kontoHalsa: kontoHalsaFranAuthAnvandare(user),
     },
   }
@@ -261,5 +266,47 @@ function kontoHalsaFranAuthAnvandare(user: User | undefined, mfa?: MfaHalsa): Ko
     authSkapad: user.created_at ?? null,
     mfaAntalFaktorer: mfa?.antalFaktorer ?? null,
     mfaVerifieradeFaktorer: mfa?.verifieradeFaktorer ?? null,
+  }
+}
+
+function normaliseraProfilRad(data: unknown): ProfilRad | null {
+  if (typeof data !== 'object' || data === null) return null
+  if (
+    !('id' in data) ||
+    !('epost' in data) ||
+    !('namn' in data) ||
+    !('roll' in data) ||
+    !('skapad' in data) ||
+    !('uppdaterad' in data)
+  ) {
+    return null
+  }
+
+  if (
+    typeof data.id !== 'string' ||
+    typeof data.epost !== 'string' ||
+    typeof data.namn !== 'string' ||
+    typeof data.skapad !== 'string' ||
+    typeof data.uppdaterad !== 'string' ||
+    !arSystemRoll(data.roll)
+  ) {
+    return null
+  }
+
+  const id = data.id.trim()
+  const epost = data.epost.trim().toLowerCase()
+  const namn = data.namn.trim()
+  const skapad = data.skapad.trim()
+  const uppdaterad = data.uppdaterad.trim()
+
+  if (!id || !epost || !namn || !skapad || !uppdaterad) return null
+
+  return {
+    id,
+    epost,
+    namn,
+    roll: data.roll,
+    skapad,
+    uppdaterad,
   }
 }

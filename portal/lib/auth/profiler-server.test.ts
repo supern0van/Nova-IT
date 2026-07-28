@@ -130,6 +130,45 @@ describe('listaProfilerFranDatabasen', () => {
     expect(profiler[0]?.kontoHalsa).toBeNull()
   })
 
+  it('filtrerar bort trasiga profiles-rader innan de skickas till admin-UI:t', async () => {
+    order.mockResolvedValue({
+      data: [
+        {
+          id: ' user-1 ',
+          epost: ' ADMIN@NOVA-IT.SE ',
+          namn: ' Admin ',
+          roll: 'administrator',
+          skapad: ' 2026-07-27T00:00:00.000Z ',
+          uppdaterad: ' 2026-07-27T00:00:00.000Z ',
+        },
+        {
+          id: 'user-trasig',
+          epost: 'trasig@nova-it.se',
+          namn: 'Trasig',
+          roll: 'owner',
+          skapad: '2026-07-27T00:00:00.000Z',
+          uppdaterad: '2026-07-27T00:00:00.000Z',
+        },
+      ],
+      error: null,
+    })
+    listUsers.mockResolvedValue({ data: { users: [] }, error: null })
+
+    const profiler = await listaProfilerFranDatabasen()
+
+    expect(profiler).toHaveLength(1)
+    expect(profiler[0]).toMatchObject({
+      id: 'user-1',
+      epost: 'admin@nova-it.se',
+      namn: 'Admin',
+      roll: 'administrator',
+      skapad: '2026-07-27T00:00:00.000Z',
+      uppdaterad: '2026-07-27T00:00:00.000Z',
+    })
+    expect(listFactors).toHaveBeenCalledWith({ userId: 'user-1' })
+    expect(listFactors).not.toHaveBeenCalledWith({ userId: 'user-trasig' })
+  })
+
   it('visar verifierad MFA-status när faktorer kan läsas', async () => {
     order.mockResolvedValue({
       data: [
@@ -326,6 +365,36 @@ describe('uppdateraProfilNamnIDatabasen', () => {
 
     expect(profil).toBeNull()
     expect(update).not.toHaveBeenCalled()
+  })
+
+  it('returnerar null om profiles svarar med ogiltig roll efter namnuppdatering', async () => {
+    getUserById.mockResolvedValue({
+      data: {
+        user: {
+          id: 'user-2',
+          user_metadata: {},
+          email_confirmed_at: null,
+          confirmed_at: null,
+          last_sign_in_at: null,
+          created_at: '2026-07-27T00:30:00.000Z',
+        },
+      },
+      error: null,
+    })
+    updateUserById.mockResolvedValue({ data: { user: { id: 'user-2' } }, error: null })
+    maybeSingle.mockResolvedValueOnce({
+      data: {
+        id: 'user-2',
+        epost: 'medarbetare@nova-it.se',
+        namn: 'Nytt Namn',
+        roll: 'owner',
+        skapad: '2026-07-27T00:00:00.000Z',
+        uppdaterad: '2026-07-28T00:00:00.000Z',
+      },
+      error: null,
+    })
+
+    await expect(uppdateraProfilNamnIDatabasen('user-2', 'Nytt Namn')).resolves.toBeNull()
   })
 })
 
