@@ -1,10 +1,11 @@
-import { readdirSync, readFileSync, statSync } from 'node:fs'
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 import { describe, expect, it } from 'vitest'
 
 const apiRoot = path.resolve(fileURLToPath(new URL('.', import.meta.url)))
+const appRoot = path.resolve(apiRoot, '..', '..')
 
 function relativApiPath(filvag: string): string {
   return path.relative(apiRoot, filvag).split(path.sep).join('/')
@@ -71,5 +72,17 @@ describe('admin API route-kontrakt', () => {
         expect(innehall, `${relativ} får inte exponera ${monster}`).not.toMatch(monster)
       }
     }
+  })
+
+  it('behåller OpenNext-kompatibelt middleware-skydd och ingen root proxy.ts', () => {
+    const middlewarePath = path.join(appRoot, 'middleware.ts')
+    const rootProxyPath = path.join(appRoot, 'proxy.ts')
+    const middleware = readFileSync(middlewarePath, 'utf8')
+
+    expect(existsSync(middlewarePath)).toBe(true)
+    expect(existsSync(rootProxyPath)).toBe(false)
+    expect(middleware).toContain('uppdateraSessionOchSkyddaPortal')
+    expect(middleware).toContain("'/portal/:path*'")
+    expect(middleware).toContain("'/mfa/:path*'")
   })
 })
