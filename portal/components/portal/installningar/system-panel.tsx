@@ -449,7 +449,7 @@ export function SystemPanel() {
       }
 
       toast.success('Lösenordslänk skickad', {
-        description: `Supabase skickade en återställningslänk till ${data.epost ?? profil.epost}.`,
+        description: `En återställningslänk skickades till ${data.epost ?? profil.epost}.`,
       })
     } catch {
       toast.error('Kunde inte skicka lösenordslänk', {
@@ -821,9 +821,9 @@ export function SystemPanel() {
                               <AlertDialogHeader>
                                 <AlertDialogTitle>Skicka lösenordsåterställning?</AlertDialogTitle>
                                 <AlertDialogDescription>
-                                  Supabase skickar en återställningslänk till {profil.epost}.
-                                  Användaren landar på portalens lösenordsform och behöver sedan logga
-                                  in med MFA enligt det vanliga skyddet.
+                                  En återställningslänk skickas till {profil.epost}. Användaren
+                                  landar på portalens lösenordsform och loggar sedan in med MFA enligt
+                                  det vanliga skyddet.
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
                               <AlertDialogFooter>
