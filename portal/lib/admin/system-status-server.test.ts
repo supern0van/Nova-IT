@@ -7,6 +7,7 @@ import {
   adminWorkerNamn,
   obligatoriskaWorkerSecrets,
 } from '@/lib/admin/worker-konfiguration'
+import { parseJsonc } from '../../scripts/check-worker-secrets.mjs'
 
 const select = vi.fn()
 const from = vi.fn(() => ({ select }))
@@ -164,8 +165,7 @@ describe('hamtaSystemStatus', () => {
 describe('worker-konfiguration', () => {
   it('matchar wrangler.jsonc för namn, routes och obligatoriska secrets', () => {
     const wranglerPath = fileURLToPath(new URL('../../wrangler.jsonc', import.meta.url))
-    const wranglerJson = readFileSync(wranglerPath, 'utf8').replace(/^\s*\/\/.*$/gm, '')
-    const wrangler = JSON.parse(wranglerJson) as {
+    const wrangler = parseJsonc(readFileSync(wranglerPath, 'utf8')) as {
       name?: string
       routes?: Array<{ pattern?: string; custom_domain?: boolean }>
       secrets?: { required?: string[] }
