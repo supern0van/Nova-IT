@@ -1,4 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { readFileSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
+
+import {
+  adminWorkerDomäner,
+  adminWorkerNamn,
+  obligatoriskaWorkerSecrets,
+} from '@/lib/admin/worker-konfiguration'
 
 const select = vi.fn()
 const from = vi.fn(() => ({ select }))
@@ -45,6 +53,12 @@ describe('hamtaSystemStatus', () => {
       namn: 'Supabase Auth Admin',
       status: 'ok',
       beskrivning: 'Worker:n kan läsa Auth-användare och bjuda in portalkonton server-side.',
+    })
+    expect(status.kontroller).toContainEqual({
+      id: 'worker-name',
+      namn: 'Cloudflare Worker',
+      status: 'ok',
+      beskrivning: 'Källkonfigurationen pekar på Worker:n nova-it-admin.',
     })
     expect(from).toHaveBeenCalledWith('profiles')
     expect(listUsers).toHaveBeenCalledWith({ page: 1, perPage: 1 })
@@ -93,5 +107,21 @@ describe('hamtaSystemStatus', () => {
       beskrivning: 'Worker:n kunde inte läsa Supabase Auth Admin-API:t med service role.',
     })
     expect(status.profiler).toEqual({ antal: 3, status: 'ok' })
+  })
+})
+
+describe('worker-konfiguration', () => {
+  it('matchar wrangler.jsonc för namn, routes och obligatoriska secrets', () => {
+    const wranglerPath = fileURLToPath(new URL('../../wrangler.jsonc', import.meta.url))
+    const wrangler = JSON.parse(readFileSync(wranglerPath, 'utf8')) as {
+      name?: string
+      routes?: Array<{ pattern?: string; custom_domain?: boolean }>
+      secrets?: { required?: string[] }
+    }
+
+    expect(wrangler.name).toBe(adminWorkerNamn)
+    expect(wrangler.routes?.map((route) => route.pattern)).toEqual([...adminWorkerDomäner])
+    expect(wrangler.routes?.every((route) => route.custom_domain === true)).toBe(true)
+    expect(wrangler.secrets?.required).toEqual([...obligatoriskaWorkerSecrets])
   })
 })

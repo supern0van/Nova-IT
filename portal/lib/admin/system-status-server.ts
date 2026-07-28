@@ -1,3 +1,8 @@
+import {
+  adminWorkerDomäner,
+  adminWorkerNamn,
+  obligatoriskaWorkerSecrets,
+} from '@/lib/admin/worker-konfiguration'
 import { skapaSupabaseServiceklient } from '@/lib/supabase/service'
 
 export type SystemStatusNiva = 'ok' | 'varning' | 'fel'
@@ -55,21 +60,37 @@ const konfigurationsKontroller: SystemStatusKontroll[] = [
   },
 ]
 
+const workerKontroller: SystemStatusKontroll[] = [
+  {
+    id: 'worker-name',
+    namn: 'Cloudflare Worker',
+    status: 'ok',
+    beskrivning: `Källkonfigurationen pekar på Worker:n ${adminWorkerNamn}.`,
+  },
+  {
+    id: 'worker-domains',
+    namn: 'Worker-domäner',
+    status: 'ok',
+    beskrivning: `Konfigurerade routes: ${adminWorkerDomäner.join(', ')}.`,
+  },
+]
+
 export async function hamtaSystemStatus(): Promise<SystemStatus> {
   const kontroller: SystemStatusKontroll[] = [
+    ...workerKontroller,
     miljoKontroll(
       'Supabase URL',
-      'NEXT_PUBLIC_SUPABASE_URL',
+      obligatoriskaWorkerSecrets[0],
       'Worker:n har adressen till Supabase-projektet.',
     ),
     miljoKontroll(
       'Supabase publishable key',
-      'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY',
+      obligatoriskaWorkerSecrets[1],
       'Klientnyckeln finns för inloggning och sessioner.',
     ),
     miljoKontroll(
       'Supabase service role',
-      'SUPABASE_SERVICE_ROLE_KEY',
+      obligatoriskaWorkerSecrets[2],
       'Servernyckeln finns för skyddade adminoperationer.',
     ),
   ]
