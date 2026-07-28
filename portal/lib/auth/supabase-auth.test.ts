@@ -132,6 +132,10 @@ describe('authAdapter Supabase-identitet', () => {
   })
 
   it('uppdaterar lösenord via Supabase Auth och loggar ut recovery-sessionen', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({ ok: true, text: () => Promise.resolve('') }),
+    )
     updateUser.mockResolvedValue({ error: null })
     signOut.mockResolvedValue({ error: null })
 
@@ -140,5 +144,85 @@ describe('authAdapter Supabase-identitet', () => {
     expect(resultat).toEqual({ ok: true })
     expect(updateUser).toHaveBeenCalledWith({ password: 'nytt-losenord' })
     expect(signOut).toHaveBeenCalled()
+
+    vi.unstubAllGlobals()
+  })
+
+  describe('läckt lösenord (Have I Been Pwned, k-Anonymity)', () => {
+    async function sha1Hex(varde: string): Promise<string> {
+      const data = new TextEncoder().encode(varde)
+      const hashBuffer = await crypto.subtle.digest('SHA-1', data)
+      return Array.from(new Uint8Array(hashBuffer))
+        .map((b) => b.toString(16).padStart(2, '0'))
+        .join('')
+        .toUpperCase()
+    }
+
+    it('nekar ett lösenord som finns med i HIBP-svaret, utan att anropa Supabase', async () => {
+      const hash = await sha1Hex('lackt-losenord-123')
+      const suffix = hash.slice(5)
+      vi.stubGlobal(
+        'fetch',
+        vi.fn().mockResolvedValue({
+          ok: true,
+          text: () => Promise.resolve(`${suffix}:42\r\nAAAAAAAAAAAAAAAAAAAAAAAAAAA:1`),
+        }),
+      )
+
+      const resultat = await authAdapter.uppdateraLosenord('lackt-losenord-123')
+
+      expect(resultat).toEqual({ ok: false, fel: 'lackt_losenord' })
+      expect(updateUser).not.toHaveBeenCalled()
+
+      vi.unstubAllGlobals()
+    })
+
+    it('tillåter ett lösenord som inte finns med i HIBP-svaret', async () => {
+      vi.stubGlobal(
+        'fetch',
+        vi.fn().mockResolvedValue({
+          ok: true,
+          text: () => Promise.resolve('AAAAAAAAAAAAAAAAAAAAAAAAAAA:1'),
+        }),
+      )
+      updateUser.mockResolvedValue({ error: null })
+      signOut.mockResolvedValue({ error: null })
+
+      const resultat = await authAdapter.uppdateraLosenord('ett-ovanligt-losenord-xyz')
+
+      expect(resultat).toEqual({ ok: true })
+      expect(updateUser).toHaveBeenCalled()
+
+      vi.unstubAllGlobals()
+    })
+
+    it('faller fail-open (blockerar inte) om HIBP-anropet misslyckas', async () => {
+      vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('nätverksfel')))
+      updateUser.mockResolvedValue({ error: null })
+      signOut.mockResolvedValue({ error: null })
+
+      const resultat = await authAdapter.uppdateraLosenord('ett-ovanligt-losenord-xyz')
+
+      expect(resultat).toEqual({ ok: true })
+      expect(updateUser).toHaveBeenCalled()
+
+      vi.unstubAllGlobals()
+    })
+
+    it('faller fail-open om HIBP svarar med ett icke-OK-status', async () => {
+      vi.stubGlobal(
+        'fetch',
+        vi.fn().mockResolvedValue({ ok: false, text: () => Promise.resolve('') }),
+      )
+      updateUser.mockResolvedValue({ error: null })
+      signOut.mockResolvedValue({ error: null })
+
+      const resultat = await authAdapter.uppdateraLosenord('ett-ovanligt-losenord-xyz')
+
+      expect(resultat).toEqual({ ok: true })
+      expect(updateUser).toHaveBeenCalled()
+
+      vi.unstubAllGlobals()
+    })
   })
 })

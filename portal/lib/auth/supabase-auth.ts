@@ -53,6 +53,7 @@ export type InloggningsFel =
   | 'fel_uppgifter'
   | 'konto_inaktivt'
   | 'svagt_losenord'
+  | 'lackt_losenord'
   | 'serverfel'
 
 export const felmeddelanden: Record<InloggningsFel, string> = {
@@ -61,6 +62,8 @@ export const felmeddelanden: Record<InloggningsFel, string> = {
   fel_uppgifter: 'Fel e-postadress eller lösenord. Kontrollera uppgifterna och försök igen.',
   konto_inaktivt: 'Kontot är inaktiverat. Kontakta en administratör för att få det aktiverat.',
   svagt_losenord: 'Lösenordet behöver vara minst 8 tecken.',
+  lackt_losenord:
+    'Det här lösenordet har förekommit i en känd dataläcka. Välj ett annat lösenord.',
   serverfel: 'Kunde inte slutföra åtgärden just nu. Försök igen.',
 }
 
@@ -91,6 +94,42 @@ function namnFranSupabaseAnvandare(user: SupabaseUser) {
     textFranMetadata(user, ['full_name', 'name', 'display_name', 'namn']) ??
     lokalDel.replace(/[._-]+/g, ' ')
   )
+}
+
+/**
+ * Kontrollerar ett lösenord mot Have I Been Pwned:s "Pwned Passwords"-API
+ * via k-Anonymity-modellen: bara de första 5 tecknen av SHA-1-hashen skickas
+ * över nätet, aldrig lösenordet självt eller den fullständiga hashen. Detta
+ * är samma dataset och integritetsmodell som Supabase Auths egna
+ * "leaked password protection" (en Pro-funktion) använder – vi anropar bara
+ * samma publika, gratis API direkt istället för att gå via Supabase.
+ *
+ * Fail-open: nätverksfel eller ett icke-OK-svar blockerar ALDRIG
+ * lösenordsbytet. Detta är ett tilläggslager ovanpå längdkravet, inte den
+ * enda spärren – om HIBP är otillgängligt ska en admin ändå kunna sätta ett
+ * lösenord som uppfyller längdkravet.
+ */
+async function losenordArLackt(losenord: string): Promise<boolean> {
+  try {
+    const kryptoApi = typeof crypto !== 'undefined' ? crypto : globalThis.crypto
+    const data = new TextEncoder().encode(losenord)
+    const hashBuffer = await kryptoApi.subtle.digest('SHA-1', data)
+    const hash = Array.from(new Uint8Array(hashBuffer))
+      .map((byte) => byte.toString(16).padStart(2, '0'))
+      .join('')
+      .toUpperCase()
+
+    const prefix = hash.slice(0, 5)
+    const suffix = hash.slice(5)
+
+    const svar = await fetch(`https://api.pwnedpasswords.com/range/${prefix}`)
+    if (!svar.ok) return false
+
+    const text = await svar.text()
+    return text.split('\n').some((rad) => rad.trim().split(':')[0] === suffix)
+  } catch {
+    return false
+  }
 }
 
 function initialerFranNamn(namn: string) {
@@ -279,6 +318,7 @@ export const authAdapter = {
   async uppdateraLosenord(losenord: string): Promise<{ ok: boolean; fel?: InloggningsFel }> {
     if (!losenord) return { ok: false, fel: 'saknade_uppgifter' }
     if (losenord.length < 8) return { ok: false, fel: 'svagt_losenord' }
+    if (await losenordArLackt(losenord)) return { ok: false, fel: 'lackt_losenord' }
 
     const supabase = skapaSupabaseWebblasarklient()
     const { error } = await supabase.auth.updateUser({ password: losenord })
