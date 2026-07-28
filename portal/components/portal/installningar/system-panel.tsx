@@ -14,6 +14,17 @@ import { toast } from 'sonner'
 
 import { useAuth } from '@/components/auth/auth-provider'
 import { Faltrad, Sektionsrubrik, Yta } from '@/components/portal/ui-delar'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -128,6 +139,7 @@ export function SystemPanel() {
   const [bjuderIn, setBjuderIn] = useState(false)
   const [spararNamn, setSpararNamn] = useState<string | null>(null)
   const [namnUtkast, setNamnUtkast] = useState<Record<string, string>>({})
+  const [aterstallerMfa, setAterstallerMfa] = useState<string | null>(null)
 
   useEffect(() => {
     if (!kanSePersonal) {
@@ -349,6 +361,60 @@ export function SystemPanel() {
     }
   }
 
+  async function aterstallMfa(profil: ProfilRad) {
+    if (aterstallerMfa) return
+
+    setAterstallerMfa(profil.id)
+
+    try {
+      const svar = await fetch('/api/mfa/aterstall', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ epost: profil.epost }),
+      })
+      const data = (await svar.json()) as {
+        ok: boolean
+        fel?: string
+        antalBorttagnaFaktorer?: number
+      }
+
+      if (!svar.ok || !data.ok) {
+        toast.error('Kunde inte återställa MFA', {
+          description: data.fel ?? 'Kontrollera att sessionen fortfarande är AAL2-verifierad.',
+        })
+        return
+      }
+
+      setProfilStatus((nu) => ({
+        ...nu,
+        profiler: nu.profiler.map((rad) =>
+          rad.id === profil.id
+            ? {
+                ...rad,
+                kontoHalsa: rad.kontoHalsa
+                  ? {
+                      ...rad.kontoHalsa,
+                      mfaAntalFaktorer: 0,
+                      mfaVerifieradeFaktorer: 0,
+                    }
+                  : rad.kontoHalsa,
+              }
+            : rad,
+        ),
+      }))
+
+      toast.success('MFA återställd', {
+        description: `${data.antalBorttagnaFaktorer ?? 0} enhet(er) togs bort för ${profil.epost}.`,
+      })
+    } catch {
+      toast.error('Kunde inte återställa MFA', {
+        description: 'Nätverket eller Worker-svaret avbröts.',
+      })
+    } finally {
+      setAterstallerMfa(null)
+    }
+  }
+
   return (
     <div className="flex flex-col gap-4">
       {kanSePersonal ? (
@@ -533,6 +599,10 @@ export function SystemPanel() {
                       : mfaStatus === 'varning'
                         ? 'MFA saknas'
                         : 'MFA okänd'
+                  const kanAterstallaMfa =
+                    profil.id !== anvandare?.id &&
+                    typeof mfaVerifierade === 'number' &&
+                    mfaVerifierade > 0
                   const initialer = namn
                     .split(/\s+/)
                     .map((del) => del[0])
@@ -641,16 +711,54 @@ export function SystemPanel() {
                           </Badge>
                         </Faltrad>
                         <Faltrad etikett="MFA">
-                          <Badge variant="ghost" className={cn('w-fit', kontoStatusStil[mfaStatus])}>
-                            {mfaStatus === 'ok' ? (
-                              <CheckCircle2Icon className="size-3.5" />
-                            ) : mfaStatus === 'varning' ? (
-                              <TriangleAlertIcon className="size-3.5" />
-                            ) : (
-                              <XCircleIcon className="size-3.5" />
-                            )}
-                            {mfaText}
-                          </Badge>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <Badge variant="ghost" className={cn('w-fit', kontoStatusStil[mfaStatus])}>
+                              {mfaStatus === 'ok' ? (
+                                <CheckCircle2Icon className="size-3.5" />
+                              ) : mfaStatus === 'varning' ? (
+                                <TriangleAlertIcon className="size-3.5" />
+                              ) : (
+                                <XCircleIcon className="size-3.5" />
+                              )}
+                              {mfaText}
+                            </Badge>
+                            <AlertDialog>
+                              <AlertDialogTrigger
+                                render={
+                                  <Button
+                                    type="button"
+                                    size="sm"
+                                    variant="destructive"
+                                    disabled={!kanAterstallaMfa || aterstallerMfa !== null}
+                                  >
+                                    {aterstallerMfa === profil.id ? (
+                                      <Spinner data-icon="inline-start" />
+                                    ) : null}
+                                    Återställ
+                                  </Button>
+                                }
+                              />
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Återställ MFA för {profil.epost}?</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Alla registrerade autentiseringsenheter tas bort för kontot.
+                                    Användaren behöver sätta upp tvåstegsverifiering igen vid nästa
+                                    inloggning. Din egen MFA kan inte återställas här.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Avbryt</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    variant="destructive"
+                                    onClick={() => void aterstallMfa(profil)}
+                                  >
+                                    Återställ MFA
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </div>
                           {typeof mfaAntal === 'number' && mfaAntal !== mfaVerifierade && (
                             <span className="mt-1 block text-[11px] text-muted-foreground">
                               {mfaAntal} faktor(er) totalt
