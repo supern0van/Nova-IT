@@ -75,6 +75,65 @@ Verifieringen kör:
 
 När routes läggs till eller tas bort ska den genererade `src/routeTree.gen.ts` följa med i samma ändring. En grön typkontroll och produktionsbuild är kontrollen att route-trädet och sidfilerna är synkroniserade.
 
+## Adminportal på separat Worker
+
+Adminportalen ligger i `portal/` och publiceras som separat Cloudflare Worker:
+
+| Del | Värde |
+| --- | --- |
+| Worker | `nova-it-admin` |
+| Primära adminadresser | `admin.nova-it.se`, `admin.novait.se` |
+| Tillfälligt reserverade portaladresser | `portal.novait.se`, `portal.nova-it.se` |
+| Worker-config | `portal/wrangler.jsonc` |
+| OpenNext-config | `portal/open-next.config.ts` |
+
+`portal.*`-adresserna pekar just nu till samma admin-Worker för att domänerna ska vara registrerade och fungerande. Det är en tillfällig koppling, inte kundportalens framtida arkitektur. En kundportal ska få egen Worker och egna routes när det spåret påbörjas.
+
+Adminportalen använder `portal/middleware.ts` som OpenNext-kompatibel ingång till serverskyddet. Byt inte till Next.js 16:s root-`proxy.ts` förrän OpenNext uttryckligen stöder den modellen för Cloudflare Workers.
+
+### Lokal verifiering före admin-deploy
+
+Kör från `portal/`:
+
+```bash
+pnpm test
+pnpm lint
+pnpm exec tsc --noEmit --pretty false
+```
+
+OpenNext Worker-bygget ska verifieras i Linux/WSL eftersom OpenNext kan slå i Windows symlink-begränsningar:
+
+```bash
+pnpm exec opennextjs-cloudflare build
+pnpm exec wrangler deploy --dry-run
+```
+
+Efter deploy ska live-Worker-smoken köras:
+
+```bash
+pnpm smoke:worker
+```
+
+Den verifierar att samtliga admin-/portal-domäner svarar med inloggningsredirect och att skyddade API:er (`/api/roll`, `/api/admin/systemstatus`, `/api/admin/profiler`) nekar oinloggad trafik fail-closed.
+
+### Obligatoriska Worker-secrets
+
+Följande secrets måste finnas på `nova-it-admin`:
+
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY`
+
+Kontrollera namnen utan att skriva ut värden:
+
+```bash
+pnpm exec wrangler secret list --name nova-it-admin
+```
+
+### Adminportal i GitHub Actions
+
+CI har ett separat jobb för `portal/`. Det kör portalens egna pnpm-baserade verifiering och bygger den faktiska OpenNext Worker-bundlen. Root-projektets Bun-baserade lint/build ska inte lint-köra `portal/`, eftersom adminportalen är en separat Next/pnpm-app med egen ESLint-konfiguration.
+
 ## Kvar för full kontakt- och e-postdrift
 
 - alla fem Nova IT-adresser är skapade och testade hos Loopia
