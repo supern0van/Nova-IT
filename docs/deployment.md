@@ -91,6 +91,15 @@ Adminportalen ligger i `portal/` och publiceras som separat Cloudflare Worker:
 
 Adminportalen använder `portal/middleware.ts` som OpenNext-kompatibel ingång till serverskyddet. Byt inte till Next.js 16:s root-`proxy.ts` förrän OpenNext uttryckligen stöder den modellen för Cloudflare Workers.
 
+### HTTPS/HSTS på båda zonerna
+
+Både `nova-it.se` och `novait.se` (Cloudflare-zoner, inklusive alla subdomäner) har:
+
+- HTTP → HTTPS-redirect på edge-nivå (verifierat: alla testade host redirectar 301/308 till `https://`).
+- HSTS aktiverat: `Strict-Transport-Security: max-age=15552000; includeSubDomains` (180 dagar, gäller nuvarande och framtida subdomäner). Verifierat live 2026-07-28 mot apex-domänerna, `www.`-varianterna och samtliga fyra Worker-subdomäner.
+
+Detta är en Cloudflare Dashboard-inställning per zon (SSL/TLS → Edge Certificates → HSTS), inte något som styrs från `wrangler.jsonc` eller repo-kod. Ändras vid behov i Dashboarden för respektive zon.
+
 ### Lokal verifiering före admin-deploy
 
 Kör från `portal/`:
