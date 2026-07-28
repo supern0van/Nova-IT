@@ -46,10 +46,10 @@ import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/
 import { Skeleton } from '@/components/ui/skeleton'
 import { Spinner } from '@/components/ui/spinner'
 import { useOperativAdminData } from '@/hooks/use-operativ-admin-data'
-import { anvandarNamn, listaTilldelningsbara } from '@/lib/auth/demo-auth'
 import { bokningStatusLabel, bokningTypLabel } from '@/lib/labels'
+import { personalNamn, tilldelningsbarPersonal } from '@/lib/personal'
 import { avbokaBokning, bokningTyper } from '@/lib/store'
-import type { Bokning, BokningTyp } from '@/lib/types'
+import type { Anvandare, Bokning, BokningTyp } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
 const typIkon: Record<BokningTyp, typeof PhoneIcon> = {
@@ -138,7 +138,7 @@ export function Bokningsvy() {
     [filtrerade, iDag, veckansDatum],
   )
 
-  const personal = useMemo(() => listaTilldelningsbara(), [])
+  const tilldelningsbar = useMemo(() => tilldelningsbarPersonal(db?.personal ?? []), [db])
   const veckoEtikett = `Vecka ${veckonummer(veckoStart)} · ${dagar[0].toLocaleDateString('sv-SE', { day: 'numeric', month: 'short' })}–${dagar[6].toLocaleDateString('sv-SE', { day: 'numeric', month: 'short', year: 'numeric' })}`
 
   function flyttaVecka(steg: number) {
@@ -234,7 +234,7 @@ export function Bokningsvy() {
               bredd="w-[190px]"
               alternativ={[
                 { varde: 'alla', etikett: 'Alla tekniker' },
-                ...personal.map((p) => ({
+                ...tilldelningsbar.map((p) => ({
                   varde: p.id,
                   etikett: p.id === anvandare?.id ? `${p.namn} (jag)` : p.namn,
                 })),
@@ -299,6 +299,7 @@ export function Bokningsvy() {
                           <BokningRad
                             key={bokning.id}
                             bokning={bokning}
+                            personal={db?.personal ?? []}
                             kanHantera={kanHantera}
                             avbokas={avbokarId === bokning.id}
                             avbokningPagar={avbokarId !== null}
@@ -341,7 +342,7 @@ export function Bokningsvy() {
                   </span>
                   <span className="min-w-0 flex-1 truncate text-[13px]">{bokning.kundNamn}</span>
                   <span className="text-[11px] text-muted-foreground">
-                    {bokningTypLabel[bokning.typ]} · {anvandarNamn(bokning.tekniker)}
+                    {bokningTypLabel[bokning.typ]} · {personalNamn(db?.personal ?? [], bokning.tekniker)}
                   </span>
                   <BokningStatusChip status={bokning.status} />
                   <Button
@@ -383,6 +384,7 @@ export function Bokningsvy() {
         setOppen={setDialogOppen}
         befintlig={redigerad}
         kunder={db?.kunder ?? []}
+        personal={db?.personal ?? []}
       />
     </Sida>
   )
@@ -390,6 +392,7 @@ export function Bokningsvy() {
 
 function BokningRad({
   bokning,
+  personal,
   kanHantera,
   avbokas,
   avbokningPagar,
@@ -397,6 +400,7 @@ function BokningRad({
   vidAvboka,
 }: {
   bokning: Bokning
+  personal: Anvandare[]
   kanHantera: boolean
   avbokas: boolean
   avbokningPagar: boolean
@@ -426,7 +430,7 @@ function BokningRad({
           </span>
           <span className="truncate text-[11px] text-muted-foreground">
             {bokningTypLabel[bokning.typ]} · {bokning.langdMinuter} min ·{' '}
-            {anvandarNamn(bokning.tekniker)}
+            {personalNamn(personal, bokning.tekniker)}
           </span>
           <span className="truncate text-[11px] text-muted-foreground">{bokning.plats}</span>
         </div>

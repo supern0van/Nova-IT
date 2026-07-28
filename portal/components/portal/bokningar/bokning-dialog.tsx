@@ -24,10 +24,10 @@ import {
 } from '@/components/ui/select'
 import { Spinner } from '@/components/ui/spinner'
 import { Textarea } from '@/components/ui/textarea'
-import { listaTilldelningsbara } from '@/lib/auth/demo-auth'
 import { bokningStatusLabel, bokningTypLabel } from '@/lib/labels'
+import { tilldelningsbarPersonal } from '@/lib/personal'
 import { bokningTyper, skapaBokning, uppdateraBokning } from '@/lib/store'
-import type { Arende, Bokning, BokningStatus, BokningTyp, Kund } from '@/lib/types'
+import type { Anvandare, Arende, Bokning, BokningStatus, BokningTyp, Kund } from '@/lib/types'
 
 const langder = [20, 30, 45, 60, 90, 120, 180]
 
@@ -55,15 +55,17 @@ export function BokningDialog({
   befintlig,
   arende,
   kunder,
+  personal,
 }: {
   oppen: boolean
   setOppen: (oppen: boolean) => void
   befintlig?: Bokning
   arende?: Arende
   kunder: Kund[]
+  personal: Anvandare[]
 }) {
   const { anvandare } = useAuth()
-  const tekniker = useMemo(() => listaTilldelningsbara(), [])
+  const tekniker = useMemo(() => tilldelningsbarPersonal(personal), [personal])
   const redigerar = Boolean(befintlig)
 
   const imorgon = useMemo(() => {

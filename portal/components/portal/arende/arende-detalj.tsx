@@ -54,7 +54,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Spinner } from '@/components/ui/spinner'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { useOperativAdminData } from '@/hooks/use-operativ-admin-data'
-import { anvandarNamn } from '@/lib/auth/demo-auth'
+import { personalNamn } from '@/lib/personal'
 import {
   bokningTypLabel,
   formateraDatum,
@@ -197,6 +197,7 @@ export function ArendeDetalj({ arendeId }: { arendeId: string }) {
       <Yta className="p-3" niva={1}>
         <ArendeAtgarder
           arende={arende}
+          personal={db.personal}
           vidBoka={() => {
             setRedigeraBokning(undefined)
             setBokningOppen(true)
@@ -326,7 +327,7 @@ export function ArendeDetalj({ arendeId }: { arendeId: string }) {
               <Faltrad etikett="Underkategori">{arende.underkategori}</Faltrad>
               <Faltrad etikett="Ansvarig">
                 <span className={arende.ansvarigId ? undefined : 'text-muted-foreground'}>
-                  {anvandarNamn(arende.ansvarigId)}
+                  {personalNamn(db.personal, arende.ansvarigId)}
                 </span>
               </Faltrad>
               <Faltrad etikett="Inkom via">{kanalLabel[arende.kanal]}</Faltrad>
@@ -417,7 +418,7 @@ export function ArendeDetalj({ arendeId }: { arendeId: string }) {
                     </div>
                     <p className="text-[11px] leading-relaxed text-muted-foreground">
                       {bokningTypLabel[bokning.typ]} · {bokning.langdMinuter} min ·{' '}
-                      {anvandarNamn(bokning.tekniker)}
+                      {personalNamn(db.personal, bokning.tekniker)}
                       <br />
                       {bokning.plats}
                     </p>
@@ -499,6 +500,7 @@ export function ArendeDetalj({ arendeId }: { arendeId: string }) {
         befintlig={redigeraBokning}
         arende={arende}
         kunder={db.kunder}
+        personal={db.personal}
       />
     </Sida>
   )

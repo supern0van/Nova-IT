@@ -84,6 +84,7 @@ const tomtOperativtSvar = {
   meddelanden: [],
   aktiviteter: [],
   kundanteckningar: [],
+  personal: [],
 }
 
 const kundStomme = {

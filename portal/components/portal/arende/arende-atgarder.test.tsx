@@ -30,11 +30,6 @@ vi.mock('sonner', () => ({
   toast: { success: vi.fn(), error: vi.fn() },
 }))
 
-vi.mock('@/lib/auth/demo-auth', () => ({
-  anvandarNamn: () => 'Ej tilldelad',
-  listaTilldelningsbara: () => [],
-}))
-
 vi.mock('@/lib/store', () => ({
   andraStatus,
   andraPrioritet,
@@ -79,7 +74,7 @@ describe('ArendeAtgarder – felhantering och dubbelklicksskydd', () => {
   it('visar ett begripligt fel och låser inte upp knappen permanent om markeraSomLost kastar', async () => {
     const user = userEvent.setup()
     markeraSomLost.mockRejectedValue(new Error('Kunde inte spara i den operativa databasen.'))
-    render(<ArendeAtgarder arende={arende} vidBoka={vi.fn()} />)
+    render(<ArendeAtgarder arende={arende} personal={[]} vidBoka={vi.fn()} />)
 
     const knapp = screen.getByRole('button', { name: /Markera som löst/ })
     await user.click(knapp)
@@ -94,7 +89,7 @@ describe('ArendeAtgarder – felhantering och dubbelklicksskydd', () => {
   it('markerar ärendet som löst vid lyckat anrop', async () => {
     const user = userEvent.setup()
     markeraSomLost.mockResolvedValue(undefined)
-    render(<ArendeAtgarder arende={arende} vidBoka={vi.fn()} />)
+    render(<ArendeAtgarder arende={arende} personal={[]} vidBoka={vi.fn()} />)
 
     await user.click(screen.getByRole('button', { name: /Markera som löst/ }))
 
@@ -111,7 +106,7 @@ describe('ArendeAtgarder – felhantering och dubbelklicksskydd', () => {
           losUpp = resolve
         }),
     )
-    render(<ArendeAtgarder arende={arende} vidBoka={vi.fn()} />)
+    render(<ArendeAtgarder arende={arende} personal={[]} vidBoka={vi.fn()} />)
 
     const knapp = screen.getByRole('button', { name: /Markera som löst/ })
     await user.click(knapp)
@@ -123,7 +118,7 @@ describe('ArendeAtgarder – felhantering och dubbelklicksskydd', () => {
 
   it('döljer ansvarig-väljaren och visar bara namnet för konton utan tilldela_arende', () => {
     kan.mockImplementation((behorighet: string) => behorighet !== 'tilldela_arende')
-    render(<ArendeAtgarder arende={arende} vidBoka={vi.fn()} />)
+    render(<ArendeAtgarder arende={arende} personal={[]} vidBoka={vi.fn()} />)
 
     expect(screen.queryByLabelText('Ändra ansvarig tekniker')).toBeNull()
     expect(screen.getByText(/Ansvarig: Ej tilldelad/)).toBeTruthy()

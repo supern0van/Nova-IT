@@ -27,11 +27,6 @@ vi.mock('sonner', () => ({
   toast: { success: vi.fn(), error: vi.fn() },
 }))
 
-vi.mock('@/lib/auth/demo-auth', () => ({
-  anvandarNamn: () => 'Ej tilldelad',
-  listaTilldelningsbara: () => [],
-}))
-
 vi.mock('@/lib/store', () => ({
   avbokaBokning,
   bokningTyper: ['hembesok', 'distanssupport', 'verkstadsbesok', 'telefonkontakt'],
@@ -96,6 +91,7 @@ vi.mock('@/hooks/use-operativ-admin-data', () => ({
       aktiviteter: [],
       kundanteckningar: [],
       standardsvar: [],
+      personal: [],
     },
     laddar: false,
     fel: false,

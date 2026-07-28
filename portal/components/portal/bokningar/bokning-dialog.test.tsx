@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event'
 import { toast } from 'sonner'
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
-import type { Kund } from '@/lib/types'
+import type { Anvandare, Kund } from '@/lib/types'
 
 const anvandare = {
   id: 'user-1',
@@ -27,10 +27,6 @@ vi.mock('sonner', () => ({
   toast: { success: vi.fn(), error: vi.fn() },
 }))
 
-vi.mock('@/lib/auth/demo-auth', () => ({
-  listaTilldelningsbara: () => [{ id: 'user-1', namn: 'Admin Nova', titel: 'Administratör' }],
-}))
-
 vi.mock('@/lib/store', () => ({
   bokningTyper: ['hembesok', 'distanssupport', 'verkstadsbesok', 'telefonkontakt'],
   skapaBokning,
@@ -42,6 +38,18 @@ let BokningDialog: typeof import('@/components/portal/bokningar/bokning-dialog')
 beforeAll(async () => {
   ;({ BokningDialog } = await import('@/components/portal/bokningar/bokning-dialog'))
 })
+
+const personal: Anvandare[] = [
+  {
+    id: 'user-1',
+    namn: 'Admin Nova',
+    epost: 'admin@nova-it.se',
+    roll: 'administrator',
+    initialer: 'AN',
+    titel: 'Administratör',
+    aktiv: true,
+  },
+]
 
 const kunder: Kund[] = [
   {
@@ -59,7 +67,7 @@ const kunder: Kund[] = [
 
 function renderaDialog() {
   const setOppen = vi.fn()
-  render(<BokningDialog oppen setOppen={setOppen} kunder={kunder} />)
+  render(<BokningDialog oppen setOppen={setOppen} kunder={kunder} personal={personal} />)
   return { setOppen }
 }
 

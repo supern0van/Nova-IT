@@ -279,6 +279,7 @@ function tomtOperativtSvar() {
     meddelanden: [],
     aktiviteter: [],
     kundanteckningar: [],
+    personal: [],
   }
 }
 

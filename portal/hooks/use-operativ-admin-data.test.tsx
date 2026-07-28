@@ -20,6 +20,7 @@ const tomtSvar = {
   meddelanden: [],
   aktiviteter: [],
   kundanteckningar: [],
+  personal: [],
 }
 
 function svaraMed(kropp: unknown, ok = true) {

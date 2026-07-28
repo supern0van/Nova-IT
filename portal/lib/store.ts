@@ -23,6 +23,7 @@
 
 import {
   demoAktiviteter,
+  demoAnvandare,
   demoArenden,
   demoAviseringar,
   demoBokningar,
@@ -35,6 +36,7 @@ import {
 } from '@/lib/demo-data'
 import type {
   Aktivitet,
+  Anvandare,
   Arende,
   ArendeStatus,
   Arendekategori,
@@ -66,6 +68,12 @@ export interface Databas {
   standardsvar: Standardsvar[]
   aviseringar: Aviseringsinstallning[]
   mottagare: EpostMottagare[]
+  /**
+   * Endast använd som lokalt utvecklingsunderlag när det operativa API:t
+   * inte går att nå (se hooks/use-operativ-admin-data.ts). I produktion
+   * kommer personal alltid från public.profiles via API:t, aldrig härifrån.
+   */
+  personal: Anvandare[]
 }
 
 function nyDatabas(): Databas {
@@ -81,6 +89,7 @@ function nyDatabas(): Databas {
     standardsvar: demoStandardsvar,
     aviseringar: demoAviseringar,
     mottagare: demoMottagare,
+    personal: demoAnvandare,
   })
 }
 
@@ -107,6 +116,9 @@ function las(): Databas {
     // Migrering: tabeller som tillkommit efter att sessionen sparades.
     if (!Array.isArray(db.kundanteckningar)) {
       db.kundanteckningar = structuredClone(demoKundanteckningar)
+    }
+    if (!Array.isArray(db.personal)) {
+      db.personal = structuredClone(demoAnvandare)
     }
     return db
   } catch {

@@ -1,6 +1,9 @@
+import { arAdministrator, arSystemRoll } from '@/lib/auth/roll'
+import { initialerFranNamn } from '@/lib/personal'
 import { skapaSupabaseServiceklient } from '@/lib/supabase/service'
 import type {
   Aktivitet,
+  Anvandare,
   Arende,
   Bokning,
   Kategori,
@@ -18,6 +21,7 @@ export interface OperativAdminData {
   meddelanden: Meddelande[]
   aktiviteter: Aktivitet[]
   kundanteckningar: Kundanteckning[]
+  personal: Anvandare[]
 }
 
 export class OperativtAdminFel extends Error {
@@ -97,6 +101,7 @@ export async function hamtaOperativAdminData(): Promise<OperativAdminData> {
     meddelandenSvar,
     aktiviteterSvar,
     kundanteckningarSvar,
+    personalSvar,
   ] = await Promise.all([
     supabase.from('admin_kunder').select('*').order('senaste_kontakt', { ascending: false }),
     supabase.from('admin_arenden').select('*').order('uppdaterad', { ascending: false }),
@@ -104,6 +109,7 @@ export async function hamtaOperativAdminData(): Promise<OperativAdminData> {
     supabase.from('admin_meddelanden').select('*').order('tidpunkt', { ascending: true }),
     supabase.from('admin_aktiviteter').select('*').order('tidpunkt', { ascending: false }),
     supabase.from('admin_kundanteckningar').select('*').order('skapad', { ascending: false }),
+    supabase.from('profiles').select('id, namn, epost, roll, titel, aktiv').order('namn', { ascending: true }),
   ])
 
   if (
@@ -112,7 +118,8 @@ export async function hamtaOperativAdminData(): Promise<OperativAdminData> {
     bokningarSvar.error ||
     meddelandenSvar.error ||
     aktiviteterSvar.error ||
-    kundanteckningarSvar.error
+    kundanteckningarSvar.error ||
+    personalSvar.error
   ) {
     throw new Error('Kunde inte läsa operativ admin-data från Supabase.')
   }
@@ -141,6 +148,10 @@ export async function hamtaOperativAdminData(): Promise<OperativAdminData> {
     kundanteckningar: (kundanteckningarSvar.data ?? []).flatMap((rad) => {
       const anteckning = normaliseraKundanteckningRad(rad)
       return anteckning ? [anteckning] : []
+    }),
+    personal: (personalSvar.data ?? []).flatMap((rad) => {
+      const person = normaliseraPersonalRad(rad)
+      return person ? [person] : []
     }),
   }
 }
@@ -686,6 +697,36 @@ function normaliseraKundRad(data: unknown): Kund | null {
     kontaktperson: optionalText(data.kontaktperson),
     senasteKontakt,
     skapad,
+  }
+}
+
+/**
+ * Bygger tilldelningsbar personal från `public.profiles`. `SystemRoll`
+ * (administrator/medarbetare) är adminpanelens åtkomstroll, inte den
+ * operativa personal-/teknikerrollen (`Roll` här) – samma mappning som
+ * `verifieraOperativAtkomst()` i route.ts använder för behörighetskontroll.
+ */
+function normaliseraPersonalRad(data: unknown): Anvandare | null {
+  if (!arObjekt(data)) return null
+  const id = text(data.id)
+  const namn = text(data.namn)
+  const epost = text(data.epost)
+  const systemRoll = data.roll
+  const aktiv = typeof data.aktiv === 'boolean' ? data.aktiv : null
+
+  if (!id || !namn || !epost || !arSystemRoll(systemRoll) || aktiv === null) return null
+
+  const titelFranDatabasen = optionalText(data.titel)
+  const titel = titelFranDatabasen ?? (arAdministrator(systemRoll) ? 'Administratör' : 'Medarbetare')
+
+  return {
+    id,
+    namn,
+    epost,
+    roll: arAdministrator(systemRoll) ? 'administrator' : 'tekniker',
+    initialer: initialerFranNamn(namn),
+    titel,
+    aktiv,
   }
 }
 

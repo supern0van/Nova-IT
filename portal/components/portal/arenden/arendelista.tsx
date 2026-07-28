@@ -36,7 +36,7 @@ import {
 import { Skeleton } from '@/components/ui/skeleton'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { useOperativAdminData } from '@/hooks/use-operativ-admin-data'
-import { anvandarNamn, listaAnvandare } from '@/lib/auth/demo-auth'
+import { personalNamn } from '@/lib/personal'
 import {
   kanalLabel,
   kategoriLabel,
@@ -48,7 +48,7 @@ import {
   statusLabel,
   statusOrdning,
 } from '@/lib/labels'
-import type { Arende } from '@/lib/types'
+import type { Anvandare, Arende } from '@/lib/types'
 
 type Sortering = 'uppdaterad' | 'skapad' | 'prioritet' | 'nummer'
 
@@ -95,7 +95,7 @@ export function Arendelista() {
     if (params.get('ny') === '1' && kan('skapa_arende')) setNyttArendeOppen(true)
   }, [params, kan])
 
-  const personal = useMemo(() => listaAnvandare(), [])
+  const personal = db?.personal ?? []
 
   const filtreradeArenden = useMemo(() => {
     if (!db) return []
@@ -322,7 +322,7 @@ export function Arendelista() {
             </Empty>
           </div>
         ) : (
-          <ArendeTabell arenden={filtreradeArenden} />
+          <ArendeTabell arenden={filtreradeArenden} personal={personal} />
         )}
       </Yta>
 
@@ -336,7 +336,7 @@ export function Arendelista() {
   )
 }
 
-function ArendeTabell({ arenden }: { arenden: Arende[] }) {
+function ArendeTabell({ arenden, personal }: { arenden: Arende[]; personal: Anvandare[] }) {
   const router = useRouter()
 
   return (
@@ -414,7 +414,7 @@ function ArendeTabell({ arenden }: { arenden: Arende[] }) {
             </TableCell>
             <TableCell className="hidden py-2.5 lg:table-cell">
               <span className={arende.ansvarigId ? 'text-text-secondary' : 'text-muted-foreground'}>
-                {anvandarNamn(arende.ansvarigId)}
+                {personalNamn(personal, arende.ansvarigId)}
               </span>
             </TableCell>
             <TableCell className="py-2.5 pr-4 text-right text-[12px] text-muted-foreground">

@@ -38,7 +38,7 @@ import { Button } from '@/components/ui/button'
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useOperativAdminData } from '@/hooks/use-operativ-admin-data'
-import { anvandarNamn } from '@/lib/auth/demo-auth'
+import { personalNamn } from '@/lib/personal'
 import {
   bokningTypLabel,
   formateraDatum,
@@ -46,7 +46,7 @@ import {
   kategoriLabel,
   relativTid,
 } from '@/lib/labels'
-import type { Arende } from '@/lib/types'
+import type { Anvandare, Arende } from '@/lib/types'
 
 const OPPNA: Arende['status'][] = ['ny', 'pagaende', 'vantar_pa_kund', 'bokad']
 
@@ -268,7 +268,7 @@ export function KundProfil({ kundId }: { kundId: string }) {
                       <BokningStatusChip status={bokning.status} />
                     </div>
                     <p className="text-[11px] text-muted-foreground">
-                      {bokningTypLabel[bokning.typ]} · {anvandarNamn(bokning.tekniker)}
+                      {bokningTypLabel[bokning.typ]} · {personalNamn(db.personal, bokning.tekniker)}
                     </p>
                   </li>
                 ))}
@@ -296,7 +296,7 @@ export function KundProfil({ kundId }: { kundId: string }) {
                 </EmptyHeader>
               </Empty>
             ) : (
-              <ArendeRader arenden={arenden.oppna} />
+              <ArendeRader arenden={arenden.oppna} personal={db.personal} />
             )}
           </Yta>
 
@@ -313,7 +313,7 @@ export function KundProfil({ kundId }: { kundId: string }) {
                 </EmptyHeader>
               </Empty>
             ) : (
-              <ArendeRader arenden={arenden.avslutade} />
+              <ArendeRader arenden={arenden.avslutade} personal={db.personal} />
             )}
           </Yta>
         </div>
@@ -323,6 +323,7 @@ export function KundProfil({ kundId }: { kundId: string }) {
         oppen={bokningOppen}
         setOppen={setBokningOppen}
         kunder={db.kunder.filter((k) => k.id === kund.id)}
+        personal={db.personal}
       />
       <KundDialog oppen={redigeraOppen} setOppen={setRedigeraOppen} befintlig={kund} />
       <ArendeDialog
@@ -336,7 +337,7 @@ export function KundProfil({ kundId }: { kundId: string }) {
   )
 }
 
-function ArendeRader({ arenden }: { arenden: Arende[] }) {
+function ArendeRader({ arenden, personal }: { arenden: Arende[]; personal: Anvandare[] }) {
   return (
     <ul className="flex flex-col gap-1">
       {arenden.map((arende) => (
@@ -356,7 +357,7 @@ function ArendeRader({ arenden }: { arenden: Arende[] }) {
               <PrioritetChip prioritet={arende.prioritet} />
             </div>
             <p className="text-[11px] text-muted-foreground">
-              {kategoriLabel[arende.kategori]} · {anvandarNamn(arende.ansvarigId)} · uppdaterat{' '}
+              {kategoriLabel[arende.kategori]} · {personalNamn(personal, arende.ansvarigId)} · uppdaterat{' '}
               {relativTid(arende.uppdaterad)}
             </p>
           </Link>

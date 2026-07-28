@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 
 import { hamtaDatabas, type Databas } from '@/lib/store'
-import type { Aktivitet, Arende, Bokning, Kund, Kundanteckning, Meddelande } from '@/lib/types'
+import type { Aktivitet, Anvandare, Arende, Bokning, Kund, Kundanteckning, Meddelande } from '@/lib/types'
 
 interface OperativApiData {
   kunder: Kund[]
@@ -12,14 +12,18 @@ interface OperativApiData {
   meddelanden: Meddelande[]
   aktiviteter: Aktivitet[]
   kundanteckningar: Kundanteckning[]
+  personal: Anvandare[]
 }
 
 /**
  * Läser adminportalens operativa kärndata från det skyddade server-API:t.
  *
  * Kategorier, standardsvar och vissa historikdelar ligger kvar i det gamla
- * lokala underlaget tills nästa omkopplingssteg, men kunder/ärenden/bokningar
- * kommer från Supabase när `/api/admin/operativt` svarar korrekt.
+ * lokala underlaget tills nästa omkopplingssteg, men kunder/ärenden/
+ * bokningar/personal kommer från Supabase när `/api/admin/operativt`
+ * svarar korrekt. `personal` kommer från `public.profiles` – se
+ * `lib/admin/operativa-server.ts` – och ersätter den tidigare hårdkodade
+ * testpersonallistan i `lib/auth/demo-auth.ts`.
  */
 export function useOperativAdminData() {
   const [db, setDb] = useState<Databas | null>(null)
@@ -44,6 +48,7 @@ export function useOperativAdminData() {
         meddelanden: data.meddelanden,
         aktiviteter: data.aktiviteter,
         kundanteckningar: data.kundanteckningar,
+        personal: data.personal,
       })
       setFel(false)
     } catch {
@@ -57,6 +62,7 @@ export function useOperativAdminData() {
               meddelanden: [],
               aktiviteter: [],
               kundanteckningar: [],
+              personal: [],
             }
           : lokaltUnderlag,
       )
@@ -96,7 +102,8 @@ function normaliseraOperativApiData(data: unknown): OperativApiData | null {
     !('bokningar' in data) ||
     !('meddelanden' in data) ||
     !('aktiviteter' in data) ||
-    !('kundanteckningar' in data)
+    !('kundanteckningar' in data) ||
+    !('personal' in data)
   ) {
     return null
   }
@@ -106,7 +113,8 @@ function normaliseraOperativApiData(data: unknown): OperativApiData | null {
     !Array.isArray(data.bokningar) ||
     !Array.isArray(data.meddelanden) ||
     !Array.isArray(data.aktiviteter) ||
-    !Array.isArray(data.kundanteckningar)
+    !Array.isArray(data.kundanteckningar) ||
+    !Array.isArray(data.personal)
   ) {
     return null
   }
@@ -118,5 +126,6 @@ function normaliseraOperativApiData(data: unknown): OperativApiData | null {
     meddelanden: data.meddelanden as Meddelande[],
     aktiviteter: data.aktiviteter as Aktivitet[],
     kundanteckningar: data.kundanteckningar as Kundanteckning[],
+    personal: data.personal as Anvandare[],
   }
 }

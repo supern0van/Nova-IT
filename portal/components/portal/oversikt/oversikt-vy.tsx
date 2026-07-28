@@ -33,9 +33,9 @@ import { Button } from '@/components/ui/button'
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useOperativAdminData } from '@/hooks/use-operativ-admin-data'
-import { anvandarNamn } from '@/lib/auth/demo-auth'
+import { personalNamn } from '@/lib/personal'
 import { bokningTypLabel, prioritetVikt, relativTid } from '@/lib/labels'
-import type { Aktivitet, Arende, Bokning, BokningTyp } from '@/lib/types'
+import type { Aktivitet, Anvandare, Arende, Bokning, BokningTyp } from '@/lib/types'
 
 const OPPNA: Arende['status'][] = ['ny', 'pagaende', 'vantar_pa_kund', 'bokad']
 
@@ -178,8 +178,13 @@ export function OversiktVy() {
             laddar={laddar}
             arenden={data?.kraverUppmarksamhet ?? []}
             eftersatta={data?.eftersattaAntal ?? 0}
+            personal={db?.personal ?? []}
           />
-          <DagensBokningar laddar={laddar} bokningar={data?.dagensBokningar ?? []} />
+          <DagensBokningar
+            laddar={laddar}
+            bokningar={data?.dagensBokningar ?? []}
+            personal={db?.personal ?? []}
+          />
         </div>
 
         <div className="flex flex-col gap-4">
@@ -199,10 +204,12 @@ function KraverUppmarksamhet({
   laddar,
   arenden,
   eftersatta,
+  personal,
 }: {
   laddar: boolean
   arenden: Arende[]
   eftersatta: number
+  personal: Anvandare[]
 }) {
   return (
     <Yta className="flex flex-col gap-3 p-4">
@@ -256,7 +263,7 @@ function KraverUppmarksamhet({
                   <StatusChip status={arende.status} />
                 </span>
                 <span className="shrink-0 text-[11px] text-muted-foreground sm:w-32 sm:text-right">
-                  {arende.ansvarigId ? anvandarNamn(arende.ansvarigId) : 'Ej tilldelad'}
+                  {arende.ansvarigId ? personalNamn(personal, arende.ansvarigId) : 'Ej tilldelad'}
                 </span>
               </Link>
             </li>
@@ -267,7 +274,15 @@ function KraverUppmarksamhet({
   )
 }
 
-function DagensBokningar({ laddar, bokningar }: { laddar: boolean; bokningar: Bokning[] }) {
+function DagensBokningar({
+  laddar,
+  bokningar,
+  personal,
+}: {
+  laddar: boolean
+  bokningar: Bokning[]
+  personal: Anvandare[]
+}) {
   return (
     <Yta className="flex flex-col gap-3 p-4">
       <Sektionsrubrik
@@ -313,7 +328,7 @@ function DagensBokningar({ laddar, bokningar }: { laddar: boolean; bokningar: Bo
                   <span className="truncate text-[13px] font-medium">{bokning.kundNamn}</span>
                   <span className="truncate text-[11px] text-muted-foreground">
                     {bokningTypLabel[bokning.typ]} · {bokning.langdMinuter} min ·{' '}
-                    {anvandarNamn(bokning.tekniker)}
+                    {personalNamn(personal, bokning.tekniker)}
                   </span>
                 </span>
                 {bokning.arendeId && (

@@ -15,39 +15,41 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import { anvandarNamn, listaTilldelningsbara } from '@/lib/auth/demo-auth'
 import {
   prioritetLabel,
   prioritetOrdning,
   statusLabel,
   statusOrdning,
 } from '@/lib/labels'
+import { personalNamn, tilldelningsbarPersonal } from '@/lib/personal'
 import {
   andraPrioritet,
   andraStatus,
   markeraSomLost,
   tilldelaArende,
 } from '@/lib/store'
-import type { Arende, ArendeStatus, Prioritet } from '@/lib/types'
+import type { Anvandare, Arende, ArendeStatus, Prioritet } from '@/lib/types'
 
 /**
  * Åtgärdsraden på ärendedetaljsidan: status, prioritet, ansvarig, bokning och
  * avslut. Varje kontroll speglar behörigheterna i `Behorighet`-systemet
  * (`kan()` från `useAuth()`, se `lib/auth/supabase-auth.ts`) – en tekniker
- * kan till exempel inte byta ansvarig tekniker. `lib/auth/demo-auth.ts`
- * bidrar bara med personallistan (namn/id) som fylls i valen nedan, den
- * innehåller ingen behörighetslogik.
+ * kan till exempel inte byta ansvarig tekniker. `personal` (från
+ * `db.personal`, se `useOperativAdminData`) bidrar bara med personallistan
+ * (namn/id) som fylls i valen nedan, den innehåller ingen behörighetslogik.
  */
 export function ArendeAtgarder({
   arende,
+  personal,
   vidBoka,
 }: {
   arende: Arende
+  personal: Anvandare[]
   vidBoka: () => void
 }) {
   const { anvandare, kan } = useAuth()
   const [sparar, setSparar] = useState<string | null>(null)
-  const tekniker = useMemo(() => listaTilldelningsbara(), [])
+  const tekniker = useMemo(() => tilldelningsbarPersonal(personal), [personal])
   const aktor = anvandare?.namn ?? 'Okänd'
 
   const kanTilldela = kan('tilldela_arende')
@@ -94,8 +96,10 @@ export function ArendeAtgarder({
     if (ansvarigId === arende.ansvarigId || sparar) return
     setSparar('ansvarig')
     try {
-      await tilldelaArende(arende.id, ansvarigId, aktor, anvandarNamn(ansvarigId))
-      toast.success(ansvarigId ? `Tilldelat ${anvandarNamn(ansvarigId)}` : 'Tilldelningen togs bort')
+      await tilldelaArende(arende.id, ansvarigId, aktor, personalNamn(personal, ansvarigId))
+      toast.success(
+        ansvarigId ? `Tilldelat ${personalNamn(personal, ansvarigId)}` : 'Tilldelningen togs bort',
+      )
     } catch (error) {
       toast.error('Kunde inte ändra ansvarig', { description: felmeddelande(error) })
     } finally {
@@ -209,7 +213,7 @@ export function ArendeAtgarder({
             render={
               <span className="flex h-7 items-center gap-1.5 rounded-[min(var(--radius-md),10px)] bg-surface-emphasis px-2.5 text-[13px] text-muted-foreground">
                 <LockIcon className="size-3.5" />
-                Ansvarig: {anvandarNamn(arende.ansvarigId)}
+                Ansvarig: {personalNamn(personal, arende.ansvarigId)}
               </span>
             }
           />
