@@ -83,7 +83,37 @@ describe('smoke-worker', () => {
     )
   })
 
-  it('samlar domän- och API-kontroller i en smoke-status', async () => {
+  it('samlar domän- och API-kontroller för alla domäner i en smoke-status', async () => {
+    const logger = { log: vi.fn(), error: vi.fn() }
+    const fetchRunner = vi
+      .fn()
+      .mockResolvedValueOnce(createResponse(307, null, '/logga-in?next=%2F'))
+      .mockResolvedValueOnce(createResponse(307, null, '/logga-in?next=%2F'))
+      .mockResolvedValueOnce(createResponse(401, { roll: null }))
+      .mockResolvedValueOnce(createResponse(401, { roll: null }))
+
+    await expect(
+      runSmokeWorker({
+        domains: ['admin.nova-it.se', 'admin.novait.se'],
+        checks: [{ path: '/api/roll', expectedStatus: 401, expectedBody: { roll: null } }],
+        fetchRunner,
+        logger,
+      }),
+    ).resolves.toBe(true)
+    expect(fetchRunner).toHaveBeenNthCalledWith(
+      3,
+      'https://admin.nova-it.se/api/roll',
+      expect.objectContaining({ redirect: 'manual' }),
+    )
+    expect(fetchRunner).toHaveBeenNthCalledWith(
+      4,
+      'https://admin.novait.se/api/roll',
+      expect.objectContaining({ redirect: 'manual' }),
+    )
+    expect(logger.log).toHaveBeenLastCalledWith('Worker smoke passerade.')
+  })
+
+  it('kan begränsa API-kontroller till en explicit domänlista', async () => {
     const logger = { log: vi.fn(), error: vi.fn() }
     const fetchRunner = vi
       .fn()
@@ -93,11 +123,16 @@ describe('smoke-worker', () => {
     await expect(
       runSmokeWorker({
         domains: ['admin.nova-it.se'],
+        apiDomains: ['portal.nova-it.se'],
         checks: [{ path: '/api/roll', expectedStatus: 401, expectedBody: { roll: null } }],
         fetchRunner,
         logger,
       }),
     ).resolves.toBe(true)
-    expect(logger.log).toHaveBeenLastCalledWith('Worker smoke passerade.')
+    expect(fetchRunner).toHaveBeenNthCalledWith(
+      2,
+      'https://portal.nova-it.se/api/roll',
+      expect.objectContaining({ redirect: 'manual' }),
+    )
   })
 })

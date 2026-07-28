@@ -103,7 +103,7 @@ export async function checkApi(domain, check, { fetchRunner = fetch, logger = co
  * @param {{
  *   domains?: string[],
  *   checks?: ApiCheck[],
- *   apiDomain?: string,
+ *   apiDomains?: string[],
  *   fetchRunner?: SmokeFetch,
  *   logger?: SmokeLogger,
  * }} [options]
@@ -112,7 +112,7 @@ export async function checkApi(domain, check, { fetchRunner = fetch, logger = co
 export async function runSmokeWorker({
   domains = workerDomains,
   checks = apiChecks,
-  apiDomain = 'admin.nova-it.se',
+  apiDomains = domains,
   fetchRunner = fetch,
   logger = console,
 } = {}) {
@@ -122,8 +122,10 @@ export async function runSmokeWorker({
     results.push(await checkDomainRedirect(domain, { fetchRunner, logger }))
   }
 
-  for (const check of checks) {
-    results.push(await checkApi(apiDomain, check, { fetchRunner, logger }))
+  for (const domain of apiDomains) {
+    for (const check of checks) {
+      results.push(await checkApi(domain, check, { fetchRunner, logger }))
+    }
   }
 
   const ok = results.every(Boolean)
