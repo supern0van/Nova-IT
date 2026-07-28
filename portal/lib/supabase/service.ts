@@ -1,3 +1,5 @@
+import 'server-only'
+
 import { createClient } from '@supabase/supabase-js'
 
 /**
@@ -7,6 +9,13 @@ import { createClient } from '@supabase/supabase-js'
  * Components). Importera ALDRIG denna fil från en `'use client'`-komponent –
  * `SUPABASE_SERVICE_ROLE_KEY` saknar `NEXT_PUBLIC_`-prefix och ska aldrig
  * paketeras med till webbläsaren.
+ *
+ * `import 'server-only'` är en byggtidsspärr utöver `service.test.ts`:s
+ * textbaserade sökning efter direkta importer i `'use client'`-filer – den
+ * fångar även TRANSITIVA importer (en klientkomponent som importerar en
+ * hjälpmodul utan egen `'use client'`-direktiv, som i sin tur importerar den
+ * här filen). Next.js/webpack kraschar då bygget i stället för att tyst
+ * paketera nyckeln till webbläsaren.
  *
  * Nyckeln kringgår alla PostgREST-grants (motsvarande att vara
  * databasägaren). Det är avsiktligt: `public.profiles` har inga privilegier

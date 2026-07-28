@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 
 const migrationPath = fileURLToPath(
-  new URL('./20260728150105_admin_operativa_tabeller.sql', import.meta.url),
+  new URL('./20260728165528_admin_operativa_tabeller.sql', import.meta.url),
 )
 
 const sql = readFileSync(migrationPath, 'utf8')
