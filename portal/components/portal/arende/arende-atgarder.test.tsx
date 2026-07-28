@@ -71,18 +71,40 @@ describe('ArendeAtgarder – felhantering och dubbelklicksskydd', () => {
     cleanup()
   })
 
+  it('kräver bekräftelse innan ärendet markeras som löst', async () => {
+    const user = userEvent.setup()
+    render(<ArendeAtgarder arende={arende} personal={[]} vidBoka={vi.fn()} />)
+
+    await user.click(screen.getByRole('button', { name: 'Markera som löst' }))
+
+    expect(screen.getByText('Markera ärendet som löst?')).toBeTruthy()
+    expect(markeraSomLost).not.toHaveBeenCalled()
+  })
+
+  it('avbryter utan att markera ärendet som löst', async () => {
+    const user = userEvent.setup()
+    render(<ArendeAtgarder arende={arende} personal={[]} vidBoka={vi.fn()} />)
+
+    await user.click(screen.getByRole('button', { name: 'Markera som löst' }))
+    await user.click(screen.getByRole('button', { name: 'Avbryt' }))
+
+    expect(markeraSomLost).not.toHaveBeenCalled()
+    expect(screen.queryByText('Markera ärendet som löst?')).toBeNull()
+  })
+
   it('visar ett begripligt fel och låser inte upp knappen permanent om markeraSomLost kastar', async () => {
     const user = userEvent.setup()
     markeraSomLost.mockRejectedValue(new Error('Kunde inte spara i den operativa databasen.'))
     render(<ArendeAtgarder arende={arende} personal={[]} vidBoka={vi.fn()} />)
 
-    const knapp = screen.getByRole('button', { name: /Markera som löst/ })
-    await user.click(knapp)
+    await user.click(screen.getByRole('button', { name: 'Markera som löst' }))
+    await user.click(screen.getByRole('button', { name: 'Markera som löst' }))
 
     expect(toast.error).toHaveBeenCalledWith('Kunde inte markera ärendet som löst', {
       description: 'Kunde inte spara i den operativa databasen.',
     })
     // Knappen ska inte förbli permanent inaktiverad efter ett misslyckat försök.
+    const knapp = screen.getByRole('button', { name: 'Markera som löst' })
     expect((knapp as HTMLButtonElement).disabled).toBe(false)
   })
 
@@ -91,7 +113,8 @@ describe('ArendeAtgarder – felhantering och dubbelklicksskydd', () => {
     markeraSomLost.mockResolvedValue(undefined)
     render(<ArendeAtgarder arende={arende} personal={[]} vidBoka={vi.fn()} />)
 
-    await user.click(screen.getByRole('button', { name: /Markera som löst/ }))
+    await user.click(screen.getByRole('button', { name: 'Markera som löst' }))
+    await user.click(screen.getByRole('button', { name: 'Markera som löst' }))
 
     expect(markeraSomLost).toHaveBeenCalledWith('arende-1', 'Admin Nova')
     expect(toast.success).toHaveBeenCalledWith('Ärendet är markerat som löst')
@@ -108,9 +131,10 @@ describe('ArendeAtgarder – felhantering och dubbelklicksskydd', () => {
     )
     render(<ArendeAtgarder arende={arende} personal={[]} vidBoka={vi.fn()} />)
 
-    const knapp = screen.getByRole('button', { name: /Markera som löst/ })
-    await user.click(knapp)
-    await user.click(knapp)
+    await user.click(screen.getByRole('button', { name: 'Markera som löst' }))
+    const bekraftaKnapp = screen.getByRole('button', { name: 'Markera som löst' })
+    await user.click(bekraftaKnapp)
+    await user.click(bekraftaKnapp)
 
     expect(markeraSomLost).toHaveBeenCalledTimes(1)
     losUpp?.()

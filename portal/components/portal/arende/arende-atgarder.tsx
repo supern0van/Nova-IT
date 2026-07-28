@@ -6,6 +6,18 @@ import { toast } from 'sonner'
 
 import { useAuth } from '@/components/auth/auth-provider'
 import { PrioritetChip, StatusChip } from '@/components/portal/ui-delar'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogMedia,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
 import {
   Select,
@@ -231,10 +243,38 @@ export function ArendeAtgarder({
           <CalendarPlusIcon data-icon="inline-start" />
           Boka tid
         </Button>
-        <Button size="sm" onClick={avsluta} disabled={avslutat || sparar === 'lost'}>
-          <CheckCircle2Icon data-icon="inline-start" />
-          {avslutat ? 'Ärendet är löst' : 'Markera som löst'}
-        </Button>
+        {avslutat ? (
+          <Button size="sm" disabled>
+            <CheckCircle2Icon data-icon="inline-start" />
+            Ärendet är löst
+          </Button>
+        ) : (
+          <AlertDialog>
+            <AlertDialogTrigger
+              render={
+                <Button size="sm" disabled={sparar === 'lost'}>
+                  <CheckCircle2Icon data-icon="inline-start" />
+                  Markera som löst
+                </Button>
+              }
+            />
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogMedia>
+                  <CheckCircle2Icon />
+                </AlertDialogMedia>
+                <AlertDialogTitle>Markera ärendet som löst?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Ärendet flyttas till löst-status. Det går att öppna igen genom att ändra status.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Avbryt</AlertDialogCancel>
+                <AlertDialogAction onClick={avsluta}>Markera som löst</AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        )}
       </div>
     </div>
   )
