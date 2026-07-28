@@ -32,6 +32,10 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
   }
 
   const { id } = await params
+  if (!arGiltigtProfilId(id)) {
+    return NextResponse.json({ profil: null }, { status: 400 })
+  }
+
   const roll = typeof body === 'object' && body !== null && 'roll' in body ? body.roll : null
   const namn = typeof body === 'object' && body !== null && 'namn' in body ? body.namn : null
   const harRoll = roll !== null
@@ -65,4 +69,8 @@ function arGiltigtNamn(namn: unknown): namn is string {
   if (typeof namn !== 'string') return false
   const normaliseratNamn = namn.trim()
   return normaliseratNamn.length >= 2 && normaliseratNamn.length <= 120
+}
+
+function arGiltigtProfilId(id: unknown): id is string {
+  return typeof id === 'string' && id.trim().length > 0 && id.length <= 128
 }

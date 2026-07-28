@@ -81,6 +81,18 @@ describe('PATCH /api/admin/profiler/[id]', () => {
     expect(uppdateraProfilRollIDatabasen).not.toHaveBeenCalled()
   })
 
+  it('nekar tomt profil-id innan databasen anropas', async () => {
+    hamtaAutentiseradAnvandarId.mockResolvedValue('user-1')
+    harAdminAtkomst.mockResolvedValue(true)
+
+    const svar = await PATCH(begaran({ roll: 'medarbetare' }), context('   '))
+
+    expect(svar.status).toBe(400)
+    expect(await svar.json()).toEqual({ profil: null })
+    expect(uppdateraProfilRollIDatabasen).not.toHaveBeenCalled()
+    expect(uppdateraProfilNamnIDatabasen).not.toHaveBeenCalled()
+  })
+
   it('uppdaterar systemrollen för ett annat portalkonto', async () => {
     const profil = {
       id: 'user-2',

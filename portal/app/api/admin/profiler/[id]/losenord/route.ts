@@ -23,6 +23,10 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
   }
 
   const { id } = await params
+  if (!arGiltigtProfilId(id)) {
+    return NextResponse.json({ ok: false }, { status: 400 })
+  }
+
   const resultat = await skickaLosenordsaterstallningForProfil(
     id,
     byggLosenordsAterstallningsUrl(request),
@@ -42,4 +46,8 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
   }
 
   return NextResponse.json({ ok: true, epost: resultat.epost })
+}
+
+function arGiltigtProfilId(id: unknown): id is string {
+  return typeof id === 'string' && id.trim().length > 0 && id.length <= 128
 }

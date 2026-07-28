@@ -55,6 +55,17 @@ describe('POST /api/admin/profiler/[id]/losenord', () => {
     expect(skickaLosenordsaterstallningForProfil).not.toHaveBeenCalled()
   })
 
+  it('nekar tomt profil-id innan återställningslänk skapas', async () => {
+    hamtaAutentiseradAnvandarId.mockResolvedValue('user-1')
+    harAdminAtkomst.mockResolvedValue(true)
+
+    const svar = await POST(begaran(), context('   '))
+
+    expect(svar.status).toBe(400)
+    expect(await svar.json()).toEqual({ ok: false })
+    expect(skickaLosenordsaterstallningForProfil).not.toHaveBeenCalled()
+  })
+
   it('returnerar 404 om portalkontot saknas', async () => {
     hamtaAutentiseradAnvandarId.mockResolvedValue('user-1')
     harAdminAtkomst.mockResolvedValue(true)
