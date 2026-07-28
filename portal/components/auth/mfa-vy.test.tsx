@@ -1,20 +1,49 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
 import type { TotpFaktor } from '@/lib/auth/mfa-klient'
 
+const replace = vi.fn()
+const loggaUt = vi.fn()
+const hamtaAssuransniva = vi.fn()
+const listaTotpFaktorer = vi.fn()
+const paborjaEnrollment = vi.fn()
+const avbrytEnrollment = vi.fn()
 const utmanaOchVerifieraKod = vi.fn()
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- test-dubblett, behöver bara vara "något klientliknande"
+const supabaseStub = {} as any
+
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ replace }),
+  useSearchParams: () => new URLSearchParams(),
+}))
+
+vi.mock('@/lib/auth/supabase-auth', () => ({
+  authAdapter: { loggaUt },
+}))
 
 vi.mock('@/lib/auth/mfa-klient', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/lib/auth/mfa-klient')>()
-  return { ...actual, utmanaOchVerifieraKod }
+  return {
+    ...actual,
+    avbrytEnrollment,
+    hamtaAssuransniva,
+    listaTotpFaktorer,
+    paborjaEnrollment,
+    utmanaOchVerifieraKod,
+  }
 })
 
+vi.mock('@/lib/supabase/client', () => ({
+  skapaSupabaseWebblasarklient: () => supabaseStub,
+}))
+
+let MfaVy: typeof import('@/components/auth/mfa-vy').MfaVy
 let VerifieraVy: typeof import('@/components/auth/mfa-vy').VerifieraVy
 
 beforeAll(async () => {
-  ;({ VerifieraVy } = await import('@/components/auth/mfa-vy'))
+  ;({ MfaVy, VerifieraVy } = await import('@/components/auth/mfa-vy'))
 })
 
 const faktorPrimar: TotpFaktor = {
@@ -29,9 +58,6 @@ const faktorBackup: TotpFaktor = {
   status: 'verified',
   skapad: '2026-02-01T00:00:00Z',
 }
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any -- test-dubblett, behöver bara vara "något klientliknande"
-const supabaseStub = {} as any
 
 describe('VerifieraVy – val av MFA-faktor vid inloggning', () => {
   afterEach(() => {
@@ -127,6 +153,71 @@ describe('VerifieraVy – val av MFA-faktor vid inloggning', () => {
     await vi.waitFor(() => {
       expect(utmanaOchVerifieraKod).toHaveBeenCalledWith(supabaseStub, 'faktor-backup', '111111')
       expect(vidKlar).toHaveBeenCalled()
+    })
+  })
+})
+
+describe('MfaVy – enrollment och felstatus', () => {
+  afterEach(() => {
+    vi.clearAllMocks()
+    cleanup()
+  })
+
+  it('visar felvy och kan logga ut om säkerhetsstatus inte kan läsas', async () => {
+    hamtaAssuransniva.mockResolvedValue(null)
+    loggaUt.mockResolvedValue({ ok: true })
+
+    render(<MfaVy />)
+
+    expect(await screen.findByText('Något gick fel')).toBeTruthy()
+    expect(screen.getByText('Kunde inte läsa kontots säkerhetsstatus.')).toBeTruthy()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Logga ut och försök igen' }))
+
+    await waitFor(() => {
+      expect(loggaUt).toHaveBeenCalled()
+      expect(replace).toHaveBeenCalledWith('/logga-in')
+    })
+  })
+
+  it('redirectar direkt om sessionen redan är AAL2-verifierad', async () => {
+    hamtaAssuransniva.mockResolvedValue({ currentLevel: 'aal2', nextLevel: 'aal2' })
+
+    render(<MfaVy />)
+
+    await waitFor(() => {
+      expect(replace).toHaveBeenCalledWith('/portal')
+    })
+    expect(paborjaEnrollment).not.toHaveBeenCalled()
+    expect(listaTotpFaktorer).not.toHaveBeenCalled()
+  })
+
+  it('visar enrollment och verifierar första obligatoriska TOTP-enheten', async () => {
+    hamtaAssuransniva.mockResolvedValue({ currentLevel: 'aal1', nextLevel: 'aal1' })
+    paborjaEnrollment.mockResolvedValue({
+      ok: true,
+      factorId: 'ny-faktor',
+      qrKodDataUrl: 'data:image/svg+xml,<svg />',
+      hemlighetForManuellInmatning: 'ABCDEF',
+    })
+    utmanaOchVerifieraKod.mockResolvedValue({ ok: true })
+
+    render(<MfaVy />)
+
+    expect(await screen.findByText('Sätt upp tvåstegsverifiering')).toBeTruthy()
+    expect(screen.getByAltText('QR-kod för tvåstegsverifiering')).toBeTruthy()
+    expect(paborjaEnrollment).toHaveBeenCalledWith(supabaseStub, 'Primär enhet')
+
+    fireEvent.click(screen.getByText('Kan du inte skanna koden?'))
+    expect(screen.getByText('ABCDEF')).toBeTruthy()
+    fireEvent.change(screen.getByLabelText('Kod från autentiseringsappen'), {
+      target: { value: '123456' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Aktivera tvåstegsverifiering' }))
+
+    await waitFor(() => {
+      expect(utmanaOchVerifieraKod).toHaveBeenCalledWith(supabaseStub, 'ny-faktor', '123456')
+      expect(replace).toHaveBeenCalledWith('/portal')
     })
   })
 })
