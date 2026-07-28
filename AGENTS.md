@@ -8,3 +8,8 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+
+> [!NOTE]
+> `portal.*`-domänerna pekar just nu tillfälligt på adminportalens Worker
+> (`nova-it-admin`) — se kommentarerna i `portal/wrangler.jsonc`. En framtida
+> kundportal ska inte byggas ovanpå den Workern utan ett separat beslut.

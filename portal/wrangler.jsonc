@@ -11,6 +11,7 @@
     "binding": "ASSETS"
   },
   "routes": [
+    // admin.* är adminportalens primära, permanenta ingång (nova-it-admin).
     {
       "pattern": "admin.nova-it.se",
       "custom_domain": true
@@ -19,6 +20,11 @@
       "pattern": "admin.novait.se",
       "custom_domain": true
     },
+    // portal.* är tillfälligt kopplade hit så att domänerna är registrerade och
+    // fungerar redan nu. Det är en bekvämlighet, inte en avsedd arkitektur.
+    // Bygg inte en kundportal genom att lägga till kod eller routes i nova-it-admin.
+    // En framtida kundportal kräver en egen Worker och egna routes, beslutat
+    // separat när det spåret faktiskt påbörjas.
     {
       "pattern": "portal.novait.se",
       "custom_domain": true
