@@ -54,13 +54,19 @@ const session: Session = {
 }
 
 function Probe() {
-  const { anvandare, roll, laddarRoll, sessionUtgick } = useAuth()
+  const { anvandare, roll, laddarRoll, sessionUtgick, kan, loggaUt } = useAuth()
   return (
     <div>
       <span data-testid="anvandare">{anvandare?.id ?? 'ingen-anvandare'}</span>
       <span data-testid="roll">{roll ?? 'ingen-roll'}</span>
       <span data-testid="laddar-roll">{laddarRoll ? 'laddar' : 'klar'}</span>
       <span data-testid="session-utgick">{sessionUtgick ? 'utgången' : 'aktiv'}</span>
+      <span data-testid="kan-hantera-anvandare">
+        {kan('hantera_anvandare') ? 'tillaten' : 'nekad'}
+      </span>
+      <button type="button" onClick={() => void loggaUt()}>
+        Logga ut
+      </button>
     </div>
   )
 }
@@ -93,6 +99,7 @@ describe('AuthProvider – systemroll från /api/roll', () => {
       expect(screen.getByTestId('laddar-roll').textContent).toBe('klar')
     })
     expect(screen.getByTestId('roll').textContent).toBe('ingen-roll')
+    expect(screen.getByTestId('kan-hantera-anvandare').textContent).toBe('nekad')
   })
 
   it('fail-closed till roll=null när /api/roll svarar icke-ok', async () => {
@@ -230,5 +237,36 @@ describe('AuthProvider – systemroll från /api/roll', () => {
       expect(fetch).toHaveBeenCalledTimes(2)
       expect(screen.getByTestId('roll').textContent).toBe('administrator')
     })
+  })
+
+  it('behåller sessionen lokalt om Supabase-utloggningen misslyckas', async () => {
+    hamtaSession.mockResolvedValue({ session, anvandare })
+    lyssnaPaSessionsandringar.mockReturnValue(vi.fn())
+    loggaUt.mockResolvedValue({ ok: false })
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: vi.fn().mockResolvedValue({ roll: 'administrator' }),
+      }),
+    )
+
+    renderaProvider()
+
+    await waitFor(() => {
+      expect(screen.getByTestId('anvandare').textContent).toBe('user-1')
+      expect(screen.getByTestId('roll').textContent).toBe('administrator')
+    })
+
+    await act(async () => {
+      screen.getByRole('button', { name: 'Logga ut' }).click()
+    })
+
+    await waitFor(() => {
+      expect(loggaUt).toHaveBeenCalled()
+    })
+    expect(screen.getByTestId('anvandare').textContent).toBe('user-1')
+    expect(screen.getByTestId('roll').textContent).toBe('administrator')
+    expect(replace).not.toHaveBeenCalled()
   })
 })
