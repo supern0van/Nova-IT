@@ -10,6 +10,7 @@ import {
   type InloggningsFel,
   type Session,
 } from '@/lib/auth/supabase-auth'
+import { hamtaRollFranApiSvar } from '@/lib/auth/roll-api-svar'
 import { arAdministrator, type SystemRoll } from '@/lib/auth/roll'
 import type { Anvandare } from '@/lib/types'
 
@@ -59,14 +60,6 @@ const SYSTEM_ADMIN_BEHORIGHETER: readonly Behorighet[] = [
   'hantera_anvandare',
   'hantera_systeminstallningar',
 ]
-
-interface RollSvar {
-  roll: SystemRoll | null
-  profil?: {
-    epost: string
-    namn: string
-  } | null
-}
 
 function initialerFranNamn(namn: string) {
   return (
@@ -157,14 +150,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setLaddarRoll(true)
     fetch('/api/roll')
       .then((svar) => (svar.ok ? svar.json() : { roll: null }))
-      .then((data: RollSvar) => {
+      .then((data: unknown) => {
         if (avbruten) return
-        setRoll(data.roll)
-        if (data.profil) {
+        const rollSvar = hamtaRollFranApiSvar(data)
+        setRoll(rollSvar?.roll ?? null)
+        if (rollSvar?.profil) {
           setAnvandare((aktuell) => {
             if (!aktuell || aktuell.id !== anvandareId) return aktuell
-            const namn = data.profil?.namn.trim() || aktuell.namn
-            const epost = data.profil?.epost.trim() || aktuell.epost
+            const namn = rollSvar.profil?.namn.trim() || aktuell.namn
+            const epost = rollSvar.profil?.epost.trim() || aktuell.epost
             return {
               ...aktuell,
               namn,
