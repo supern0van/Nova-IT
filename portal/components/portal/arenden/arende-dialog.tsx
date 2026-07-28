@@ -29,6 +29,12 @@ import { kanalLabel, prioritetLabel, prioritetOrdning } from '@/lib/labels'
 import { manuellaKanaler, skapaArende } from '@/lib/store'
 import type { Arendekategori, Kategori, Kund, Prioritet } from '@/lib/types'
 
+// Speglar constraints i admin_arenden (se supabase/migrations/*_admin_operativa_tabeller.sql)
+// så att formuläret stoppar samma indata servern ändå skulle avvisa.
+const RUBRIK_MIN = 3
+const RUBRIK_MAX = 180
+const BESKRIVNING_MIN = 5
+
 /**
  * Registrerar ett nytt ärende manuellt, t.ex. efter ett telefonsamtal eller
  * en manuell kundkontakt. Öppnas från ärendelistan (fri kundväljare) eller
@@ -92,12 +98,26 @@ export function ArendeDialog({
   function validera() {
     const nyaFel: Record<string, string> = {}
     if (!kundId) nyaFel.kund = 'Välj vilken kund ärendet gäller.'
-    if (!rubrik.trim()) nyaFel.rubrik = 'Ange en kort rubrik.'
+
+    const rubrikTrimmad = rubrik.trim()
+    if (!rubrikTrimmad) nyaFel.rubrik = 'Ange en kort rubrik.'
+    else if (rubrikTrimmad.length < RUBRIK_MIN) {
+      nyaFel.rubrik = `Rubriken är för kort (minst ${RUBRIK_MIN} tecken).`
+    } else if (rubrikTrimmad.length > RUBRIK_MAX) {
+      nyaFel.rubrik = `Rubriken är för lång (max ${RUBRIK_MAX} tecken).`
+    }
+
     if (!kategori) nyaFel.kategori = 'Välj en kategori.'
     if (kategori && underkategorier.length > 0 && !underkategori) {
       nyaFel.underkategori = 'Välj en underkategori.'
     }
-    if (!beskrivning.trim()) nyaFel.beskrivning = 'Beskriv vad ärendet gäller.'
+
+    const beskrivningTrimmad = beskrivning.trim()
+    if (!beskrivningTrimmad) nyaFel.beskrivning = 'Beskriv vad ärendet gäller.'
+    else if (beskrivningTrimmad.length < BESKRIVNING_MIN) {
+      nyaFel.beskrivning = `Beskrivningen är för kort (minst ${BESKRIVNING_MIN} tecken).`
+    }
+
     setFel(nyaFel)
     return Object.keys(nyaFel).length === 0
   }
@@ -192,6 +212,7 @@ export function ArendeDialog({
               onChange={(e) => setRubrik(e.target.value)}
               placeholder="Kort sammanfattning av vad ärendet gäller"
               aria-invalid={Boolean(fel.rubrik)}
+              maxLength={RUBRIK_MAX}
             />
             {fel.rubrik && <FieldError>{fel.rubrik}</FieldError>}
           </Field>

@@ -43,6 +43,14 @@ function giltigTelefon(varde: string) {
   return rensad.replace(/\D/g, '').length >= 7
 }
 
+// Speglar constraints i admin_kunder (se supabase/migrations/*_admin_operativa_tabeller.sql)
+// så att formuläret stoppar samma indata servern ändå skulle avvisa.
+const NAMN_MAX = 160
+const EPOST_MIN = 3
+const EPOST_MAX = 254
+const TELEFON_MAX = 40
+const ORGANISATION_MAX = 160
+
 /**
  * Skapar en ny kund eller redigerar en befintlig. Vid redigering låses namn och
  * kundtyp – de utgör kundens identitet i ärendehistoriken – medan adress,
@@ -107,18 +115,34 @@ export function KundDialog({
     const nyaFel: Record<string, string> = {}
 
     if (!redigerar) {
-      if (!namn.trim()) nyaFel.namn = 'Ange kundens namn.'
-      else if (namn.trim().length < 2) nyaFel.namn = 'Namnet är för kort.'
+      const namnTrimmat = namn.trim()
+      if (!namnTrimmat) nyaFel.namn = 'Ange kundens namn.'
+      else if (namnTrimmat.length < 2) nyaFel.namn = 'Namnet är för kort.'
+      else if (namnTrimmat.length > NAMN_MAX) {
+        nyaFel.namn = `Namnet får vara högst ${NAMN_MAX} tecken.`
+      }
     }
 
-    if (!epost.trim()) nyaFel.epost = 'Ange en e-postadress.'
-    else if (!giltigEpost(epost)) nyaFel.epost = 'E-postadressen ser inte giltig ut.'
+    const epostTrimmad = epost.trim()
+    if (!epostTrimmad) nyaFel.epost = 'Ange en e-postadress.'
+    else if (epostTrimmad.length < EPOST_MIN || epostTrimmad.length > EPOST_MAX) {
+      nyaFel.epost = `E-postadressen måste vara mellan ${EPOST_MIN} och ${EPOST_MAX} tecken.`
+    } else if (!giltigEpost(epostTrimmad)) {
+      nyaFel.epost = 'E-postadressen ser inte giltig ut.'
+    }
 
-    if (!telefon.trim()) nyaFel.telefon = 'Ange ett telefonnummer.'
-    else if (!giltigTelefon(telefon))
+    const telefonTrimmat = telefon.trim()
+    if (!telefonTrimmat) nyaFel.telefon = 'Ange ett telefonnummer.'
+    else if (telefonTrimmat.length > TELEFON_MAX) {
+      nyaFel.telefon = `Telefonnumret får vara högst ${TELEFON_MAX} tecken.`
+    } else if (!giltigTelefon(telefonTrimmat)) {
       nyaFel.telefon = 'Ange ett telefonnummer med minst sju siffror.'
+    }
 
-    if (!redigerar && kundtyp === 'verksamhet' && !organisation.trim()) {
+    const organisationTrimmad = organisation.trim()
+    if (organisationTrimmad.length > ORGANISATION_MAX) {
+      nyaFel.organisation = `Verksamhetens namn får vara högst ${ORGANISATION_MAX} tecken.`
+    } else if (!redigerar && kundtyp === 'verksamhet' && !organisationTrimmad) {
       nyaFel.organisation = 'Ange verksamhetens fullständiga namn.'
     }
 
@@ -203,6 +227,7 @@ export function KundDialog({
                   onChange={(e) => setNamn(e.target.value)}
                   placeholder="Förnamn Efternamn eller verksamhetsnamn"
                   aria-invalid={Boolean(fel.namn)}
+                  maxLength={NAMN_MAX}
                 />
                 {fel.namn && <FieldError>{fel.namn}</FieldError>}
               </Field>
@@ -239,6 +264,7 @@ export function KundDialog({
                   onChange={(e) => setOrganisation(e.target.value)}
                   placeholder="Exempel AB"
                   aria-invalid={Boolean(fel.organisation)}
+                  maxLength={ORGANISATION_MAX}
                 />
                 {fel.organisation && <FieldError>{fel.organisation}</FieldError>}
               </Field>
@@ -265,6 +291,7 @@ export function KundDialog({
                 onChange={(e) => setEpost(e.target.value)}
                 placeholder="namn@exempel.se"
                 aria-invalid={Boolean(fel.epost)}
+                maxLength={EPOST_MAX}
               />
               {fel.epost && <FieldError>{fel.epost}</FieldError>}
             </Field>
@@ -278,6 +305,7 @@ export function KundDialog({
                 onChange={(e) => setTelefon(e.target.value)}
                 placeholder="070-000 00 00"
                 aria-invalid={Boolean(fel.telefon)}
+                maxLength={TELEFON_MAX}
               />
               {fel.telefon && <FieldError>{fel.telefon}</FieldError>}
             </Field>
