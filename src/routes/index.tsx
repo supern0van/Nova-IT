@@ -1,9 +1,18 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, Building2, Home as HomeIcon, MapPin } from "lucide-react";
+import {
+  ArrowRight,
+  Building2,
+  ClipboardCheck,
+  Home as HomeIcon,
+  Mail,
+  MapPin,
+  MessageCircleQuestion,
+  ShieldCheck,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Container } from "@/components/design-system";
 import { ServiceAreas } from "@/components/service-areas";
-import { processSteps } from "@/lib/nova-data";
+import { contactChannels, faqs, processSteps } from "@/lib/nova-data";
 import { serviceRegion } from "@/lib/service-region";
 
 const homeUrl = "https://nova-it.se/";
@@ -100,9 +109,6 @@ function Home() {
               linkText="IT-stöd för verksamheter"
             />
           </div>
-          <p className="mt-8 max-w-3xl text-sm leading-6 text-slate-400">
-            {serviceRegion.description} {serviceRegion.practicalNote}
-          </p>
         </Container>
       </section>
 
@@ -144,6 +150,105 @@ function Home() {
               </li>
             ))}
           </ol>
+        </Container>
+      </section>
+
+      <section className="nova-section-muted">
+        <Container className="grid gap-10 py-16 sm:py-20 lg:grid-cols-[0.7fr_1.3fr] lg:items-start">
+          <div>
+            <p className="eyebrow flex items-center gap-2">
+              <MapPin className="h-4 w-4" /> Serviceområde
+            </p>
+            <h2 className="mt-3 text-3xl font-semibold tracking-normal text-balance sm:text-4xl">
+              {serviceRegion.title}
+            </h2>
+          </div>
+          <div className="max-w-2xl">
+            <p className="leading-7 text-slate-300">{serviceRegion.description}</p>
+            <p className="mt-3 text-sm leading-6 text-slate-400">{serviceRegion.practicalNote}</p>
+          </div>
+        </Container>
+      </section>
+
+      <section className="nova-section">
+        <Container className="py-16 sm:py-20">
+          <div className="max-w-2xl">
+            <p className="eyebrow">Att lita på</p>
+            <h2 className="mt-3 text-3xl font-semibold tracking-normal text-balance sm:text-4xl">
+              Tydligt om vad du kan förvänta dig.
+            </h2>
+          </div>
+          <div className="mt-8 grid gap-5 sm:grid-cols-3">
+            <article className="rounded-lg border border-white/10 bg-white/5 p-6">
+              <Mail className="h-5 w-5 text-sky-300" />
+              <h3 className="mt-4 font-semibold">Tydlig kontaktväg</h3>
+              <p className="mt-2 text-sm leading-6 text-slate-300">
+                Alla förfrågningar går till{" "}
+                <a href={`mailto:${contactChannels.contact}`} className="text-sky-300 hover:text-sky-200">
+                  {contactChannels.contact}
+                </a>
+                . Du svarar direkt på din bekräftelse.
+              </p>
+            </article>
+            <article className="rounded-lg border border-white/10 bg-white/5 p-6">
+              <ClipboardCheck className="h-5 w-5 text-sky-300" />
+              <h3 className="mt-4 font-semibold">Bedömning innan åtgärd</h3>
+              <p className="mt-2 text-sm leading-6 text-slate-300">
+                Ärendet ringas alltid in innan en åtgärd eller kostnad föreslås. Inget påstås utan
+                att det kan styrkas.
+              </p>
+            </article>
+            <article className="rounded-lg border border-white/10 bg-white/5 p-6">
+              <ShieldCheck className="h-5 w-5 text-sky-300" />
+              <h3 className="mt-4 font-semibold">Integritet</h3>
+              <p className="mt-2 text-sm leading-6 text-slate-300">
+                Vad som gäller för dina uppgifter finns samlat i integritetsinformationen i
+                sidfoten.
+              </p>
+            </article>
+          </div>
+        </Container>
+      </section>
+
+      <section className="nova-section-muted">
+        <Container className="py-16 sm:py-20">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="eyebrow">Vanliga frågor</p>
+              <h2 className="mt-3 max-w-2xl text-3xl font-semibold tracking-normal text-balance sm:text-4xl">
+                Svar innan du hör av dig.
+              </h2>
+            </div>
+            <Link to="/faq" className="text-sm font-medium text-sky-300 hover:text-sky-200">
+              Se alla frågor
+            </Link>
+          </div>
+          <ul className="mt-8 grid gap-5 sm:grid-cols-2">
+            {faqs.slice(0, 4).map((item) => (
+              <li key={item.q} className="border-t border-white/10 pt-4">
+                <h3 className="font-semibold">{item.q}</h3>
+                <p className="mt-2 text-sm leading-6 text-slate-300">{item.a}</p>
+              </li>
+            ))}
+          </ul>
+        </Container>
+      </section>
+
+      <section className="nova-section border-t border-white/10">
+        <Container className="flex flex-col items-start gap-5 py-16 sm:flex-row sm:items-center sm:justify-between sm:py-20">
+          <div>
+            <p className="eyebrow flex items-center gap-2">
+              <MessageCircleQuestion className="h-4 w-4" /> Nästa steg
+            </p>
+            <h2 className="mt-3 max-w-xl text-2xl font-semibold tracking-normal text-balance sm:text-3xl">
+              Redo att beskriva vad som krånglar?
+            </h2>
+          </div>
+          <Button asChild size="lg" className="shrink-0">
+            <Link to="/kontakt" search={{ form: "request", service: undefined }}>
+              Beskriv ärende <ArrowRight className="h-4 w-4" />
+            </Link>
+          </Button>
         </Container>
       </section>
     </>
