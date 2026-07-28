@@ -46,6 +46,7 @@ let bjudInPortalProfil: typeof import('@/lib/auth/profiler-server').bjudInPortal
 let listaProfilerFranDatabasen: typeof import('@/lib/auth/profiler-server').listaProfilerFranDatabasen
 let skickaLosenordsaterstallningForProfil: typeof import('@/lib/auth/profiler-server').skickaLosenordsaterstallningForProfil
 let uppdateraProfilNamnIDatabasen: typeof import('@/lib/auth/profiler-server').uppdateraProfilNamnIDatabasen
+let uppdateraProfilRollIDatabasen: typeof import('@/lib/auth/profiler-server').uppdateraProfilRollIDatabasen
 
 beforeEach(async () => {
   vi.resetModules()
@@ -63,6 +64,7 @@ beforeEach(async () => {
     listaProfilerFranDatabasen,
     skickaLosenordsaterstallningForProfil,
     uppdateraProfilNamnIDatabasen,
+    uppdateraProfilRollIDatabasen,
   } = await import('@/lib/auth/profiler-server'))
 })
 
@@ -296,9 +298,40 @@ describe('bjudInPortalProfil', () => {
     expect(inviteUserByEmail).not.toHaveBeenCalled()
     expect(upsert).not.toHaveBeenCalled()
   })
+
+  it('nekar ogiltiga inbjudningsvärden innan Supabase anropas', async () => {
+    const resultat = await bjudInPortalProfil({
+      epost: 'inte-epost',
+      namn: 'A',
+      roll: 'medarbetare',
+    })
+
+    expect(resultat).toEqual({ ok: false, fel: 'kunde_inte_spara_profil' })
+    expect(selectProfiler).not.toHaveBeenCalled()
+    expect(inviteUserByEmail).not.toHaveBeenCalled()
+    expect(upsert).not.toHaveBeenCalled()
+  })
+})
+
+describe('uppdateraProfilRollIDatabasen', () => {
+  it('nekar tomt profil-id innan databasen anropas', async () => {
+    const profil = await uppdateraProfilRollIDatabasen('   ', 'medarbetare')
+
+    expect(profil).toBeNull()
+    expect(update).not.toHaveBeenCalled()
+  })
 })
 
 describe('uppdateraProfilNamnIDatabasen', () => {
+  it('nekar ogiltigt namn innan Auth Admin anropas', async () => {
+    const profil = await uppdateraProfilNamnIDatabasen('user-2', 'A')
+
+    expect(profil).toBeNull()
+    expect(getUserById).not.toHaveBeenCalled()
+    expect(updateUserById).not.toHaveBeenCalled()
+    expect(update).not.toHaveBeenCalled()
+  })
+
   it('synkar nytt namn till Supabase Auth metadata och profiles', async () => {
     getUserById.mockResolvedValue({
       data: {
@@ -429,6 +462,14 @@ describe('skickaLosenordsaterstallningForProfil', () => {
     )
 
     expect(resultat).toEqual({ ok: false, fel: 'profil_saknas' })
+    expect(resetPasswordForEmail).not.toHaveBeenCalled()
+  })
+
+  it('nekar osäker redirect-url innan Supabase anropas', async () => {
+    const resultat = await skickaLosenordsaterstallningForProfil('user-2', 'http://admin.nova-it.se/logga-in')
+
+    expect(resultat).toEqual({ ok: false, fel: 'profil_saknas' })
+    expect(selectProfiler).not.toHaveBeenCalled()
     expect(resetPasswordForEmail).not.toHaveBeenCalled()
   })
 })

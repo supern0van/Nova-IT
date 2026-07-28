@@ -76,6 +76,8 @@ export async function uppdateraProfilRollIDatabasen(
   profilId: string,
   roll: SystemRoll,
 ): Promise<ProfilRad | null> {
+  if (!arGiltigtProfilId(profilId) || !arSystemRoll(roll)) return null
+
   const supabase = skapaSupabaseServiceklient()
   const { data, error } = await supabase
     .from('profiles')
@@ -92,6 +94,8 @@ export async function uppdateraProfilNamnIDatabasen(
   profilId: string,
   namn: string,
 ): Promise<ProfilRad | null> {
+  if (!arGiltigtProfilId(profilId) || !arGiltigtNamn(namn)) return null
+
   const supabase = skapaSupabaseServiceklient()
   const normaliseratNamn = namn.trim()
 
@@ -132,9 +136,13 @@ export async function bjudInPortalProfil({
   roll,
   redirectTo,
 }: NyPortalProfil): Promise<BjudInPortalProfilResultat> {
-  const supabase = skapaSupabaseServiceklient()
   const normaliseradEpost = epost.trim().toLowerCase()
   const normaliseratNamn = namn.trim()
+  if (!arGiltigEpost(normaliseradEpost) || !arGiltigtNamn(normaliseratNamn) || !arSystemRoll(roll)) {
+    return { ok: false, fel: 'kunde_inte_spara_profil' }
+  }
+
+  const supabase = skapaSupabaseServiceklient()
 
   const { data: befintligProfil, error: kontrollFel } = await supabase
     .from('profiles')
@@ -193,6 +201,10 @@ export async function skickaLosenordsaterstallningForProfil(
   profilId: string,
   redirectTo: string,
 ): Promise<LösenordsåterställningResultat> {
+  if (!arGiltigtProfilId(profilId) || !arHttpsUrl(redirectTo)) {
+    return { ok: false, fel: 'profil_saknas' }
+  }
+
   const supabase = skapaSupabaseServiceklient()
   const { data: profil, error: profilFel } = await supabase
     .from('profiles')
@@ -308,5 +320,32 @@ function normaliseraProfilRad(data: unknown): ProfilRad | null {
     roll: data.roll,
     skapad,
     uppdaterad,
+  }
+}
+
+function arGiltigtProfilId(id: unknown): id is string {
+  return typeof id === 'string' && id.trim().length > 0 && id.length <= 128
+}
+
+function arGiltigtNamn(namn: unknown): namn is string {
+  if (typeof namn !== 'string') return false
+  const normaliseratNamn = namn.trim()
+  return normaliseratNamn.length >= 2 && normaliseratNamn.length <= 120
+}
+
+function arGiltigEpost(epost: unknown): epost is string {
+  return (
+    typeof epost === 'string' &&
+    epost.trim().length <= 254 &&
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(epost.trim())
+  )
+}
+
+function arHttpsUrl(varde: unknown): varde is string {
+  if (typeof varde !== 'string') return false
+  try {
+    return new URL(varde).protocol === 'https:'
+  } catch {
+    return false
   }
 }
