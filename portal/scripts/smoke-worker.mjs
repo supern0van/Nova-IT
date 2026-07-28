@@ -1,11 +1,20 @@
-const workerDomains = [
+import { pathToFileURL } from 'node:url'
+
+/**
+ * @typedef {{ status: number, headers: { get(name: string): string | null }, json(): Promise<unknown> }} SmokeResponse
+ * @typedef {(url: string, options?: Record<string, unknown>) => Promise<SmokeResponse>} SmokeFetch
+ * @typedef {{ log(message?: unknown, ...optionalParams: unknown[]): void, error(message?: unknown, ...optionalParams: unknown[]): void }} SmokeLogger
+ * @typedef {{ path: string, expectedStatus: number, expectedBody: unknown }} ApiCheck
+ */
+
+export const workerDomains = [
   'admin.nova-it.se',
   'admin.novait.se',
   'portal.novait.se',
   'portal.nova-it.se',
 ]
 
-const apiChecks = [
+export const apiChecks = [
   {
     path: '/api/roll',
     expectedStatus: 401,
@@ -24,63 +33,112 @@ const apiChecks = [
 ]
 
 const timeoutMs = 20_000
-let failed = false
 
-function sameJson(actual, expected) {
+export function sameJson(actual, expected) {
   return JSON.stringify(actual) === JSON.stringify(expected)
 }
 
-async function fetchWithTimeout(url, options = {}) {
-  return fetch(url, {
+/**
+ * @param {string} url
+ * @param {Record<string, unknown>} [options]
+ * @param {SmokeFetch} [fetchRunner]
+ * @returns {Promise<SmokeResponse>}
+ */
+export async function fetchWithTimeout(url, options = {}, fetchRunner = fetch) {
+  return fetchRunner(url, {
     ...options,
     signal: AbortSignal.timeout(timeoutMs),
   })
 }
 
-async function checkDomainRedirect(domain) {
+/**
+ * @param {string} domain
+ * @param {{ fetchRunner?: SmokeFetch, logger?: SmokeLogger }} [options]
+ * @returns {Promise<boolean>}
+ */
+export async function checkDomainRedirect(
+  domain,
+  { fetchRunner = fetch, logger = console } = {},
+) {
   const url = `https://${domain}`
-  const response = await fetchWithTimeout(url, { redirect: 'manual' })
+  const response = await fetchWithTimeout(url, { redirect: 'manual' }, fetchRunner)
   const location = response.headers.get('location') ?? ''
   const ok =
     [302, 307, 308].includes(response.status) &&
     (location.includes('/logga-in') || location.includes('/mfa') || location.includes('/portal'))
 
   if (!ok) {
-    failed = true
-    console.error(`✗ ${url} gav ${response.status} med Location: ${location || '<saknas>'}`)
-    return
+    logger.error(`✗ ${url} gav ${response.status} med Location: ${location || '<saknas>'}`)
+    return false
   }
 
-  console.log(`✓ ${url} gav ${response.status} → ${location}`)
+  logger.log(`✓ ${url} gav ${response.status} → ${location}`)
+  return true
 }
 
-async function checkApi(domain, check) {
+/**
+ * @param {string} domain
+ * @param {ApiCheck} check
+ * @param {{ fetchRunner?: SmokeFetch, logger?: SmokeLogger }} [options]
+ * @returns {Promise<boolean>}
+ */
+export async function checkApi(domain, check, { fetchRunner = fetch, logger = console } = {}) {
   const url = `https://${domain}${check.path}`
-  const response = await fetchWithTimeout(url, { redirect: 'manual' })
+  const response = await fetchWithTimeout(url, { redirect: 'manual' }, fetchRunner)
   const body = await response.json().catch(() => null)
   const ok = response.status === check.expectedStatus && sameJson(body, check.expectedBody)
 
   if (!ok) {
-    failed = true
-    console.error(
+    logger.error(
       `✗ ${url} gav ${response.status} ${JSON.stringify(body)}; förväntade ${check.expectedStatus} ${JSON.stringify(check.expectedBody)}`,
     )
-    return
+    return false
   }
 
-  console.log(`✓ ${url} gav ${response.status} ${JSON.stringify(body)}`)
+  logger.log(`✓ ${url} gav ${response.status} ${JSON.stringify(body)}`)
+  return true
 }
 
-for (const domain of workerDomains) {
-  await checkDomainRedirect(domain)
+/**
+ * @param {{
+ *   domains?: string[],
+ *   checks?: ApiCheck[],
+ *   apiDomain?: string,
+ *   fetchRunner?: SmokeFetch,
+ *   logger?: SmokeLogger,
+ * }} [options]
+ * @returns {Promise<boolean>}
+ */
+export async function runSmokeWorker({
+  domains = workerDomains,
+  checks = apiChecks,
+  apiDomain = 'admin.nova-it.se',
+  fetchRunner = fetch,
+  logger = console,
+} = {}) {
+  const results = []
+
+  for (const domain of domains) {
+    results.push(await checkDomainRedirect(domain, { fetchRunner, logger }))
+  }
+
+  for (const check of checks) {
+    results.push(await checkApi(apiDomain, check, { fetchRunner, logger }))
+  }
+
+  const ok = results.every(Boolean)
+
+  if (ok) {
+    logger.log('Worker smoke passerade.')
+  }
+
+  return ok
 }
 
-for (const check of apiChecks) {
-  await checkApi('admin.nova-it.se', check)
+export async function main() {
+  return (await runSmokeWorker()) ? 0 : 1
 }
 
-if (failed) {
-  process.exitCode = 1
-} else {
-  console.log('Worker smoke passerade.')
+if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
+  process.exitCode = await main()
 }
