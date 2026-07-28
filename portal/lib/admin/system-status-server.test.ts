@@ -138,6 +138,27 @@ describe('hamtaSystemStatus', () => {
     })
     expect(status.profiler).toEqual({ antal: 3, status: 'ok' })
   })
+
+  it('rapporterar Auth Admin-fel utan att dölja fungerande profiles-läsning när anropet kastar', async () => {
+    select.mockResolvedValue({ count: 3, error: null })
+    listUsers.mockRejectedValue(new Error('auth driftfel'))
+
+    const status = await hamtaSystemStatus()
+
+    expect(status.kontroller).toContainEqual({
+      id: 'auth-admin-read',
+      namn: 'Supabase Auth Admin',
+      status: 'fel',
+      beskrivning: 'Worker:n kunde inte läsa Supabase Auth Admin-API:t med service role.',
+    })
+    expect(status.kontroller).toContainEqual({
+      id: 'profiles-read',
+      namn: 'Profiles-tabellen',
+      status: 'ok',
+      beskrivning: 'Worker:n kan läsa portalkonton från Supabase.',
+    })
+    expect(status.profiler).toEqual({ antal: 3, status: 'ok' })
+  })
 })
 
 describe('worker-konfiguration', () => {
