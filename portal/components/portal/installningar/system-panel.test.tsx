@@ -74,4 +74,60 @@ describe('SystemPanel', () => {
     expect(fetch).toHaveBeenCalledWith('/api/admin/profiler', expect.any(Object))
     expect(fetch).toHaveBeenCalledWith('/api/admin/systemstatus', expect.any(Object))
   })
+
+  it('låser egen systemroll och egen MFA-återställning i admin-UI:t', async () => {
+    kan.mockReturnValue(true)
+    vi.stubGlobal(
+      'fetch',
+      vi
+        .fn()
+        .mockResolvedValueOnce({
+          status: 200,
+          ok: true,
+          json: vi.fn().mockResolvedValue({
+            profiler: [
+              {
+                id: 'user-admin',
+                epost: 'admin@nova-it.se',
+                namn: 'Admin Nova',
+                roll: 'administrator',
+                skapad: '2026-07-27T00:00:00.000Z',
+                uppdaterad: '2026-07-28T00:00:00.000Z',
+                kontoHalsa: {
+                  epostBekraftad: true,
+                  senastInloggad: null,
+                  authSkapad: '2026-07-27T00:00:00.000Z',
+                  mfaAntalFaktorer: 1,
+                  mfaVerifieradeFaktorer: 1,
+                },
+              },
+            ],
+          }),
+        })
+        .mockResolvedValueOnce({
+          status: 200,
+          ok: true,
+          json: vi.fn().mockResolvedValue({
+            status: {
+              kontroller: [],
+              profiler: { antal: 1, status: 'ok' },
+            },
+          }),
+        }),
+    )
+
+    render(<SystemPanel />)
+
+    await waitFor(() => {
+      expect(screen.getByText('admin@nova-it.se')).toBeTruthy()
+    })
+
+    expect(screen.getByText('Din egen roll ändras inte här.')).toBeTruthy()
+    expect(
+      (screen.getByLabelText('Ändra systemroll för admin@nova-it.se') as HTMLButtonElement).disabled,
+    ).toBe(true)
+    expect((screen.getByRole('button', { name: 'Återställ' }) as HTMLButtonElement).disabled).toBe(
+      true,
+    )
+  })
 })
