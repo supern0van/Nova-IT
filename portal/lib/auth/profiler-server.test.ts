@@ -14,6 +14,7 @@ const updateUserById = vi.fn()
 const listUsers = vi.fn()
 const listFactors = vi.fn()
 const inviteUserByEmail = vi.fn()
+const resetPasswordForEmail = vi.fn()
 
 vi.mock('@/lib/supabase/service', () => ({
   skapaSupabaseServiceklient: () => ({
@@ -32,6 +33,7 @@ vi.mock('@/lib/supabase/service', () => ({
         },
         updateUserById,
       },
+      resetPasswordForEmail,
     },
   }),
 }))
@@ -42,6 +44,7 @@ vi.mock('@/lib/auth/roll-server', () => ({
 
 let bjudInPortalProfil: typeof import('@/lib/auth/profiler-server').bjudInPortalProfil
 let listaProfilerFranDatabasen: typeof import('@/lib/auth/profiler-server').listaProfilerFranDatabasen
+let skickaLosenordsaterstallningForProfil: typeof import('@/lib/auth/profiler-server').skickaLosenordsaterstallningForProfil
 let uppdateraProfilNamnIDatabasen: typeof import('@/lib/auth/profiler-server').uppdateraProfilNamnIDatabasen
 
 beforeEach(async () => {
@@ -55,8 +58,12 @@ beforeEach(async () => {
   upsert.mockReturnValue({ select: upsertSelect })
   upsertSelect.mockReturnValue({ maybeSingle })
   listFactors.mockResolvedValue({ data: { factors: [] }, error: null })
-  ;({ bjudInPortalProfil, listaProfilerFranDatabasen, uppdateraProfilNamnIDatabasen } =
-    await import('@/lib/auth/profiler-server'))
+  ;({
+    bjudInPortalProfil,
+    listaProfilerFranDatabasen,
+    skickaLosenordsaterstallningForProfil,
+    uppdateraProfilNamnIDatabasen,
+  } = await import('@/lib/auth/profiler-server'))
 })
 
 describe('listaProfilerFranDatabasen', () => {
@@ -319,5 +326,40 @@ describe('uppdateraProfilNamnIDatabasen', () => {
 
     expect(profil).toBeNull()
     expect(update).not.toHaveBeenCalled()
+  })
+})
+
+describe('skickaLosenordsaterstallningForProfil', () => {
+  it('skickar Supabase lösenordsåterställning till profilens e-postadress', async () => {
+    selectProfiler.mockReturnValueOnce({ eq })
+    maybeSingle.mockResolvedValueOnce({
+      data: { epost: 'MEDARBETARE@NOVA-IT.SE' },
+      error: null,
+    })
+    resetPasswordForEmail.mockResolvedValue({ data: {}, error: null })
+
+    const resultat = await skickaLosenordsaterstallningForProfil(
+      'user-2',
+      'https://admin.nova-it.se/logga-in?aterstall=1',
+    )
+
+    expect(resultat).toEqual({ ok: true, epost: 'medarbetare@nova-it.se' })
+    expect(eq).toHaveBeenCalledWith('id', 'user-2')
+    expect(resetPasswordForEmail).toHaveBeenCalledWith('medarbetare@nova-it.se', {
+      redirectTo: 'https://admin.nova-it.se/logga-in?aterstall=1',
+    })
+  })
+
+  it('returnerar profil_saknas om profilen inte kan läsas', async () => {
+    selectProfiler.mockReturnValueOnce({ eq })
+    maybeSingle.mockResolvedValueOnce({ data: null, error: null })
+
+    const resultat = await skickaLosenordsaterstallningForProfil(
+      'user-saknas',
+      'https://admin.nova-it.se/logga-in?aterstall=1',
+    )
+
+    expect(resultat).toEqual({ ok: false, fel: 'profil_saknas' })
+    expect(resetPasswordForEmail).not.toHaveBeenCalled()
   })
 })

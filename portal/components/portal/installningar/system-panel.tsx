@@ -2,6 +2,7 @@
 
 import {
   CheckCircle2Icon,
+  KeyRoundIcon,
   MailPlusIcon,
   ShieldCheckIcon,
   ShieldIcon,
@@ -140,6 +141,7 @@ export function SystemPanel() {
   const [spararNamn, setSpararNamn] = useState<string | null>(null)
   const [namnUtkast, setNamnUtkast] = useState<Record<string, string>>({})
   const [aterstallerMfa, setAterstallerMfa] = useState<string | null>(null)
+  const [skickarLosenord, setSkickarLosenord] = useState<string | null>(null)
 
   useEffect(() => {
     if (!kanSePersonal) {
@@ -412,6 +414,36 @@ export function SystemPanel() {
       })
     } finally {
       setAterstallerMfa(null)
+    }
+  }
+
+  async function skickaLosenordsaterstallning(profil: ProfilRad) {
+    if (skickarLosenord) return
+
+    setSkickarLosenord(profil.id)
+
+    try {
+      const svar = await fetch(`/api/admin/profiler/${profil.id}/losenord`, {
+        method: 'POST',
+      })
+      const data = (await svar.json()) as { ok: boolean; fel?: string; epost?: string }
+
+      if (!svar.ok || !data.ok) {
+        toast.error('Kunde inte skicka lösenordslänk', {
+          description: data.fel ?? 'Kontrollera att sessionen fortfarande är AAL2-verifierad.',
+        })
+        return
+      }
+
+      toast.success('Lösenordslänk skickad', {
+        description: `Supabase skickade en återställningslänk till ${data.epost ?? profil.epost}.`,
+      })
+    } catch {
+      toast.error('Kunde inte skicka lösenordslänk', {
+        description: 'Nätverket eller Worker-svaret avbröts.',
+      })
+    } finally {
+      setSkickarLosenord(null)
     }
   }
 
@@ -709,6 +741,45 @@ export function SystemPanel() {
                             )}
                             {kontoStatusText}
                           </Badge>
+                        </Faltrad>
+                        <Faltrad etikett="Lösenord">
+                          <AlertDialog>
+                            <AlertDialogTrigger
+                              render={
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  variant="outline"
+                                  disabled={skickarLosenord !== null}
+                                >
+                                  {skickarLosenord === profil.id ? (
+                                    <Spinner data-icon="inline-start" />
+                                  ) : (
+                                    <KeyRoundIcon data-icon="inline-start" />
+                                  )}
+                                  Skicka länk
+                                </Button>
+                              }
+                            />
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Skicka lösenordsåterställning?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Supabase skickar en återställningslänk till {profil.epost}.
+                                  Användaren landar på portalens lösenordsform och behöver sedan logga
+                                  in med MFA enligt det vanliga skyddet.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Avbryt</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => void skickaLosenordsaterstallning(profil)}
+                                >
+                                  Skicka länk
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
                         </Faltrad>
                         <Faltrad etikett="MFA">
                           <div className="flex flex-wrap items-center gap-2">

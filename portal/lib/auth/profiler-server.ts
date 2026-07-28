@@ -38,6 +38,10 @@ export type BjudInPortalProfilResultat =
   | { ok: true; profil: ProfilRad }
   | { ok: false; fel: 'finns_redan' | 'kunde_inte_bjuda_in' | 'kunde_inte_spara_profil' }
 
+export type LösenordsåterställningResultat =
+  | { ok: true; epost: string }
+  | { ok: false; fel: 'profil_saknas' | 'kunde_inte_skicka' }
+
 export async function harAdminAtkomst(anvandareId: string): Promise<boolean> {
   const roll = await hamtaRollFranDatabasen(anvandareId)
   return arAdministrator(roll)
@@ -178,6 +182,34 @@ export async function bjudInPortalProfil({
       kontoHalsa: kontoHalsaFranAuthAnvandare(user),
     },
   }
+}
+
+export async function skickaLosenordsaterstallningForProfil(
+  profilId: string,
+  redirectTo: string,
+): Promise<LösenordsåterställningResultat> {
+  const supabase = skapaSupabaseServiceklient()
+  const { data: profil, error: profilFel } = await supabase
+    .from('profiles')
+    .select('epost')
+    .eq('id', profilId)
+    .maybeSingle()
+
+  const epost =
+    typeof profil?.epost === 'string' && profil.epost.trim()
+      ? profil.epost.trim().toLowerCase()
+      : null
+
+  if (profilFel || !epost) {
+    return { ok: false, fel: 'profil_saknas' }
+  }
+
+  const { error } = await supabase.auth.resetPasswordForEmail(epost, { redirectTo })
+  if (error) {
+    return { ok: false, fel: 'kunde_inte_skicka' }
+  }
+
+  return { ok: true, epost }
 }
 
 async function listaAuthAnvandare(): Promise<User[]> {
