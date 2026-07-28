@@ -28,6 +28,7 @@ describe('admin API route-kontrakt', () => {
       'admin/profiler/[id]/losenord/route.ts',
       'admin/profiler/[id]/route.ts',
       'admin/profiler/route.ts',
+      'admin/operativt/route.ts',
       'admin/systemstatus/route.ts',
       'mfa/aterstall/route.ts',
       'roll/route.ts',
