@@ -22,14 +22,33 @@ export interface SystemStatus {
   }
 }
 
-function miljoKontroll(namn: string, variabel: string, beskrivning: string): SystemStatusKontroll {
-  const finns = Boolean(process.env[variabel])
+function miljoKontroll(
+  namn: string,
+  variabel: string,
+  beskrivning: string,
+  validera?: (varde: string) => boolean,
+): SystemStatusKontroll {
+  const varde = process.env[variabel]?.trim()
+  const finns = Boolean(varde)
+  const giltig = typeof varde === 'string' && varde.length > 0 && (!validera || validera(varde))
 
   return {
     id: variabel,
     namn,
-    status: finns ? 'ok' : 'fel',
-    beskrivning: finns ? beskrivning : `${variabel} saknas i Worker-miljön.`,
+    status: giltig ? 'ok' : 'fel',
+    beskrivning: !finns
+      ? `${variabel} saknas i Worker-miljön.`
+      : giltig
+        ? beskrivning
+        : `${variabel} har ett oväntat format i Worker-miljön.`,
+  }
+}
+
+function arHttpsUrl(varde: string) {
+  try {
+    return new URL(varde).protocol === 'https:'
+  } catch {
+    return false
   }
 }
 
@@ -82,6 +101,7 @@ export async function hamtaSystemStatus(): Promise<SystemStatus> {
       'Supabase URL',
       obligatoriskaWorkerSecrets[0],
       'Worker:n har adressen till Supabase-projektet.',
+      arHttpsUrl,
     ),
     miljoKontroll(
       'Supabase publishable key',

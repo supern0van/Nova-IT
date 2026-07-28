@@ -80,6 +80,36 @@ describe('hamtaSystemStatus', () => {
     expect(skapaSupabaseServiceklient).not.toHaveBeenCalled()
   })
 
+  it('rapporterar fel om Supabase URL inte är en giltig https-url', async () => {
+    process.env.NEXT_PUBLIC_SUPABASE_URL = 'inte-en-url'
+
+    const status = await hamtaSystemStatus()
+
+    expect(status.profiler).toEqual({ antal: null, status: 'fel' })
+    expect(status.kontroller).toContainEqual({
+      id: 'NEXT_PUBLIC_SUPABASE_URL',
+      namn: 'Supabase URL',
+      status: 'fel',
+      beskrivning: 'NEXT_PUBLIC_SUPABASE_URL har ett oväntat format i Worker-miljön.',
+    })
+    expect(skapaSupabaseServiceklient).not.toHaveBeenCalled()
+  })
+
+  it('rapporterar whitespace-only secrets som saknade', async () => {
+    process.env.SUPABASE_SERVICE_ROLE_KEY = '   '
+
+    const status = await hamtaSystemStatus()
+
+    expect(status.profiler).toEqual({ antal: null, status: 'fel' })
+    expect(status.kontroller).toContainEqual({
+      id: 'SUPABASE_SERVICE_ROLE_KEY',
+      namn: 'Supabase service role',
+      status: 'fel',
+      beskrivning: 'SUPABASE_SERVICE_ROLE_KEY saknas i Worker-miljön.',
+    })
+    expect(skapaSupabaseServiceklient).not.toHaveBeenCalled()
+  })
+
   it('rapporterar fel om profiles-tabellen inte kan läsas', async () => {
     select.mockResolvedValue({ count: null, error: new Error('nekad') })
 
