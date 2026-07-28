@@ -66,6 +66,19 @@ describe('POST /api/mfa/aterstall', () => {
     expect(aterstallMfaForEpost).not.toHaveBeenCalled()
   })
 
+  it('fail-closed om administratörsrollen inte kan verifieras', async () => {
+    hamtaAutentiseradAnvandarId.mockResolvedValue('user-admin')
+    hamtaRollFranDatabasen.mockRejectedValue(new Error('roll nere'))
+
+    const svar = await POST(fakeRequest({ epost: 'nagon@nova-it.se' }))
+    const data = await svar.json()
+
+    expect(svar.status).toBe(500)
+    expect(data).toEqual({ ok: false, fel: 'Kunde inte verifiera administratörsbehörighet.' })
+    expect(maybeSingle).not.toHaveBeenCalled()
+    expect(aterstallMfaForEpost).not.toHaveBeenCalled()
+  })
+
   it('administrator tillåts återställa en annan användares MFA', async () => {
     hamtaAutentiseradAnvandarId.mockResolvedValue('user-admin')
     hamtaRollFranDatabasen.mockResolvedValue('administrator')

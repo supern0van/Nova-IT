@@ -16,7 +16,13 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ profiler: [] }, { status: 401 })
   }
 
-  const arAdmin = await harAdminAtkomst(anvandareId)
+  let arAdmin = false
+  try {
+    arAdmin = await harAdminAtkomst(anvandareId)
+  } catch {
+    return NextResponse.json({ profiler: [] }, { status: 500 })
+  }
+
   if (!arAdmin) {
     return NextResponse.json({ profiler: [] }, { status: 403 })
   }
@@ -36,7 +42,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ profil: null }, { status: 401 })
   }
 
-  const arAdmin = await harAdminAtkomst(anvandareId)
+  let arAdmin = false
+  try {
+    arAdmin = await harAdminAtkomst(anvandareId)
+  } catch {
+    return NextResponse.json({ profil: null }, { status: 500 })
+  }
+
   if (!arAdmin) {
     return NextResponse.json({ profil: null }, { status: 403 })
   }

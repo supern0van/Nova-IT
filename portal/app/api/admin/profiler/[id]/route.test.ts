@@ -70,6 +70,18 @@ describe('PATCH /api/admin/profiler/[id]', () => {
     expect(uppdateraProfilRollIDatabasen).not.toHaveBeenCalled()
   })
 
+  it('fail-closed om administratörskontrollen kastar', async () => {
+    hamtaAutentiseradAnvandarId.mockResolvedValue('user-1')
+    harAdminAtkomst.mockRejectedValue(new Error('roll nere'))
+
+    const svar = await PATCH(begaran(), context())
+
+    expect(svar.status).toBe(500)
+    expect(await svar.json()).toEqual({ profil: null })
+    expect(uppdateraProfilRollIDatabasen).not.toHaveBeenCalled()
+    expect(uppdateraProfilNamnIDatabasen).not.toHaveBeenCalled()
+  })
+
   it('nekar ogiltig systemroll', async () => {
     hamtaAutentiseradAnvandarId.mockResolvedValue('user-1')
     harAdminAtkomst.mockResolvedValue(true)

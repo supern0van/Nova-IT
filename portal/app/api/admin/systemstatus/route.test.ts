@@ -43,6 +43,17 @@ describe('/api/admin/systemstatus', () => {
     expect(hamtaSystemStatus).not.toHaveBeenCalled()
   })
 
+  it('fail-closed om administratörskontrollen kastar', async () => {
+    hamtaAutentiseradAnvandarId.mockResolvedValue('user-1')
+    harAdminAtkomst.mockRejectedValue(new Error('roll nere'))
+
+    const svar = await GET(begaran())
+
+    expect(svar.status).toBe(500)
+    expect(await svar.json()).toEqual({ status: null })
+    expect(hamtaSystemStatus).not.toHaveBeenCalled()
+  })
+
   it('returnerar systemstatus för administrator', async () => {
     const status = {
       kontroller: [

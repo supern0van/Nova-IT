@@ -17,7 +17,13 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
     return NextResponse.json({ ok: false }, { status: 401 })
   }
 
-  const arAdmin = await harAdminAtkomst(anvandareId)
+  let arAdmin = false
+  try {
+    arAdmin = await harAdminAtkomst(anvandareId)
+  } catch {
+    return NextResponse.json({ ok: false }, { status: 500 })
+  }
+
   if (!arAdmin) {
     return NextResponse.json({ ok: false }, { status: 403 })
   }

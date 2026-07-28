@@ -93,6 +93,18 @@ describe('/api/admin/profiler', () => {
     expect(body).toEqual({ profiler: [] })
   })
 
+  it('fail-closed om administratörskontrollen kastar vid listning', async () => {
+    hamtaAutentiseradAnvandarId.mockResolvedValue('user-1')
+    harAdminAtkomst.mockRejectedValue(new Error('roll nere'))
+
+    const svar = await GET(begaran())
+    const body = await svar.json()
+
+    expect(svar.status).toBe(500)
+    expect(body).toEqual({ profiler: [] })
+    expect(listaProfilerFranDatabasen).not.toHaveBeenCalled()
+  })
+
   it('nekar inbjudan utan giltig aal2-session', async () => {
     hamtaAutentiseradAnvandarId.mockResolvedValue(null)
 
@@ -112,6 +124,18 @@ describe('/api/admin/profiler', () => {
     const body = await svar.json()
 
     expect(svar.status).toBe(403)
+    expect(body).toEqual({ profil: null })
+    expect(bjudInPortalProfil).not.toHaveBeenCalled()
+  })
+
+  it('fail-closed om administratörskontrollen kastar vid inbjudan', async () => {
+    hamtaAutentiseradAnvandarId.mockResolvedValue('user-1')
+    harAdminAtkomst.mockRejectedValue(new Error('roll nere'))
+
+    const svar = await POST(begaran({ namn: 'Ny Admin', epost: 'ny@nova-it.se', roll: 'medarbetare' }))
+    const body = await svar.json()
+
+    expect(svar.status).toBe(500)
     expect(body).toEqual({ profil: null })
     expect(bjudInPortalProfil).not.toHaveBeenCalled()
   })

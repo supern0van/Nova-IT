@@ -11,7 +11,13 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ status: null }, { status: 401 })
   }
 
-  const arAdmin = await harAdminAtkomst(anvandareId)
+  let arAdmin = false
+  try {
+    arAdmin = await harAdminAtkomst(anvandareId)
+  } catch {
+    return NextResponse.json({ status: null }, { status: 500 })
+  }
+
   if (!arAdmin) {
     return NextResponse.json({ status: null }, { status: 403 })
   }

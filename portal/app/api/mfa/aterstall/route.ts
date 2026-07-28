@@ -39,7 +39,16 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  const roll = await hamtaRollFranDatabasen(anvandareId)
+  let roll: Awaited<ReturnType<typeof hamtaRollFranDatabasen>>
+  try {
+    roll = await hamtaRollFranDatabasen(anvandareId)
+  } catch {
+    return NextResponse.json(
+      { ok: false, fel: 'Kunde inte verifiera administratörsbehörighet.' },
+      { status: 500 },
+    )
+  }
+
   if (!arAdministrator(roll)) {
     return NextResponse.json({ ok: false, fel: 'Kräver administratörsbehörighet.' }, { status: 403 })
   }
