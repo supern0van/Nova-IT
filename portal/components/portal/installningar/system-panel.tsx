@@ -111,6 +111,10 @@ export function SystemPanel() {
     drift: null,
   })
   const [spararRoll, setSpararRoll] = useState<string | null>(null)
+  const [rollAndringAttBekrafta, setRollAndringAttBekrafta] = useState<{
+    profil: ProfilRad
+    roll: SystemRoll
+  } | null>(null)
   const [visarInbjudan, setVisarInbjudan] = useState(false)
   const [nyttNamn, setNyttNamn] = useState('')
   const [nyEpost, setNyEpost] = useState('')
@@ -238,6 +242,18 @@ export function SystemPanel() {
     } finally {
       setSpararRoll(null)
     }
+  }
+
+  function begarSystemrollAndring(profil: ProfilRad, nyRoll: SystemRoll) {
+    if (profil.roll === nyRoll || spararRoll || profil.id === anvandare?.id) return
+    setRollAndringAttBekrafta({ profil, roll: nyRoll })
+  }
+
+  function bekraftaSystemrollAndring() {
+    if (!rollAndringAttBekrafta) return
+    const { profil, roll: nyRoll } = rollAndringAttBekrafta
+    setRollAndringAttBekrafta(null)
+    void andraSystemroll(profil, nyRoll)
   }
 
   async function uppdateraPortalkontoNamn(profil: ProfilRad) {
@@ -756,7 +772,7 @@ export function SystemPanel() {
                             <Select
                               value={profil.roll}
                               onValueChange={(nyRoll) =>
-                                void andraSystemroll(profil, nyRoll as SystemRoll)
+                                begarSystemrollAndring(profil, nyRoll as SystemRoll)
                               }
                               disabled={spararRoll !== null || profil.id === anvandare?.id}
                             >
@@ -908,6 +924,35 @@ export function SystemPanel() {
               </ul>
             )}
           </Yta>
+
+          <AlertDialog
+            open={rollAndringAttBekrafta !== null}
+            onOpenChange={(open) => {
+              if (!open) setRollAndringAttBekrafta(null)
+            }}
+          >
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>
+                  Ändra systemroll för {rollAndringAttBekrafta?.profil.epost}?
+                </AlertDialogTitle>
+                <AlertDialogDescription>
+                  {rollAndringAttBekrafta?.profil.namn ?? 'Kontot'} blir{' '}
+                  {rollAndringAttBekrafta
+                    ? systemRollLabel[rollAndringAttBekrafta.roll].toLowerCase()
+                    : 'ny roll'}{' '}
+                  och får omedelbart motsvarande behörigheter i portalen. Ändringen gäller direkt
+                  vid nästa sidladdning.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Avbryt</AlertDialogCancel>
+                <AlertDialogAction onClick={bekraftaSystemrollAndring}>
+                  Ändra systemroll
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </>
       ) : (
         <Yta className="flex items-start gap-3 p-3.5">

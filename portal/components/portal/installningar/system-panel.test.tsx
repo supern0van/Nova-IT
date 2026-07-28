@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { toast } from 'sonner'
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
@@ -234,6 +235,44 @@ describe('SystemPanel', () => {
     await waitFor(() => {
       expect(toast.error).toHaveBeenCalledWith('Kunde inte skicka lösenordslänk', {
         description: 'Nätverket eller Worker-svaret avbröts.',
+      })
+    })
+  })
+
+  it('kräver bekräftelse innan en systemroll ändras', async () => {
+    const user = userEvent.setup()
+    kan.mockReturnValue(true)
+    const uppdateradProfil = skapaProfil({ roll: 'administrator' })
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(lyckadeInitSvar()[0])
+      .mockResolvedValueOnce(lyckadeInitSvar()[1])
+      .mockResolvedValueOnce({
+        status: 200,
+        ok: true,
+        json: vi.fn().mockResolvedValue({ profil: uppdateradProfil }),
+      })
+    vi.stubGlobal('fetch', fetchMock)
+
+    render(<SystemPanel />)
+
+    await waitFor(() => {
+      expect(screen.getByText('tekniker@nova-it.se')).toBeTruthy()
+    })
+
+    await user.click(screen.getByLabelText('Ändra systemroll för tekniker@nova-it.se'))
+    await user.click(await screen.findByRole('option', { name: 'Administratör' }))
+
+    expect(await screen.findByText('Ändra systemroll för tekniker@nova-it.se?')).toBeTruthy()
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+
+    await user.click(screen.getByRole('button', { name: 'Ändra systemroll' }))
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledWith('/api/admin/profiler/user-tekniker', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ roll: 'administrator' }),
       })
     })
   })
