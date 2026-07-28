@@ -8,6 +8,8 @@
     "start": "next start",
     "lint": "eslint .",
     "test": "vitest run",
+    "worker:deployments": "wrangler deployments list --name nova-it-admin",
+    "worker:secrets": "wrangler secret list --name nova-it-admin",
     "smoke:worker": "node scripts/smoke-worker.mjs",
     "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
     "deploy:dry-run": "opennextjs-cloudflare build && wrangler deploy --dry-run",

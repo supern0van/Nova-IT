@@ -126,7 +126,13 @@ Följande secrets måste finnas på `nova-it-admin`:
 Kontrollera namnen utan att skriva ut värden:
 
 ```bash
-pnpm exec wrangler secret list --name nova-it-admin
+pnpm worker:secrets
+```
+
+Kontrollera senaste deployhistorik:
+
+```bash
+pnpm worker:deployments
 ```
 
 ### Adminportal i GitHub Actions
