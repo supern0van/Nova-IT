@@ -39,48 +39,23 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Spinner } from '@/components/ui/spinner'
+import {
+  hamtaProfilFranApiSvar,
+  hamtaProfilerFranApiSvar,
+  hamtaSystemStatusFranApiSvar,
+  type ProfilRad,
+  type SystemStatusNiva,
+  type SystemStatusSvar,
+} from '@/lib/admin/admin-api-svar'
 import { systemRoller, type SystemRoll } from '@/lib/auth/roll'
 import { formateraDatumTid, systemRollLabel } from '@/lib/labels'
 import { cn } from '@/lib/utils'
-
-interface ProfilRad {
-  id: string
-  epost: string
-  namn: string
-  roll: SystemRoll
-  skapad: string
-  uppdaterad: string
-  kontoHalsa?: {
-    epostBekraftad: boolean | null
-    senastInloggad: string | null
-    authSkapad: string | null
-    mfaAntalFaktorer?: number | null
-    mfaVerifieradeFaktorer?: number | null
-  } | null
-}
 
 type ProfilStatus =
   | { status: 'laddar'; profiler: ProfilRad[] }
   | { status: 'klar'; profiler: ProfilRad[] }
   | { status: 'nekad'; profiler: ProfilRad[] }
   | { status: 'fel'; profiler: ProfilRad[] }
-
-type SystemStatusNiva = 'ok' | 'varning' | 'fel'
-
-interface SystemStatusKontroll {
-  id: string
-  namn: string
-  status: SystemStatusNiva
-  beskrivning: string
-}
-
-interface SystemStatusSvar {
-  kontroller: SystemStatusKontroll[]
-  profiler: {
-    antal: number | null
-    status: SystemStatusNiva
-  }
-}
 
 type DriftStatus =
   | { status: 'laddar'; drift: SystemStatusSvar | null }
@@ -167,8 +142,9 @@ export function SystemPanel() {
           return { status: 'nekad', profiler: [] }
         }
         if (!profilerSvar.ok) return { status: 'fel' as const, profiler: [] }
-        const data = (await profilerSvar.json()) as { profiler?: ProfilRad[] }
-        return { status: 'klar' as const, profiler: data.profiler ?? [] }
+        const profiler = hamtaProfilerFranApiSvar(await profilerSvar.json())
+        if (!profiler) return { status: 'fel' as const, profiler: [] }
+        return { status: 'klar' as const, profiler }
       })()
 
       const nästaDriftStatus: DriftStatus = await (async () => {
@@ -176,9 +152,9 @@ export function SystemPanel() {
           return { status: 'nekad', drift: null }
         }
         if (!driftSvar.ok) return { status: 'fel' as const, drift: null }
-        const data = (await driftSvar.json()) as { status?: SystemStatusSvar | null }
-        if (!data.status) return { status: 'fel' as const, drift: null }
-        return { status: 'klar' as const, drift: data.status }
+        const drift = hamtaSystemStatusFranApiSvar(await driftSvar.json())
+        if (!drift) return { status: 'fel' as const, drift: null }
+        return { status: 'klar' as const, drift }
       })()
 
       setProfilStatus(nästaProfilStatus)
@@ -235,8 +211,8 @@ export function SystemPanel() {
         return
       }
 
-      const data = (await svar.json()) as { profil?: ProfilRad }
-      if (!data.profil) {
+      const uppdateradProfil = hamtaProfilFranApiSvar(await svar.json())
+      if (!uppdateradProfil) {
         toast.error('Kunde inte ändra systemroll', {
           description: 'API:t svarade utan uppdaterad profil.',
         })
@@ -246,12 +222,12 @@ export function SystemPanel() {
       setProfilStatus((nu) => ({
         ...nu,
         profiler: nu.profiler.map((rad) =>
-          rad.id === data.profil?.id ? { ...rad, ...data.profil } : rad,
+          rad.id === uppdateradProfil.id ? { ...rad, ...uppdateradProfil } : rad,
         ),
       }))
 
       toast.success('Systemroll uppdaterad', {
-        description: `${data.profil.epost} är nu ${systemRollLabel[data.profil.roll].toLowerCase()}.`,
+        description: `${uppdateradProfil.epost} är nu ${systemRollLabel[uppdateradProfil.roll].toLowerCase()}.`,
       })
     } catch {
       toast.error('Kunde inte ändra systemroll', {
@@ -291,8 +267,8 @@ export function SystemPanel() {
         return
       }
 
-      const data = (await svar.json()) as { profil?: ProfilRad }
-      if (!data.profil) {
+      const uppdateradProfil = hamtaProfilFranApiSvar(await svar.json())
+      if (!uppdateradProfil) {
         toast.error('Kunde inte uppdatera namn', {
           description: 'API:t svarade utan uppdaterad profil.',
         })
@@ -302,7 +278,7 @@ export function SystemPanel() {
       setProfilStatus((nu) => ({
         ...nu,
         profiler: nu.profiler.map((rad) =>
-          rad.id === data.profil?.id ? { ...rad, ...data.profil } : rad,
+          rad.id === uppdateradProfil.id ? { ...rad, ...uppdateradProfil } : rad,
         ),
       }))
       setNamnUtkast((nu) => {
@@ -312,7 +288,7 @@ export function SystemPanel() {
       })
 
       toast.success('Namn uppdaterat', {
-        description: `${data.profil.epost} visas nu som ${data.profil.namn}.`,
+        description: `${uppdateradProfil.epost} visas nu som ${uppdateradProfil.namn}.`,
       })
     } catch {
       toast.error('Kunde inte uppdatera namn', {
@@ -355,8 +331,8 @@ export function SystemPanel() {
         return
       }
 
-      const data = (await svar.json()) as { profil?: ProfilRad }
-      if (!data.profil) {
+      const profil = hamtaProfilFranApiSvar(await svar.json())
+      if (!profil) {
         toast.error('Kunde inte bjuda in portalkonto', {
           description: 'API:t svarade utan skapad profil.',
         })
@@ -367,8 +343,8 @@ export function SystemPanel() {
         ...nu,
         status: 'klar',
         profiler: sorteraProfiler([
-          data.profil!,
-          ...nu.profiler.filter((profil) => profil.id !== data.profil?.id),
+          profil,
+          ...nu.profiler.filter((rad) => rad.id !== profil.id),
         ]),
       }))
       setNyttNamn('')
@@ -377,7 +353,7 @@ export function SystemPanel() {
       setVisarInbjudan(false)
 
       toast.success('Portalkonto inbjudet', {
-        description: `${data.profil.epost} har fått en Supabase-inbjudan.`,
+        description: `${profil.epost} har fått en Supabase-inbjudan.`,
       })
     } catch {
       toast.error('Kunde inte bjuda in portalkonto', {
