@@ -514,6 +514,13 @@ export function SystemPanel() {
               </div>
             )}
 
+            {driftStatus.status === 'nekad' && (
+              <div className="rounded-lg bg-warning/10 p-3 text-[13px] text-warning">
+                Systemstatus visas endast när sessionen är AAL2-verifierad och har
+                administratörsbehörighet.
+              </div>
+            )}
+
             {driftStatus.status === 'klar' && (
               <ul className="grid gap-1.5 md:grid-cols-2">
                 {driftStatus.drift.kontroller.map((kontroll) => (
@@ -633,6 +640,13 @@ export function SystemPanel() {
               <div className="rounded-lg bg-destructive/10 p-3 text-[13px] text-destructive">
                 Portalkontona kunde inte läsas just nu. Kontrollera Supabase-konfigurationen och
                 försök igen.
+              </div>
+            )}
+
+            {profilStatus.status === 'nekad' && (
+              <div className="rounded-lg bg-warning/10 p-3 text-[13px] text-warning">
+                Portalkonton visas endast när sessionen är AAL2-verifierad och har
+                administratörsbehörighet.
               </div>
             )}
 
