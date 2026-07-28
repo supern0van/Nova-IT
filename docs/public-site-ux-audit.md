@@ -42,18 +42,26 @@ det som listas här är verifierade, konkreta fynd, inte en fullständig poängs
 
 ## Viktiga problem
 
-4. **Huvudnavigationen länkar inte till målgruppssidorna.** `nav`-arrayen i
-   `site-chrome.tsx` innehåller bara Hem, Tjänster, Så arbetar vi, FAQ, Om oss —
-   `/privatpersoner` och `/foretag-foreningar` nås enbart via kort på startsidan, inte från
-   menyn på någon annan sida. En besökare som landar direkt på t.ex. en tjänstesida via en
-   sökmotor har ingen väg till målgruppsvalet utan att gå tillbaka till startsidan.
+4. ✅ **ÅTGÄRDAT** — Huvudnavigationen länkade inte till målgruppssidorna. `/privatpersoner`
+   och `/foretag-foreningar` tillagda i `nav`-arrayen (`site-chrome.tsx`), verifierat i
+   webbläsare utan overflow ner till 1024px.
 5. **`/tjanster/datorservice` är en föräldralös sida.** `tjanster.tsx` filtrerar uttryckligen
    bort `datorservice`-tjänsten från katalogen (`services.filter(s => s.slug !==
    "datorservice")`), men routen och innehållet finns kvar och är fullt nåbar via direkt URL.
    Oklart om detta är avsiktligt (utfasad tjänst?) eller ett förbiseende — bör beslutas innan
    Grind 3.
-6. **`/arbetssatt` saknar avslutande CTA.** Sidan går igenom tre steg men avslutar utan någon
-   länk vidare till kontakt — en tydlig "återvändsgränd" enligt uppdragets egen definition.
+6. ✅ **ÅTGÄRDAT** — `/arbetssatt` saknade avslutande CTA. Tillagd, verifierat i webbläsare
+   att länken pekar till `/kontakt?form=request`.
+6b. ✅ **DELVIS ÅTGÄRDAT** — `/projekt-aterbruk` dubblerade redan existerande delade
+   CSS-klasser (`nova-section` = `#0d151e`, `nova-section-muted` = `#101922`) som rå
+   hex-värden inline i stället för att återanvända dem, samtidigt som sidan har nio separata
+   `<section>`-block med bakgrundsskiften och linjer mellan nästan varje — precis den
+   "fristående kampanjsida"-känsla uppdragsbeskrivningen själv pekar ut som ett problem.
+   Klassdubbleringen är nu konsoliderad (verifierat pixel-identiska bakgrundsvärden i
+   webbläsaren, ingen visuell ändring). Den större frågan — att slå ihop/minska antalet
+   sektioner och knyta innehållet tydligare till Nova IT:s kompetens — är en genuin
+   omdesignuppgift som kräver visuell iteration, inte en säker enradsfix, och kvarstår som
+   prioriterat Grind 3-arbete.
 7. **Malltextmönster mellan `/privatpersoner` och `/foretag-foreningar`.** Strukturellt
    identiska sidor (rubrik + punktlista + ruta med serviceområde och en CTA) med bara
    innehållet utbytt. Fungerar, men ger begränsat djup — ingen sektion om "vad du behöver
