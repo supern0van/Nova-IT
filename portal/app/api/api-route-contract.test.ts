@@ -6,6 +6,10 @@ import { describe, expect, it } from 'vitest'
 
 const apiRoot = path.resolve(fileURLToPath(new URL('.', import.meta.url)))
 
+function relativApiPath(filvag: string): string {
+  return path.relative(apiRoot, filvag).split(path.sep).join('/')
+}
+
 function listaRouteFiler(rot: string): string[] {
   return readdirSync(rot).flatMap((namn) => {
     const filvag = path.join(rot, namn)
@@ -19,13 +23,13 @@ describe('admin API route-kontrakt', () => {
   it('har testfil och AAL2-serverhelper för varje API-route', () => {
     const routes = listaRouteFiler(apiRoot)
 
-    expect(routes.map((filvag) => path.relative(apiRoot, filvag)).sort()).toEqual([
-      'admin\\profiler\\route.ts',
-      'admin\\profiler\\[id]\\losenord\\route.ts',
-      'admin\\profiler\\[id]\\route.ts',
-      'admin\\systemstatus\\route.ts',
-      'mfa\\aterstall\\route.ts',
-      'roll\\route.ts',
+    expect(routes.map(relativApiPath).sort()).toEqual([
+      'admin/profiler/[id]/losenord/route.ts',
+      'admin/profiler/[id]/route.ts',
+      'admin/profiler/route.ts',
+      'admin/systemstatus/route.ts',
+      'mfa/aterstall/route.ts',
+      'roll/route.ts',
     ].sort())
 
     for (const route of routes) {
@@ -39,12 +43,12 @@ describe('admin API route-kontrakt', () => {
 
   it('kräver admin- eller rollkontroll för varje skyddad route', () => {
     for (const route of listaRouteFiler(apiRoot)) {
-      const relativ = path.relative(apiRoot, route)
+      const relativ = relativApiPath(route)
       const innehall = readFileSync(route, 'utf8')
       const harRollKontroll =
         innehall.includes('harAdminAtkomst') ||
         innehall.includes('hamtaRollFranDatabasen') ||
-        relativ === 'roll\\route.ts'
+        relativ === 'roll/route.ts'
 
       expect(harRollKontroll, relativ).toBe(true)
     }
