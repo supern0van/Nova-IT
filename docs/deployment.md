@@ -104,8 +104,10 @@ Det samlade kommandot kör portalens tester, lint, typkontroll, Worker-secret-ko
 OpenNext Worker-bygget ska verifieras i Linux/WSL eftersom OpenNext kan slå i Windows symlink-begränsningar:
 
 ```bash
-pnpm deploy:dry-run
+pnpm release:predeploy
 ```
+
+Detta kör portalens CI-kedja, OpenNext-build, `wrangler deploy --dry-run`, Worker-secret-kontroll och live-smoke i samma fördeploysteg. Det publicerar inte Workern.
 
 Efter deploy ska live-Worker-smoken köras:
 
