@@ -360,6 +360,39 @@ describe('bjudInPortalProfil', () => {
     expect(upsert).not.toHaveBeenCalled()
   })
 
+  it('returnerar kunde_inte_spara_profil om profiles-kontrollen kastar vid inbjudan', async () => {
+    selectProfiler.mockReturnValueOnce({ eq })
+    maybeSingle.mockRejectedValueOnce(new Error('profiles timeout'))
+
+    const resultat = await bjudInPortalProfil({
+      epost: 'ny@nova-it.se',
+      namn: 'Ny Admin',
+      roll: 'administrator',
+    })
+
+    expect(resultat).toEqual({ ok: false, fel: 'kunde_inte_spara_profil' })
+    expect(inviteUserByEmail).not.toHaveBeenCalled()
+  })
+
+  it('returnerar kunde_inte_spara_profil om profiles-upsert kastar efter inbjudan', async () => {
+    selectProfiler.mockReturnValueOnce({ eq })
+    maybeSingle
+      .mockResolvedValueOnce({ data: null, error: null })
+      .mockRejectedValueOnce(new Error('upsert timeout'))
+    inviteUserByEmail.mockResolvedValue({
+      data: { user: { id: 'user-3' } },
+      error: null,
+    })
+
+    const resultat = await bjudInPortalProfil({
+      epost: 'ny@nova-it.se',
+      namn: 'Ny Admin',
+      roll: 'administrator',
+    })
+
+    expect(resultat).toEqual({ ok: false, fel: 'kunde_inte_spara_profil' })
+  })
+
   it('nekar ogiltiga inbjudningsvärden innan Supabase anropas', async () => {
     const resultat = await bjudInPortalProfil({
       epost: 'inte-epost',
@@ -380,6 +413,14 @@ describe('uppdateraProfilRollIDatabasen', () => {
 
     expect(profil).toBeNull()
     expect(update).not.toHaveBeenCalled()
+  })
+
+  it('returnerar null om rolluppdateringen kastar', async () => {
+    maybeSingle.mockRejectedValue(new Error('profiles timeout'))
+
+    const profil = await uppdateraProfilRollIDatabasen('user-2', 'medarbetare')
+
+    expect(profil).toBeNull()
   })
 })
 
@@ -461,6 +502,29 @@ describe('uppdateraProfilNamnIDatabasen', () => {
     expect(update).not.toHaveBeenCalled()
   })
 
+  it('returnerar null om Auth Admin-kontot kastar vid namnuppdatering', async () => {
+    getUserById.mockRejectedValue(new Error('auth timeout'))
+
+    const profil = await uppdateraProfilNamnIDatabasen('user-2', 'Nytt Namn')
+
+    expect(profil).toBeNull()
+    expect(updateUserById).not.toHaveBeenCalled()
+    expect(update).not.toHaveBeenCalled()
+  })
+
+  it('returnerar null om profiles-uppdateringen kastar efter Auth metadata', async () => {
+    getUserById.mockResolvedValue({
+      data: { user: { id: 'user-2', user_metadata: {} } },
+      error: null,
+    })
+    updateUserById.mockResolvedValue({ data: { user: { id: 'user-2' } }, error: null })
+    maybeSingle.mockRejectedValue(new Error('profiles timeout'))
+
+    const profil = await uppdateraProfilNamnIDatabasen('user-2', 'Nytt Namn')
+
+    expect(profil).toBeNull()
+  })
+
   it('returnerar null om profiles svarar med ogiltig roll efter namnuppdatering', async () => {
     getUserById.mockResolvedValue({
       data: {
@@ -524,6 +588,22 @@ describe('skickaLosenordsaterstallningForProfil', () => {
 
     expect(resultat).toEqual({ ok: false, fel: 'profil_saknas' })
     expect(resetPasswordForEmail).not.toHaveBeenCalled()
+  })
+
+  it('returnerar kunde_inte_skicka om Supabase-lösenordsanropet kastar', async () => {
+    selectProfiler.mockReturnValueOnce({ eq })
+    maybeSingle.mockResolvedValueOnce({
+      data: { epost: 'medarbetare@nova-it.se' },
+      error: null,
+    })
+    resetPasswordForEmail.mockRejectedValue(new Error('auth timeout'))
+
+    const resultat = await skickaLosenordsaterstallningForProfil(
+      'user-2',
+      'https://admin.nova-it.se/logga-in?aterstall=1',
+    )
+
+    expect(resultat).toEqual({ ok: false, fel: 'kunde_inte_skicka' })
   })
 
   it('nekar osäker redirect-url innan Supabase anropas', async () => {

@@ -78,16 +78,20 @@ export async function uppdateraProfilRollIDatabasen(
 ): Promise<ProfilRad | null> {
   if (!arGiltigtProfilId(profilId) || !arSystemRoll(roll)) return null
 
-  const supabase = skapaSupabaseServiceklient()
-  const { data, error } = await supabase
-    .from('profiles')
-    .update({ roll })
-    .eq('id', profilId)
-    .select('id, epost, namn, roll, skapad, uppdaterad')
-    .maybeSingle()
+  try {
+    const supabase = skapaSupabaseServiceklient()
+    const { data, error } = await supabase
+      .from('profiles')
+      .update({ roll })
+      .eq('id', profilId)
+      .select('id, epost, namn, roll, skapad, uppdaterad')
+      .maybeSingle()
 
-  if (error || !data) return null
-  return normaliseraProfilRad(data)
+    if (error || !data) return null
+    return normaliseraProfilRad(data)
+  } catch {
+    return null
+  }
 }
 
 export async function uppdateraProfilNamnIDatabasen(
@@ -96,37 +100,41 @@ export async function uppdateraProfilNamnIDatabasen(
 ): Promise<ProfilRad | null> {
   if (!arGiltigtProfilId(profilId) || !arGiltigtNamn(namn)) return null
 
-  const supabase = skapaSupabaseServiceklient()
-  const normaliseratNamn = namn.trim()
+  try {
+    const supabase = skapaSupabaseServiceklient()
+    const normaliseratNamn = namn.trim()
 
-  const { data: authData, error: hamtaAuthFel } = await supabase.auth.admin.getUserById(profilId)
-  const user = authData.user
-  if (hamtaAuthFel || !user) return null
+    const { data: authData, error: hamtaAuthFel } = await supabase.auth.admin.getUserById(profilId)
+    const user = authData.user
+    if (hamtaAuthFel || !user) return null
 
-  const userMetadata =
-    typeof user.user_metadata === 'object' && user.user_metadata !== null ? user.user_metadata : {}
-  const { error: authFel } = await supabase.auth.admin.updateUserById(profilId, {
-    user_metadata: {
-      ...userMetadata,
-      namn: normaliseratNamn,
-      full_name: normaliseratNamn,
-    },
-  })
+    const userMetadata =
+      typeof user.user_metadata === 'object' && user.user_metadata !== null ? user.user_metadata : {}
+    const { error: authFel } = await supabase.auth.admin.updateUserById(profilId, {
+      user_metadata: {
+        ...userMetadata,
+        namn: normaliseratNamn,
+        full_name: normaliseratNamn,
+      },
+    })
 
-  if (authFel) return null
+    if (authFel) return null
 
-  const { data, error } = await supabase
-    .from('profiles')
-    .update({ namn: normaliseratNamn })
-    .eq('id', profilId)
-    .select('id, epost, namn, roll, skapad, uppdaterad')
-    .maybeSingle()
+    const { data, error } = await supabase
+      .from('profiles')
+      .update({ namn: normaliseratNamn })
+      .eq('id', profilId)
+      .select('id, epost, namn, roll, skapad, uppdaterad')
+      .maybeSingle()
 
-  const profil = normaliseraProfilRad(data)
-  if (error || !profil) return null
-  return {
-    ...profil,
-    kontoHalsa: kontoHalsaFranAuthAnvandare(user),
+    const profil = normaliseraProfilRad(data)
+    if (error || !profil) return null
+    return {
+      ...profil,
+      kontoHalsa: kontoHalsaFranAuthAnvandare(user),
+    }
+  } catch {
+    return null
   }
 }
 
@@ -142,58 +150,62 @@ export async function bjudInPortalProfil({
     return { ok: false, fel: 'kunde_inte_spara_profil' }
   }
 
-  const supabase = skapaSupabaseServiceklient()
+  try {
+    const supabase = skapaSupabaseServiceklient()
 
-  const { data: befintligProfil, error: kontrollFel } = await supabase
-    .from('profiles')
-    .select('id')
-    .eq('epost', normaliseradEpost)
-    .maybeSingle()
+    const { data: befintligProfil, error: kontrollFel } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('epost', normaliseradEpost)
+      .maybeSingle()
 
-  if (kontrollFel) return { ok: false, fel: 'kunde_inte_spara_profil' }
-  if (befintligProfil) return { ok: false, fel: 'finns_redan' }
+    if (kontrollFel) return { ok: false, fel: 'kunde_inte_spara_profil' }
+    if (befintligProfil) return { ok: false, fel: 'finns_redan' }
 
-  const { data: authData, error: inviteFel } = await supabase.auth.admin.inviteUserByEmail(
-    normaliseradEpost,
-    {
-      data: {
-        namn: normaliseratNamn,
-        full_name: normaliseratNamn,
-      },
-      redirectTo,
-    },
-  )
-
-  const user = authData.user
-  if (inviteFel || !user?.id) {
-    return { ok: false, fel: inviteFel?.status === 422 ? 'finns_redan' : 'kunde_inte_bjuda_in' }
-  }
-
-  const { data: profil, error: profilFel } = await supabase
-    .from('profiles')
-    .upsert(
+    const { data: authData, error: inviteFel } = await supabase.auth.admin.inviteUserByEmail(
+      normaliseradEpost,
       {
-        id: user.id,
-        epost: normaliseradEpost,
-        namn: normaliseratNamn || normaliseradEpost.split('@')[0],
-        roll,
+        data: {
+          namn: normaliseratNamn,
+          full_name: normaliseratNamn,
+        },
+        redirectTo,
       },
-      { onConflict: 'id' },
     )
-    .select('id, epost, namn, roll, skapad, uppdaterad')
-    .maybeSingle()
 
-  const sparadProfil = normaliseraProfilRad(profil)
-  if (profilFel || !sparadProfil) {
+    const user = authData.user
+    if (inviteFel || !user?.id) {
+      return { ok: false, fel: inviteFel?.status === 422 ? 'finns_redan' : 'kunde_inte_bjuda_in' }
+    }
+
+    const { data: profil, error: profilFel } = await supabase
+      .from('profiles')
+      .upsert(
+        {
+          id: user.id,
+          epost: normaliseradEpost,
+          namn: normaliseratNamn || normaliseradEpost.split('@')[0],
+          roll,
+        },
+        { onConflict: 'id' },
+      )
+      .select('id, epost, namn, roll, skapad, uppdaterad')
+      .maybeSingle()
+
+    const sparadProfil = normaliseraProfilRad(profil)
+    if (profilFel || !sparadProfil) {
+      return { ok: false, fel: 'kunde_inte_spara_profil' }
+    }
+
+    return {
+      ok: true,
+      profil: {
+        ...sparadProfil,
+        kontoHalsa: kontoHalsaFranAuthAnvandare(user),
+      },
+    }
+  } catch {
     return { ok: false, fel: 'kunde_inte_spara_profil' }
-  }
-
-  return {
-    ok: true,
-    profil: {
-      ...sparadProfil,
-      kontoHalsa: kontoHalsaFranAuthAnvandare(user),
-    },
   }
 }
 
@@ -205,28 +217,32 @@ export async function skickaLosenordsaterstallningForProfil(
     return { ok: false, fel: 'profil_saknas' }
   }
 
-  const supabase = skapaSupabaseServiceklient()
-  const { data: profil, error: profilFel } = await supabase
-    .from('profiles')
-    .select('epost')
-    .eq('id', profilId)
-    .maybeSingle()
+  try {
+    const supabase = skapaSupabaseServiceklient()
+    const { data: profil, error: profilFel } = await supabase
+      .from('profiles')
+      .select('epost')
+      .eq('id', profilId)
+      .maybeSingle()
 
-  const epost =
-    typeof profil?.epost === 'string' && profil.epost.trim()
-      ? profil.epost.trim().toLowerCase()
-      : null
+    const epost =
+      typeof profil?.epost === 'string' && profil.epost.trim()
+        ? profil.epost.trim().toLowerCase()
+        : null
 
-  if (profilFel || !epost) {
-    return { ok: false, fel: 'profil_saknas' }
-  }
+    if (profilFel || !epost) {
+      return { ok: false, fel: 'profil_saknas' }
+    }
 
-  const { error } = await supabase.auth.resetPasswordForEmail(epost, { redirectTo })
-  if (error) {
+    const { error } = await supabase.auth.resetPasswordForEmail(epost, { redirectTo })
+    if (error) {
+      return { ok: false, fel: 'kunde_inte_skicka' }
+    }
+
+    return { ok: true, epost }
+  } catch {
     return { ok: false, fel: 'kunde_inte_skicka' }
   }
-
-  return { ok: true, epost }
 }
 
 async function listaAuthAnvandare(): Promise<User[]> {
