@@ -209,6 +209,67 @@ describe('listaProfilerFranDatabasen', () => {
     expect(profiler[0]?.kontoHalsa?.mfaAntalFaktorer).toBe(2)
     expect(profiler[0]?.kontoHalsa?.mfaVerifieradeFaktorer).toBe(1)
   })
+
+  it('behåller övriga profiler om MFA-faktorlistning kastar för en enskild rad', async () => {
+    order.mockResolvedValue({
+      data: [
+        {
+          id: 'user-ok',
+          epost: 'ok@nova-it.se',
+          namn: 'Ok Konto',
+          roll: 'administrator',
+          skapad: '2026-07-27T00:00:00.000Z',
+          uppdaterad: '2026-07-27T00:00:00.000Z',
+        },
+        {
+          id: 'user-fel',
+          epost: 'fel@nova-it.se',
+          namn: 'Fel Konto',
+          roll: 'medarbetare',
+          skapad: '2026-07-27T00:00:00.000Z',
+          uppdaterad: '2026-07-27T00:00:00.000Z',
+        },
+      ],
+      error: null,
+    })
+    listUsers.mockResolvedValue({
+      data: {
+        users: [
+          {
+            id: 'user-ok',
+            email_confirmed_at: '2026-07-27T01:00:00.000Z',
+            confirmed_at: null,
+            last_sign_in_at: null,
+            created_at: '2026-07-27T00:30:00.000Z',
+          },
+          {
+            id: 'user-fel',
+            email_confirmed_at: '2026-07-27T01:00:00.000Z',
+            confirmed_at: null,
+            last_sign_in_at: null,
+            created_at: '2026-07-27T00:30:00.000Z',
+          },
+        ],
+      },
+      error: null,
+    })
+    listFactors.mockImplementation(({ userId }: { userId: string }) => {
+      if (userId === 'user-fel') throw new Error('mfa nere')
+      return Promise.resolve({ data: { factors: [{ id: 'faktor-1', status: 'verified' }] }, error: null })
+    })
+
+    const profiler = await listaProfilerFranDatabasen()
+
+    expect(profiler).toHaveLength(2)
+    expect(profiler.find((profil) => profil.id === 'user-ok')?.kontoHalsa).toMatchObject({
+      mfaAntalFaktorer: 1,
+      mfaVerifieradeFaktorer: 1,
+    })
+    expect(profiler.find((profil) => profil.id === 'user-fel')?.kontoHalsa).toMatchObject({
+      mfaAntalFaktorer: null,
+      mfaVerifieradeFaktorer: null,
+    })
+  })
 })
 
 describe('bjudInPortalProfil', () => {
