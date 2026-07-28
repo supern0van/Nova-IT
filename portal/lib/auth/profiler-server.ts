@@ -8,6 +8,8 @@ export interface KontoHalsa {
   epostBekraftad: boolean | null
   senastInloggad: string | null
   authSkapad: string | null
+  mfaAntalFaktorer?: number | null
+  mfaVerifieradeFaktorer?: number | null
 }
 
 export interface ProfilRad {
@@ -18,6 +20,11 @@ export interface ProfilRad {
   skapad: string
   uppdaterad: string
   kontoHalsa?: KontoHalsa | null
+}
+
+interface MfaHalsa {
+  antalFaktorer: number | null
+  verifieradeFaktorer: number | null
 }
 
 export interface NyPortalProfil {
@@ -50,10 +57,11 @@ export async function listaProfilerFranDatabasen(): Promise<ProfilRad[]> {
   const profiler = (data ?? []) as ProfilRad[]
   const authAnvandare = await listaAuthAnvandare()
   const authKarta = new Map(authAnvandare.map((user) => [user.id, user]))
+  const mfaKarta = await listaMfaHalsa(profiler.map((profil) => profil.id))
 
   return profiler.map((profil) => ({
     ...profil,
-    kontoHalsa: kontoHalsaFranAuthAnvandare(authKarta.get(profil.id)),
+    kontoHalsa: kontoHalsaFranAuthAnvandare(authKarta.get(profil.id), mfaKarta.get(profil.id)),
   }))
 }
 
@@ -183,12 +191,43 @@ async function listaAuthAnvandare(): Promise<User[]> {
   }
 }
 
-function kontoHalsaFranAuthAnvandare(user: User | undefined): KontoHalsa | null {
+async function listaMfaHalsa(profilIds: string[]): Promise<Map<string, MfaHalsa>> {
+  const supabase = skapaSupabaseServiceklient()
+  const resultat: Array<readonly [string, MfaHalsa]> = await Promise.all(
+    profilIds.map(async (userId) => {
+      try {
+        const { data, error } = await supabase.auth.admin.mfa.listFactors({ userId })
+        if (error || !data) {
+          return [userId, { antalFaktorer: null, verifieradeFaktorer: null }] as const
+        }
+
+        const faktorer = data.factors ?? []
+        const verifieradeFaktorer = faktorer.filter(
+          (faktor) =>
+            typeof faktor === 'object' &&
+            faktor !== null &&
+            'status' in faktor &&
+            faktor.status === 'verified',
+        ).length
+
+        return [userId, { antalFaktorer: faktorer.length, verifieradeFaktorer }] as const
+      } catch {
+        return [userId, { antalFaktorer: null, verifieradeFaktorer: null }] as const
+      }
+    }),
+  )
+
+  return new Map(resultat)
+}
+
+function kontoHalsaFranAuthAnvandare(user: User | undefined, mfa?: MfaHalsa): KontoHalsa | null {
   if (!user) return null
 
   return {
     epostBekraftad: Boolean(user.email_confirmed_at ?? user.confirmed_at),
     senastInloggad: user.last_sign_in_at ?? null,
     authSkapad: user.created_at ?? null,
+    mfaAntalFaktorer: mfa?.antalFaktorer ?? null,
+    mfaVerifieradeFaktorer: mfa?.verifieradeFaktorer ?? null,
   }
 }

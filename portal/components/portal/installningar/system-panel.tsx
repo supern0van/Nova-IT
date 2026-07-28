@@ -41,6 +41,8 @@ interface ProfilRad {
     epostBekraftad: boolean | null
     senastInloggad: string | null
     authSkapad: string | null
+    mfaAntalFaktorer?: number | null
+    mfaVerifieradeFaktorer?: number | null
   } | null
 }
 
@@ -517,6 +519,20 @@ export function SystemPanel() {
                       : kontoStatus === 'varning'
                         ? 'E-post ej bekräftad'
                         : 'Auth-status okänd'
+                  const mfaAntal = profil.kontoHalsa?.mfaAntalFaktorer
+                  const mfaVerifierade = profil.kontoHalsa?.mfaVerifieradeFaktorer
+                  const mfaStatus =
+                    typeof mfaVerifierade === 'number'
+                      ? mfaVerifierade > 0
+                        ? 'ok'
+                        : 'varning'
+                      : 'okand'
+                  const mfaText =
+                    mfaStatus === 'ok'
+                      ? `${mfaVerifierade} verifierad MFA`
+                      : mfaStatus === 'varning'
+                        ? 'MFA saknas'
+                        : 'MFA okänd'
                   const initialer = namn
                     .split(/\s+/)
                     .map((del) => del[0])
@@ -623,6 +639,23 @@ export function SystemPanel() {
                             )}
                             {kontoStatusText}
                           </Badge>
+                        </Faltrad>
+                        <Faltrad etikett="MFA">
+                          <Badge variant="ghost" className={cn('w-fit', kontoStatusStil[mfaStatus])}>
+                            {mfaStatus === 'ok' ? (
+                              <CheckCircle2Icon className="size-3.5" />
+                            ) : mfaStatus === 'varning' ? (
+                              <TriangleAlertIcon className="size-3.5" />
+                            ) : (
+                              <XCircleIcon className="size-3.5" />
+                            )}
+                            {mfaText}
+                          </Badge>
+                          {typeof mfaAntal === 'number' && mfaAntal !== mfaVerifierade && (
+                            <span className="mt-1 block text-[11px] text-muted-foreground">
+                              {mfaAntal} faktor(er) totalt
+                            </span>
+                          )}
                         </Faltrad>
                         <Faltrad etikett="Senast inloggad">
                           {profil.kontoHalsa?.senastInloggad

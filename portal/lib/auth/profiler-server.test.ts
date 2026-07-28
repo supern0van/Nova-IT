@@ -12,6 +12,7 @@ const updateSelect = vi.fn()
 const getUserById = vi.fn()
 const updateUserById = vi.fn()
 const listUsers = vi.fn()
+const listFactors = vi.fn()
 const inviteUserByEmail = vi.fn()
 
 vi.mock('@/lib/supabase/service', () => ({
@@ -26,6 +27,9 @@ vi.mock('@/lib/supabase/service', () => ({
         getUserById,
         inviteUserByEmail,
         listUsers,
+        mfa: {
+          listFactors,
+        },
         updateUserById,
       },
     },
@@ -50,6 +54,7 @@ beforeEach(async () => {
   updateSelect.mockReturnValue({ maybeSingle })
   upsert.mockReturnValue({ select: upsertSelect })
   upsertSelect.mockReturnValue({ maybeSingle })
+  listFactors.mockResolvedValue({ data: { factors: [] }, error: null })
   ;({ bjudInPortalProfil, listaProfilerFranDatabasen, uppdateraProfilNamnIDatabasen } =
     await import('@/lib/auth/profiler-server'))
 })
@@ -90,8 +95,11 @@ describe('listaProfilerFranDatabasen', () => {
       epostBekraftad: true,
       senastInloggad: '2026-07-28T01:00:00.000Z',
       authSkapad: '2026-07-27T00:30:00.000Z',
+      mfaAntalFaktorer: 0,
+      mfaVerifieradeFaktorer: 0,
     })
     expect(listUsers).toHaveBeenCalledWith({ page: 1, perPage: 1000 })
+    expect(listFactors).toHaveBeenCalledWith({ userId: 'user-1' })
   })
 
   it('behåller profiler även om Auth-listningen inte kan läsas', async () => {
@@ -113,6 +121,45 @@ describe('listaProfilerFranDatabasen', () => {
     const profiler = await listaProfilerFranDatabasen()
 
     expect(profiler[0]?.kontoHalsa).toBeNull()
+  })
+
+  it('visar verifierad MFA-status när faktorer kan läsas', async () => {
+    order.mockResolvedValue({
+      data: [
+        {
+          id: 'user-4',
+          epost: 'mfa@nova-it.se',
+          namn: 'Mfa Konto',
+          roll: 'medarbetare',
+          skapad: '2026-07-27T00:00:00.000Z',
+          uppdaterad: '2026-07-27T00:00:00.000Z',
+        },
+      ],
+      error: null,
+    })
+    listUsers.mockResolvedValue({
+      data: {
+        users: [
+          {
+            id: 'user-4',
+            email_confirmed_at: '2026-07-27T01:00:00.000Z',
+            confirmed_at: null,
+            last_sign_in_at: null,
+            created_at: '2026-07-27T00:30:00.000Z',
+          },
+        ],
+      },
+      error: null,
+    })
+    listFactors.mockResolvedValue({
+      data: { factors: [{ id: 'faktor-1', status: 'verified' }, { id: 'faktor-2', status: 'unverified' }] },
+      error: null,
+    })
+
+    const profiler = await listaProfilerFranDatabasen()
+
+    expect(profiler[0]?.kontoHalsa?.mfaAntalFaktorer).toBe(2)
+    expect(profiler[0]?.kontoHalsa?.mfaVerifieradeFaktorer).toBe(1)
   })
 })
 
@@ -165,6 +212,8 @@ describe('bjudInPortalProfil', () => {
           epostBekraftad: false,
           senastInloggad: null,
           authSkapad: '2026-07-28T00:00:00.000Z',
+          mfaAntalFaktorer: null,
+          mfaVerifieradeFaktorer: null,
         },
       },
     })
@@ -253,6 +302,8 @@ describe('uppdateraProfilNamnIDatabasen', () => {
         epostBekraftad: true,
         senastInloggad: '2026-07-28T01:00:00.000Z',
         authSkapad: '2026-07-27T00:30:00.000Z',
+        mfaAntalFaktorer: null,
+        mfaVerifieradeFaktorer: null,
       },
     })
   })
