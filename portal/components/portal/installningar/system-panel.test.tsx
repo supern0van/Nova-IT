@@ -75,6 +75,18 @@ describe('SystemPanel', () => {
     expect(fetch).toHaveBeenCalledWith('/api/admin/systemstatus', expect.any(Object))
   })
 
+  it('visar felläge om initial adminstatus inte kan hämtas', async () => {
+    kan.mockReturnValue(true)
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('worker nere')))
+
+    render(<SystemPanel />)
+
+    await waitFor(() => {
+      expect(screen.getByText(/Systemstatus kunde inte hämtas just nu/)).toBeTruthy()
+      expect(screen.getByText(/Portalkontona kunde inte läsas just nu/)).toBeTruthy()
+    })
+  })
+
   it('låser egen systemroll och egen MFA-återställning i admin-UI:t', async () => {
     kan.mockReturnValue(true)
     vi.stubGlobal(
