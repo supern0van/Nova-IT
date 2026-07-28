@@ -5,6 +5,7 @@ import { formatContactEmail } from "./contact-submission";
 const CONTACT_FORM_RECIPIENT = "kontakt@nova-it.se";
 
 const contactRequestSchema = z.object({
+  kalla: z.enum(["kontaktformular", "supportassistent"]),
   name: z.string().trim().min(2).max(100),
   email: z.string().trim().email().max(255),
   phone: z.string().trim().max(60),

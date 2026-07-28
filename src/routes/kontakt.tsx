@@ -179,6 +179,7 @@ function ContactPage() {
     try {
       await submitContactRequest({
         data: {
+          kalla: assistantHandoffApplied ? "supportassistent" : "kontaktformular",
           name: values.name,
           email: values.email,
           phone: values.phone,

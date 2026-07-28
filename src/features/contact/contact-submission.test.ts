@@ -3,6 +3,7 @@ import { composeContactMessage, formatContactEmail } from "./contact-submission"
 
 test("formats a support summary for server-side delivery", () => {
   const email = formatContactEmail({
+    kalla: "kontaktformular",
     name: "Anna Andersson",
     email: "anna@example.se",
     phone: "070-123 45 67",
@@ -15,6 +16,22 @@ test("formats a support summary for server-side delivery", () => {
   expect(email.subject).toBe("Supportärende: Nätverk och Wi-Fi (Akut)");
   expect(email.text).toContain("Wi-Fi faller bort i mötesrummet.");
   expect(email.text).toContain("Namn: Anna Andersson");
+  expect(email.text).toContain("Källa: Kontaktformulär");
+});
+
+test("labels submissions that came through the support assistant", () => {
+  const email = formatContactEmail({
+    kalla: "supportassistent",
+    name: "Björn Berg",
+    email: "bjorn@example.se",
+    phone: "",
+    customerType: "Privatperson",
+    service: "IT-support",
+    urgency: "Normal",
+    message: "Datorn startar inte.",
+  });
+
+  expect(email.text).toContain("Källa: Supportassistent");
 });
 
 test("keeps the locked contact reason separate from the customer's description", () => {

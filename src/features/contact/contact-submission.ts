@@ -1,4 +1,7 @@
+export type ContactKalla = "kontaktformular" | "supportassistent";
+
 export type ContactSubmission = {
+  kalla: ContactKalla;
   name: string;
   email: string;
   phone: string;
@@ -6,6 +9,11 @@ export type ContactSubmission = {
   service: string;
   urgency: string;
   message: string;
+};
+
+const kallaLabel: Record<ContactKalla, string> = {
+  kontaktformular: "Kontaktformulär",
+  supportassistent: "Supportassistent",
 };
 
 export type ContactAssistantContext = {
@@ -35,6 +43,7 @@ export function formatContactEmail(submission: ContactSubmission) {
   const text = [
     "Nytt ärende till Nova IT",
     "",
+    `Källa: ${kallaLabel[submission.kalla]}`,
     `Namn: ${submission.name}`,
     `E-post: ${submission.email}`,
     `Kontaktväg: ${submission.phone || "Ej angiven"}`,
