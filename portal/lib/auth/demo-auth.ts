@@ -1,6 +1,23 @@
 import { demoAnvandare } from '@/lib/demo-data'
 import type { Anvandare } from '@/lib/types'
 
+/**
+ * STATUS: känd, icke-blockerande brist – inte en bugg som ska döljas.
+ *
+ * Personallistan nedan (`demoAnvandare`) är fortfarande hårdkodad testdata,
+ * inte en riktig personalmodell i Supabase. `public.profiles` täcker bara
+ * `SystemRoll` (adminpanelens åtkomst), inte den operativa personal-/
+ * teknikerrollen (`Roll`/`Behorighet`, se `lib/auth/supabase-auth.ts`) med
+ * titel/aktiv-status som ärende- och bokningstilldelning behöver.
+ *
+ * Att ersätta detta kräver en ny databastabell (schemadesign, migration,
+ * RLS-beslut) – ett medvetet beslut utanför den här omgångens
+ * behörighets-/skrivvägshärdning, inte något som ska göras i förbigående.
+ * Tilldelning fungerar fullt ut mot de konton som redan finns här; det som
+ * saknas är att koppla listan till riktiga portalkonton i stället för
+ * påhittade namn. Ingen adminfunktion är blockerad av detta.
+ */
+
 export {
   authAdapter,
   behorigheter,

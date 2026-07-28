@@ -1,9 +1,10 @@
 'use client'
 
-import { CheckIcon, CopyIcon } from 'lucide-react'
+import { CheckIcon, CopyIcon, TriangleAlertIcon } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
 
+import { Alert, AlertAction, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import {
   bokningStatusChip,
@@ -244,6 +245,29 @@ export function Sektionsrubrik({
 }
 
 /** Yta som ersätter kort där en ram vore för mycket. */
+/**
+ * Visas när `useOperativAdminData` inte kunde nå det operativa API:t.
+ * I produktion visas ingen tyst demo-/localStorage-fallback – detta
+ * meddelande är den enda indikationen till användaren om att listan
+ * kan vara ofullständig eller inaktuell.
+ */
+export function DriftFelBanner({ vidForsokIgen }: { vidForsokIgen: () => void }) {
+  return (
+    <Alert variant="destructive">
+      <TriangleAlertIcon />
+      <AlertTitle>Kunde inte hämta senaste data</AlertTitle>
+      <AlertDescription>
+        Anslutningen till servern misslyckades. Listan kan vara ofullständig eller inaktuell.
+      </AlertDescription>
+      <AlertAction>
+        <Button variant="outline" size="sm" onClick={vidForsokIgen}>
+          Försök igen
+        </Button>
+      </AlertAction>
+    </Alert>
+  )
+}
+
 export function Yta({
   children,
   className,

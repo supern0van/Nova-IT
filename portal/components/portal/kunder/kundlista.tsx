@@ -16,7 +16,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useAuth } from '@/components/auth/auth-provider'
 import { FilterVal } from '@/components/portal/filter-val'
 import { KundDialog } from '@/components/portal/kunder/kund-dialog'
-import { KundtypChip, Sida, Sidhuvud, Yta } from '@/components/portal/ui-delar'
+import { DriftFelBanner, KundtypChip, Sida, Sidhuvud, Yta } from '@/components/portal/ui-delar'
 import { Button } from '@/components/ui/button'
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
 import {
@@ -45,7 +45,7 @@ const sorteringLabel: Record<Sortering, string> = {
  * personalen kan hitta kunden med den uppgift de råkar ha framför sig.
  */
 export function Kundlista() {
-  const { db, laddar } = useOperativAdminData()
+  const { db, laddar, fel, uppdatera } = useOperativAdminData()
   const { kan } = useAuth()
   const router = useRouter()
   const params = useSearchParams()
@@ -110,6 +110,8 @@ export function Kundlista() {
           Ny kund
         </Button>
       </Sidhuvud>
+
+      {fel && <DriftFelBanner vidForsokIgen={uppdatera} />}
 
       <Yta className="flex flex-col gap-4 p-3.5">
         <div className="flex flex-col gap-2.5 lg:flex-row lg:items-center lg:justify-between">

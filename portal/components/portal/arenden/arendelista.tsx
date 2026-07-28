@@ -17,6 +17,7 @@ import { useAuth } from '@/components/auth/auth-provider'
 import { ArendeDialog } from '@/components/portal/arenden/arende-dialog'
 import { FilterVal } from '@/components/portal/filter-val'
 import {
+  DriftFelBanner,
   KundtypChip,
   PrioritetChip,
   Sida,
@@ -73,7 +74,7 @@ const STANDARD = {
  * större datamängder kan urvalet flyttas till serversidan med samma parametrar.
  */
 export function Arendelista() {
-  const { db, laddar } = useOperativAdminData()
+  const { db, laddar, fel, uppdatera } = useOperativAdminData()
   const { anvandare, kan } = useAuth()
   const router = useRouter()
   const params = useSearchParams()
@@ -94,7 +95,7 @@ export function Arendelista() {
     if (params.get('ny') === '1' && kan('skapa_arende')) setNyttArendeOppen(true)
   }, [params, kan])
 
-  const personal = listaAnvandare()
+  const personal = useMemo(() => listaAnvandare(), [])
 
   const filtreradeArenden = useMemo(() => {
     if (!db) return []
@@ -174,6 +175,8 @@ export function Arendelista() {
           </Button>
         </div>
       </Sidhuvud>
+
+      {fel && <DriftFelBanner vidForsokIgen={uppdatera} />}
 
       <Yta className="flex flex-col">
         {/* Filterrad */}

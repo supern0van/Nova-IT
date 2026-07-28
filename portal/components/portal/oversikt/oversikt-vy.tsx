@@ -21,6 +21,7 @@ import { useMemo } from 'react'
 import { useAuth } from '@/components/auth/auth-provider'
 import { Nyckeltal, NyckeltalSkelett } from '@/components/portal/oversikt/nyckeltal'
 import {
+  DriftFelBanner,
   PrioritetChip,
   Sektionsrubrik,
   Sida,
@@ -49,7 +50,7 @@ const bokningIkon: Record<BokningTyp, typeof PhoneIcon> = {
 }
 
 export function OversiktVy() {
-  const { db, laddar } = useOperativAdminData()
+  const { db, laddar, fel, uppdatera } = useOperativAdminData()
   const { anvandare } = useAuth()
 
   const data = useMemo(() => {
@@ -117,6 +118,8 @@ export function OversiktVy() {
           Nya ärenden
         </Button>
       </Sidhuvud>
+
+      {fel && <DriftFelBanner vidForsokIgen={uppdatera} />}
 
       {/* Nyckeltal */}
       <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">

@@ -24,6 +24,7 @@ import { KundAnteckningar } from '@/components/portal/kunder/kund-anteckningar'
 import { KundDialog } from '@/components/portal/kunder/kund-dialog'
 import {
   BokningStatusChip,
+  DriftFelBanner,
   Faltrad,
   KopieraKnapp,
   KundtypChip,
@@ -55,7 +56,7 @@ const OPPNA: Arende['status'][] = ['ny', 'pagaende', 'vantar_pa_kund', 'bokad']
  * skrivskyddade för roller utan behörigheten `redigera_kund`.
  */
 export function KundProfil({ kundId }: { kundId: string }) {
-  const { db, laddar } = useOperativAdminData()
+  const { db, laddar, fel, uppdatera } = useOperativAdminData()
   const { kan } = useAuth()
   const [bokningOppen, setBokningOppen] = useState(false)
   const [redigeraOppen, setRedigeraOppen] = useState(false)
@@ -130,6 +131,8 @@ export function KundProfil({ kundId }: { kundId: string }) {
 
   return (
     <Sida bred>
+      {fel && <DriftFelBanner vidForsokIgen={uppdatera} />}
+
       <div className="flex flex-col gap-3">
         <Button
           variant="ghost"
