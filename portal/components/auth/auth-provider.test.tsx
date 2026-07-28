@@ -269,4 +269,36 @@ describe('AuthProvider – systemroll från /api/roll', () => {
     expect(screen.getByTestId('roll').textContent).toBe('administrator')
     expect(replace).not.toHaveBeenCalled()
   })
+
+  it('rensar lokal session och redirectar när Supabase-utloggningen lyckas', async () => {
+    hamtaSession.mockResolvedValue({ session, anvandare })
+    lyssnaPaSessionsandringar.mockReturnValue(vi.fn())
+    loggaUt.mockResolvedValue({ ok: true })
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: vi.fn().mockResolvedValue({ roll: 'administrator' }),
+      }),
+    )
+
+    renderaProvider()
+
+    await waitFor(() => {
+      expect(screen.getByTestId('anvandare').textContent).toBe('user-1')
+      expect(screen.getByTestId('roll').textContent).toBe('administrator')
+    })
+
+    await act(async () => {
+      screen.getByRole('button', { name: 'Logga ut' }).click()
+    })
+
+    await waitFor(() => {
+      expect(loggaUt).toHaveBeenCalled()
+      expect(screen.getByTestId('anvandare').textContent).toBe('ingen-anvandare')
+    })
+    expect(screen.getByTestId('roll').textContent).toBe('ingen-roll')
+    expect(screen.getByTestId('session-utgick').textContent).toBe('aktiv')
+    expect(replace).toHaveBeenCalledWith('/logga-in')
+  })
 })

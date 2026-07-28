@@ -164,7 +164,8 @@ describe('hamtaSystemStatus', () => {
 describe('worker-konfiguration', () => {
   it('matchar wrangler.jsonc för namn, routes och obligatoriska secrets', () => {
     const wranglerPath = fileURLToPath(new URL('../../wrangler.jsonc', import.meta.url))
-    const wrangler = JSON.parse(readFileSync(wranglerPath, 'utf8')) as {
+    const wranglerJson = readFileSync(wranglerPath, 'utf8').replace(/^\s*\/\/.*$/gm, '')
+    const wrangler = JSON.parse(wranglerJson) as {
       name?: string
       routes?: Array<{ pattern?: string; custom_domain?: boolean }>
       secrets?: { required?: string[] }
