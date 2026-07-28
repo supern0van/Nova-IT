@@ -71,22 +71,37 @@ const bokning: Bokning = {
   plats: 'Loviselundsvägen 42, Hässelby',
 }
 
+const uppdatera = vi.fn()
+const mockState: {
+  db: {
+    kunder: Kund[]
+    arenden: never[]
+    bokningar: Bokning[]
+    meddelanden: never[]
+    aktiviteter: never[]
+    kundanteckningar: never[]
+    standardsvar: never[]
+    personal: never[]
+  }
+  laddar: boolean
+  fel: boolean
+} = {
+  db: {
+    kunder: [kund],
+    arenden: [],
+    bokningar: [bokning],
+    meddelanden: [],
+    aktiviteter: [],
+    kundanteckningar: [],
+    standardsvar: [],
+    personal: [],
+  },
+  laddar: false,
+  fel: false,
+}
+
 vi.mock('@/hooks/use-operativ-admin-data', () => ({
-  useOperativAdminData: () => ({
-    db: {
-      kunder: [kund],
-      arenden: [],
-      bokningar: [bokning],
-      meddelanden: [],
-      aktiviteter: [],
-      kundanteckningar: [],
-      standardsvar: [],
-      personal: [],
-    },
-    laddar: false,
-    fel: false,
-    uppdatera: vi.fn(),
-  }),
+  useOperativAdminData: () => ({ ...mockState, uppdatera }),
 }))
 
 let Bokningsvy: typeof import('@/components/portal/bokningar/bokningsvy').Bokningsvy
@@ -149,5 +164,35 @@ describe('Bokningsvy – avbokning av bokning', () => {
 
     expect(avbokaBokning).toHaveBeenCalledTimes(1)
     losUpp?.()
+  })
+})
+
+describe('Bokningsvy – skiljer "inga bokningar" från "kunde inte hämtas"', () => {
+  afterEach(() => {
+    mockState.db.bokningar = [bokning]
+    mockState.fel = false
+    vi.clearAllMocks()
+    kan.mockReturnValue(true)
+    cleanup()
+  })
+
+  it('visar det vanliga tomma läget när listan genuint är tom', () => {
+    mockState.db.bokningar = []
+    mockState.fel = false
+
+    render(<Bokningsvy />)
+
+    expect(screen.getByText('Inga bokningar i urvalet')).toBeTruthy()
+    expect(screen.queryByText(/Kan inte visa bokningar just nu/)).toBeNull()
+  })
+
+  it('visar ett hämtningsfel – inte "inga bokningar" – när API-anropet misslyckades', () => {
+    mockState.db.bokningar = []
+    mockState.fel = true
+
+    render(<Bokningsvy />)
+
+    expect(screen.getByText('Kan inte visa bokningar just nu')).toBeTruthy()
+    expect(screen.queryByText('Inga bokningar i urvalet')).toBeNull()
   })
 })

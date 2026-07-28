@@ -5,6 +5,7 @@ import {
   PlusIcon,
   SearchIcon,
   SearchXIcon,
+  TriangleAlertIcon,
   UserRoundIcon,
   UsersIcon,
   XIcon,
@@ -175,6 +176,18 @@ export function Kundlista() {
               <Skeleton key={i} className="h-[124px] rounded-xl" />
             ))}
           </div>
+        ) : kunder.length === 0 && fel ? (
+          <Empty className="bg-surface-emphasis py-12">
+            <EmptyHeader>
+              <EmptyMedia variant="icon">
+                <TriangleAlertIcon />
+              </EmptyMedia>
+              <EmptyTitle>Kan inte visa kunder just nu</EmptyTitle>
+              <EmptyDescription>
+                Listan kunde inte hämtas från servern – se felmeddelandet ovan och försök igen.
+              </EmptyDescription>
+            </EmptyHeader>
+          </Empty>
         ) : kunder.length === 0 ? (
           <Empty className="bg-surface-emphasis py-12">
             <EmptyHeader>

@@ -81,22 +81,37 @@ const bokning: Bokning = {
   plats: 'Loviselundsvägen 42, Hässelby',
 }
 
+const uppdatera = vi.fn()
+const mockState: {
+  db: {
+    kunder: Kund[]
+    arenden: Arende[]
+    bokningar: Bokning[]
+    meddelanden: never[]
+    aktiviteter: never[]
+    kundanteckningar: never[]
+    standardsvar: never[]
+    personal: never[]
+  }
+  laddar: boolean
+  fel: boolean
+} = {
+  db: {
+    kunder: [kund],
+    arenden: [arende],
+    bokningar: [bokning],
+    meddelanden: [],
+    aktiviteter: [],
+    kundanteckningar: [],
+    standardsvar: [],
+    personal: [],
+  },
+  laddar: false,
+  fel: false,
+}
+
 vi.mock('@/hooks/use-operativ-admin-data', () => ({
-  useOperativAdminData: () => ({
-    db: {
-      kunder: [kund],
-      arenden: [arende],
-      bokningar: [bokning],
-      meddelanden: [],
-      aktiviteter: [],
-      kundanteckningar: [],
-      standardsvar: [],
-      personal: [],
-    },
-    laddar: false,
-    fel: false,
-    uppdatera: vi.fn(),
-  }),
+  useOperativAdminData: () => ({ ...mockState, uppdatera }),
 }))
 
 let ArendeDetalj: typeof import('@/components/portal/arende/arende-detalj').ArendeDetalj
@@ -139,5 +154,34 @@ describe('ArendeDetalj – avbokning av bokning', () => {
     expect(toast.success).toHaveBeenCalledWith('Bokningen avbokades', {
       description: 'Kunden meddelas inte automatiskt ännu.',
     })
+  })
+})
+
+describe('ArendeDetalj – skiljer "hittades inte" från "kunde inte hämtas"', () => {
+  afterEach(() => {
+    mockState.db.arenden = [arende]
+    mockState.fel = false
+    vi.clearAllMocks()
+    cleanup()
+  })
+
+  it('visar "hittades inte" när ärendet genuint saknas i en lyckad läsning', () => {
+    mockState.db.arenden = []
+    mockState.fel = false
+
+    render(<ArendeDetalj arendeId="okant-id" />)
+
+    expect(screen.getByText('Ärendet hittades inte')).toBeTruthy()
+    expect(screen.queryByText(/Kan inte visa ärendet just nu/)).toBeNull()
+  })
+
+  it('visar ett hämtningsfel – inte "hittades inte" – när API-anropet misslyckades', () => {
+    mockState.db.arenden = []
+    mockState.fel = true
+
+    render(<ArendeDetalj arendeId="okant-id" />)
+
+    expect(screen.getByText('Kan inte visa ärendet just nu')).toBeTruthy()
+    expect(screen.queryByText('Ärendet hittades inte')).toBeNull()
   })
 })

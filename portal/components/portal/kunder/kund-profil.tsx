@@ -12,6 +12,7 @@ import {
   PlusIcon,
   SearchXIcon,
   TicketIcon,
+  TriangleAlertIcon,
   UserRoundIcon,
 } from 'lucide-react'
 import Link from 'next/link'
@@ -92,6 +93,26 @@ export function KundProfil({ kundId }: { kundId: string }) {
   }, [db, kundId])
 
   if (laddar || !db) return <ProfilSkelett />
+
+  if (!kund && fel) {
+    return (
+      <Sida>
+        <DriftFelBanner vidForsokIgen={uppdatera} />
+        <Empty className="bg-card py-16">
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <TriangleAlertIcon />
+            </EmptyMedia>
+            <EmptyTitle>Kan inte visa kunden just nu</EmptyTitle>
+            <EmptyDescription>
+              Kunden kunde inte hämtas från servern – det betyder inte att den är borttagen.
+              Se felmeddelandet ovan och försök igen.
+            </EmptyDescription>
+          </EmptyHeader>
+        </Empty>
+      </Sida>
+    )
+  }
 
   if (!kund) {
     return (

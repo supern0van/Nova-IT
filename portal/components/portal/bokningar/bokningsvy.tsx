@@ -11,6 +11,7 @@ import {
   PhoneIcon,
   TicketIcon,
   Trash2Icon,
+  TriangleAlertIcon,
   WrenchIcon,
 } from 'lucide-react'
 import Link from 'next/link'
@@ -361,7 +362,21 @@ export function Bokningsvy() {
         </Yta>
       )}
 
-      {!laddar && iVeckan.length === 0 && kommande.length === 0 && (
+      {!laddar && iVeckan.length === 0 && kommande.length === 0 && fel && (
+        <Empty className="bg-card py-12">
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <TriangleAlertIcon />
+            </EmptyMedia>
+            <EmptyTitle>Kan inte visa bokningar just nu</EmptyTitle>
+            <EmptyDescription>
+              Listan kunde inte hämtas från servern – se felmeddelandet ovan och försök igen.
+            </EmptyDescription>
+          </EmptyHeader>
+        </Empty>
+      )}
+
+      {!laddar && iVeckan.length === 0 && kommande.length === 0 && !fel && (
         <Empty className="bg-card py-12">
           <EmptyHeader>
             <EmptyMedia variant="icon">

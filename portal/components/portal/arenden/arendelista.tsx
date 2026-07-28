@@ -7,6 +7,7 @@ import {
   SearchIcon,
   SearchXIcon,
   TicketIcon,
+  TriangleAlertIcon,
   XIcon,
 } from 'lucide-react'
 import Link from 'next/link'
@@ -297,6 +298,20 @@ export function Arendelista() {
 
         {laddar ? (
           <TabellSkelett />
+        ) : filtreradeArenden.length === 0 && fel ? (
+          <div className="p-3.5 pt-0">
+            <Empty className="bg-surface-emphasis py-12">
+              <EmptyHeader>
+                <EmptyMedia variant="icon">
+                  <TriangleAlertIcon />
+                </EmptyMedia>
+                <EmptyTitle>Kan inte visa ärenden just nu</EmptyTitle>
+                <EmptyDescription>
+                  Listan kunde inte hämtas från servern – se felmeddelandet ovan och försök igen.
+                </EmptyDescription>
+              </EmptyHeader>
+            </Empty>
+          </div>
         ) : filtreradeArenden.length === 0 ? (
           <div className="p-3.5 pt-0">
             <Empty className="bg-surface-emphasis py-12">

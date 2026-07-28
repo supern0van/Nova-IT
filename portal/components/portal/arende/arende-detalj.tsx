@@ -15,6 +15,7 @@ import {
   SearchXIcon,
   SparklesIcon,
   Trash2Icon,
+  TriangleAlertIcon,
   UserRoundIcon,
 } from 'lucide-react'
 import Link from 'next/link'
@@ -106,6 +107,26 @@ export function ArendeDetalj({ arendeId }: { arendeId: string }) {
   }, [db, arendeId])
 
   if (laddar || !db) return <DetaljSkelett />
+
+  if (!arende && fel) {
+    return (
+      <Sida>
+        <DriftFelBanner vidForsokIgen={uppdatera} />
+        <Empty className="bg-card py-16">
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <TriangleAlertIcon />
+            </EmptyMedia>
+            <EmptyTitle>Kan inte visa ärendet just nu</EmptyTitle>
+            <EmptyDescription>
+              Ärendet kunde inte hämtas från servern – det betyder inte att det är borttaget.
+              Se felmeddelandet ovan och försök igen.
+            </EmptyDescription>
+          </EmptyHeader>
+        </Empty>
+      </Sida>
+    )
+  }
 
   if (!arende) {
     return (
