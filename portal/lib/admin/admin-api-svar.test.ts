@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 
 import {
+  hamtaLosenordsAterstallningFranApiSvar,
+  hamtaMfaAterstallningFranApiSvar,
   hamtaProfilFranApiSvar,
   hamtaProfilerFranApiSvar,
   hamtaSystemStatusFranApiSvar,
@@ -87,6 +89,38 @@ describe('admin-api-svar', () => {
           kontroller: [{ id: 'x', namn: 'X', status: 'ok', beskrivning: 'x' }],
           profiler: { antal: '1', status: 'ok' },
         },
+      }),
+    ).toBeNull()
+  })
+
+  it('läser admin-actions från giltiga API-svar', () => {
+    expect(
+      hamtaMfaAterstallningFranApiSvar({
+        ok: true,
+        antalBorttagnaFaktorer: 2,
+      }),
+    ).toEqual({ ok: true, antalBorttagnaFaktorer: 2 })
+
+    expect(
+      hamtaLosenordsAterstallningFranApiSvar({
+        ok: true,
+        epost: 'admin@nova-it.se',
+      }),
+    ).toEqual({ ok: true, epost: 'admin@nova-it.se' })
+  })
+
+  it('nekar admin-actions med oväntad API-form', () => {
+    expect(hamtaMfaAterstallningFranApiSvar({ ok: 'true' })).toBeNull()
+    expect(
+      hamtaMfaAterstallningFranApiSvar({
+        ok: true,
+        antalBorttagnaFaktorer: '2',
+      }),
+    ).toBeNull()
+    expect(
+      hamtaLosenordsAterstallningFranApiSvar({
+        ok: false,
+        fel: ['nekad'],
       }),
     ).toBeNull()
   })

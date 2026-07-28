@@ -40,6 +40,8 @@ import {
 } from '@/components/ui/select'
 import { Spinner } from '@/components/ui/spinner'
 import {
+  hamtaLosenordsAterstallningFranApiSvar,
+  hamtaMfaAterstallningFranApiSvar,
   hamtaProfilFranApiSvar,
   hamtaProfilerFranApiSvar,
   hamtaSystemStatusFranApiSvar,
@@ -375,10 +377,13 @@ export function SystemPanel() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ epost: profil.epost }),
       })
-      const data = (await svar.json()) as {
-        ok: boolean
-        fel?: string
-        antalBorttagnaFaktorer?: number
+      const data = hamtaMfaAterstallningFranApiSvar(await svar.json())
+
+      if (!data) {
+        toast.error('Kunde inte återställa MFA', {
+          description: 'API:t svarade med ett oväntat format.',
+        })
+        return
       }
 
       if (!svar.ok || !data.ok) {
@@ -427,7 +432,14 @@ export function SystemPanel() {
       const svar = await fetch(`/api/admin/profiler/${profil.id}/losenord`, {
         method: 'POST',
       })
-      const data = (await svar.json()) as { ok: boolean; fel?: string; epost?: string }
+      const data = hamtaLosenordsAterstallningFranApiSvar(await svar.json())
+
+      if (!data) {
+        toast.error('Kunde inte skicka lösenordslänk', {
+          description: 'API:t svarade med ett oväntat format.',
+        })
+        return
+      }
 
       if (!svar.ok || !data.ok) {
         toast.error('Kunde inte skicka lösenordslänk', {

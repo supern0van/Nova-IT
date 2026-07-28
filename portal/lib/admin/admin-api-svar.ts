@@ -33,6 +33,18 @@ export interface SystemStatusSvar {
   }
 }
 
+export interface MfaAterstallningApiSvar {
+  ok: boolean
+  fel?: string
+  antalBorttagnaFaktorer?: number
+}
+
+export interface LosenordsAterstallningApiSvar {
+  ok: boolean
+  fel?: string
+  epost?: string
+}
+
 export function hamtaProfilerFranApiSvar(data: unknown): ProfilRad[] | null {
   if (typeof data !== 'object' || data === null || !('profiler' in data)) return null
   if (!Array.isArray(data.profiler)) return null
@@ -50,6 +62,43 @@ export function hamtaProfilFranApiSvar(data: unknown): ProfilRad | null {
 export function hamtaSystemStatusFranApiSvar(data: unknown): SystemStatusSvar | null {
   if (typeof data !== 'object' || data === null || !('status' in data)) return null
   return normaliseraSystemStatus(data.status)
+}
+
+export function hamtaMfaAterstallningFranApiSvar(
+  data: unknown,
+): MfaAterstallningApiSvar | null {
+  if (typeof data !== 'object' || data === null || !('ok' in data)) return null
+  if (typeof data.ok !== 'boolean') return null
+
+  const fel = 'fel' in data ? normaliseraValfriString(data.fel) : undefined
+  const antalBorttagnaFaktorer =
+    'antalBorttagnaFaktorer' in data
+      ? normaliseraValfrittHeltal(data.antalBorttagnaFaktorer)
+      : undefined
+  if (fel === false || antalBorttagnaFaktorer === false) return null
+
+  return {
+    ok: data.ok,
+    ...(fel === undefined ? {} : { fel }),
+    ...(antalBorttagnaFaktorer === undefined ? {} : { antalBorttagnaFaktorer }),
+  }
+}
+
+export function hamtaLosenordsAterstallningFranApiSvar(
+  data: unknown,
+): LosenordsAterstallningApiSvar | null {
+  if (typeof data !== 'object' || data === null || !('ok' in data)) return null
+  if (typeof data.ok !== 'boolean') return null
+
+  const fel = 'fel' in data ? normaliseraValfriString(data.fel) : undefined
+  const epost = 'epost' in data ? normaliseraValfriString(data.epost) : undefined
+  if (fel === false || epost === false) return null
+
+  return {
+    ok: data.ok,
+    ...(fel === undefined ? {} : { fel }),
+    ...(epost === undefined ? {} : { epost }),
+  }
 }
 
 function normaliseraProfilRad(data: unknown): ProfilRad | null {
@@ -197,7 +246,19 @@ function arBooleanEllerNull(data: unknown): data is boolean | null {
   return typeof data === 'boolean' || data === null
 }
 
+function normaliseraValfriString(data: unknown): string | undefined | false {
+  if (data === undefined) return undefined
+  if (typeof data === 'string') return data
+  return false
+}
+
 function normaliseraValfrittNummer(data: unknown): number | null | false {
   if (data === null || typeof data === 'number') return data
+  return false
+}
+
+function normaliseraValfrittHeltal(data: unknown): number | undefined | false {
+  if (data === undefined) return undefined
+  if (typeof data === 'number' && Number.isInteger(data) && data >= 0) return data
   return false
 }
