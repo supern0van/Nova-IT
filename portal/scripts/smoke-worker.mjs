@@ -30,6 +30,11 @@ export const apiChecks = [
     expectedStatus: 401,
     expectedBody: { profiler: [] },
   },
+  {
+    path: '/api/admin/operativt',
+    expectedStatus: 401,
+    expectedBody: { kunder: [], arenden: [], bokningar: [] },
+  },
 ]
 
 const timeoutMs = 20_000
