@@ -62,19 +62,27 @@ export async function aterstallMfaForEpost(epost: string): Promise<MfaAterstalln
   const supabase = skapaSupabaseServiceklient()
   const normaliserad = epost.trim().toLowerCase()
 
-  const { data: profil, error: profilFel } = await supabase
-    .from('profiles')
-    .select('id')
-    .ilike('epost', normaliserad)
-    .maybeSingle()
+  const { data: profil, error: profilFel } = await (async () => {
+    try {
+      return await supabase.from('profiles').select('id').ilike('epost', normaliserad).maybeSingle()
+    } catch {
+      return { data: null, error: new Error('profiles lookup failed') }
+    }
+  })()
 
   if (profilFel || !profil) {
     return { ok: false, fel: 'anvandare_saknas' }
   }
 
-  const { data: faktorData, error: listaFel } = await supabase.auth.admin.mfa.listFactors({
-    userId: profil.id,
-  })
+  const { data: faktorData, error: listaFel } = await (async () => {
+    try {
+      return await supabase.auth.admin.mfa.listFactors({
+        userId: profil.id,
+      })
+    } catch {
+      return { data: null, error: new Error('factor list failed') }
+    }
+  })()
   if (listaFel) {
     return { ok: false, fel: 'serverfel' }
   }
@@ -88,18 +96,30 @@ export async function aterstallMfaForEpost(epost: string): Promise<MfaAterstalln
   // som faktiskt gick att ta bort.
   let antalBorttagna = 0
   for (const faktor of faktorData.factors) {
-    const { error: taBortFel } = await supabase.auth.admin.mfa.deleteFactor({
-      id: faktor.id,
-      userId: profil.id,
-    })
+    const { error: taBortFel } = await (async () => {
+      try {
+        return await supabase.auth.admin.mfa.deleteFactor({
+          id: faktor.id,
+          userId: profil.id,
+        })
+      } catch {
+        return { error: new Error('factor delete failed') }
+      }
+    })()
     if (!taBortFel) antalBorttagna++
   }
 
   // Lita INTE bara på delete-svaren ovan – verifiera det faktiska
   // sluttillståndet med ett nytt listFactors()-anrop mot Supabase Auth.
-  const { data: kvarvarandeData, error: kvarvarandeFel } = await supabase.auth.admin.mfa.listFactors({
-    userId: profil.id,
-  })
+  const { data: kvarvarandeData, error: kvarvarandeFel } = await (async () => {
+    try {
+      return await supabase.auth.admin.mfa.listFactors({
+        userId: profil.id,
+      })
+    } catch {
+      return { data: null, error: new Error('remaining factor list failed') }
+    }
+  })()
   if (kvarvarandeFel) {
     // Kan inte bekräfta sluttillståndet – rapportera ALDRIG framgång i det
     // läget, även om alla delete-anrop ovan såg ut att lyckas.

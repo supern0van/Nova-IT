@@ -39,6 +39,15 @@ describe('aterstallMfaForEpost (admin-återställningsflöde)', () => {
     expect(listFactors).not.toHaveBeenCalled()
   })
 
+  it('returnerar anvandare_saknas om profiles-uppslaget kastar', async () => {
+    maybeSingle.mockRejectedValue(new Error('profiles nere'))
+
+    const resultat = await aterstallMfaForEpost('okand@nova-it.se')
+
+    expect(resultat).toEqual({ ok: false, fel: 'anvandare_saknas' })
+    expect(listFactors).not.toHaveBeenCalled()
+  })
+
   it('returnerar inga_faktorer om användaren inte har någon MFA att ta bort', async () => {
     maybeSingle.mockResolvedValue({ data: { id: 'user-1' }, error: null })
     listFactors.mockResolvedValue({ data: { factors: [] }, error: null })
@@ -46,6 +55,16 @@ describe('aterstallMfaForEpost (admin-återställningsflöde)', () => {
     const resultat = await aterstallMfaForEpost('utankonto@nova-it.se')
 
     expect(resultat).toEqual({ ok: false, fel: 'inga_faktorer' })
+  })
+
+  it('returnerar serverfel om initial faktorlista kastar', async () => {
+    maybeSingle.mockResolvedValue({ data: { id: 'user-1' }, error: null })
+    listFactors.mockRejectedValue(new Error('mfa-api nere'))
+
+    const resultat = await aterstallMfaForEpost('utelast@nova-it.se')
+
+    expect(resultat).toEqual({ ok: false, fel: 'serverfel' })
+    expect(deleteFactor).not.toHaveBeenCalled()
   })
 
   it('tar bort samtliga faktorer, verifierar med en ny listFactors och returnerar antalet', async () => {
@@ -102,11 +121,41 @@ describe('aterstallMfaForEpost (admin-återställningsflöde)', () => {
     expect(resultat).toEqual({ ok: false, fel: 'partiell_atersallning', antalKvarvarande: 1 })
   })
 
+  it('fortsätter till verifiering om ett deleteFactor-anrop kastar', async () => {
+    maybeSingle.mockResolvedValue({ data: { id: 'user-1' }, error: null })
+    listFactors
+      .mockResolvedValueOnce({
+        data: { factors: [{ id: 'faktor-1' }, { id: 'faktor-2' }] },
+        error: null,
+      })
+      .mockResolvedValueOnce({ data: { factors: [{ id: 'faktor-1' }] }, error: null })
+    deleteFactor
+      .mockRejectedValueOnce(new Error('delete timeout'))
+      .mockResolvedValueOnce({ data: { id: 'faktor-2' }, error: null })
+
+    const resultat = await aterstallMfaForEpost('delvis@nova-it.se')
+
+    expect(resultat).toEqual({ ok: false, fel: 'partiell_atersallning', antalKvarvarande: 1 })
+    expect(deleteFactor).toHaveBeenCalledTimes(2)
+  })
+
   it('verifierar alltid sluttillståndet – rapporterar aldrig framgång om verifieringsanropet i sig misslyckas', async () => {
     maybeSingle.mockResolvedValue({ data: { id: 'user-1' }, error: null })
     listFactors
       .mockResolvedValueOnce({ data: { factors: [{ id: 'faktor-1' }] }, error: null })
       .mockResolvedValueOnce({ data: null, error: { message: 'network blip' } })
+    deleteFactor.mockResolvedValue({ data: { id: 'faktor-1' }, error: null })
+
+    const resultat = await aterstallMfaForEpost('overifierbar@nova-it.se')
+
+    expect(resultat).toEqual({ ok: false, fel: 'serverfel' })
+  })
+
+  it('returnerar serverfel om verifieringsanropet kastar efter delete', async () => {
+    maybeSingle.mockResolvedValue({ data: { id: 'user-1' }, error: null })
+    listFactors
+      .mockResolvedValueOnce({ data: { factors: [{ id: 'faktor-1' }] }, error: null })
+      .mockRejectedValueOnce(new Error('verifiering nere'))
     deleteFactor.mockResolvedValue({ data: { id: 'faktor-1' }, error: null })
 
     const resultat = await aterstallMfaForEpost('overifierbar@nova-it.se')
