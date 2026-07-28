@@ -8,10 +8,14 @@ import { KategorierPanel } from '@/components/portal/installningar/kategorier-pa
 import { MottagarePanel } from '@/components/portal/installningar/mottagare-panel'
 import { StandardsvarPanel } from '@/components/portal/installningar/standardsvar-panel'
 import { SystemPanel } from '@/components/portal/installningar/system-panel'
-import { Sida, Sidhuvud, Yta } from '@/components/portal/ui-delar'
-import { Skeleton } from '@/components/ui/skeleton'
+import { Sida, Sidhuvud } from '@/components/portal/ui-delar'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { useDemoData } from '@/hooks/use-demo-data'
+import {
+  adminAviseringarUnderlag,
+  adminKategorierUnderlag,
+  adminMottagareUnderlag,
+  adminStandardsvarUnderlag,
+} from '@/lib/admin/installnings-underlag'
 
 type Flik = 'system' | 'aviseringar' | 'mottagare' | 'kategorier' | 'standardsvar'
 
@@ -25,7 +29,6 @@ type Flik = 'system' | 'aviseringar' | 'mottagare' | 'kategorier' | 'standardsva
  * serverlagring och e-postflöde.
  */
 export function InstallningarVy() {
-  const { db, laddar } = useDemoData()
   const [flik, setFlik] = useState<Flik>('system')
 
   return (
@@ -63,32 +66,18 @@ export function InstallningarVy() {
           <SystemPanel />
         </TabsContent>
         <TabsContent value="aviseringar">
-          {laddar || !db ? <InstallningsSkeleton /> : <AviseringarPanel aviseringar={db.aviseringar} />}
+          <AviseringarPanel aviseringar={adminAviseringarUnderlag} />
         </TabsContent>
         <TabsContent value="mottagare">
-          {laddar || !db ? <InstallningsSkeleton /> : <MottagarePanel mottagare={db.mottagare} />}
+          <MottagarePanel mottagare={adminMottagareUnderlag} />
         </TabsContent>
         <TabsContent value="kategorier">
-          {laddar || !db ? (
-            <InstallningsSkeleton />
-          ) : (
-            <KategorierPanel kategorier={db.kategorier} arenden={db.arenden} />
-          )}
+          <KategorierPanel kategorier={adminKategorierUnderlag} />
         </TabsContent>
         <TabsContent value="standardsvar">
-          {laddar || !db ? <InstallningsSkeleton /> : <StandardsvarPanel standardsvar={db.standardsvar} />}
+          <StandardsvarPanel standardsvar={adminStandardsvarUnderlag} />
         </TabsContent>
       </Tabs>
     </Sida>
-  )
-}
-
-function InstallningsSkeleton() {
-  return (
-    <Yta className="flex flex-col gap-3 p-3.5">
-      {Array.from({ length: 5 }).map((_, i) => (
-        <Skeleton key={i} className="h-16 w-full rounded-lg" />
-      ))}
-    </Yta>
   )
 }

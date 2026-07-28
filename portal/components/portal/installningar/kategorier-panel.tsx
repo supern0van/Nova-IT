@@ -15,10 +15,10 @@ import type { Arende, Arendekategori } from '@/lib/types'
  */
 export function KategorierPanel({
   kategorier,
-  arenden,
+  arenden = [],
 }: {
   kategorier: Arendekategori[]
-  arenden: Arende[]
+  arenden?: Arende[]
 }) {
   const antalPerKategori = useMemo(() => {
     const karta = new Map<string, number>()
@@ -58,8 +58,10 @@ export function KategorierPanel({
                     <PrioritetChip prioritet={kategori.standardPrioritet} />
                   </div>
                   <p className="text-[12px] text-muted-foreground">
-                    Standardprioritet för nya ärenden · {antal}{' '}
-                    {antal === 1 ? 'ärende' : 'ärenden'} totalt
+                    Standardprioritet för nya ärenden
+                    {arenden.length > 0
+                      ? ` · ${antal} ${antal === 1 ? 'ärende' : 'ärenden'} totalt`
+                      : null}
                   </p>
                 </div>
                 <div className="flex shrink-0 items-center gap-2">
