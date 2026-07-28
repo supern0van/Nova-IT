@@ -154,4 +154,16 @@ describe('worker-konfiguration', () => {
     expect(wrangler.routes?.every((route) => route.custom_domain === true)).toBe(true)
     expect(wrangler.secrets?.required).toEqual([...obligatoriskaWorkerSecrets])
   })
+
+  it('matchar .env.example för obligatoriska Worker-secrets', () => {
+    const envExamplePath = fileURLToPath(new URL('../../.env.example', import.meta.url))
+    const envExample = readFileSync(envExamplePath, 'utf8')
+    const envVariabler = envExample
+      .split(/\r?\n/)
+      .map((rad) => rad.trim())
+      .filter((rad) => rad && !rad.startsWith('#'))
+      .map((rad) => rad.split('=')[0])
+
+    expect(envVariabler).toEqual([...obligatoriskaWorkerSecrets])
+  })
 })
