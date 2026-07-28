@@ -65,4 +65,15 @@ describe('hamtaAutentiseradAnvandarId (skydd för protected server functions, t.
 
     await expect(hamtaAutentiseradAnvandarId(fakeRequest())).resolves.toBeNull()
   })
+
+  it('fail-closed om Supabase-miljövariabler saknas, i stället för att krascha eller släppa igenom', async () => {
+    vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL', '')
+    getClaims.mockResolvedValue({ data: { claims: { sub: 'user-1', aal: 'aal2' } } })
+
+    await expect(hamtaAutentiseradAnvandarId(fakeRequest())).resolves.toBeNull()
+
+    vi.unstubAllEnvs()
+    process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://example.supabase.co'
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY = 'test-publishable-key'
+  })
 })

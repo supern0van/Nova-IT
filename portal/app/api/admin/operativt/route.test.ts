@@ -187,6 +187,31 @@ describe('/api/admin/operativt', () => {
     expect(await svar.json()).toEqual({ ok: false })
   })
 
+  it('returnerar 400 vid trasig (icke-JSON) POST-body i stället för att krascha', async () => {
+    hamtaAutentiseradAnvandarIdMock.mockResolvedValue('user-1')
+    hamtaRollFranDatabasenMock.mockResolvedValue('administrator')
+
+    const trasigRequest = new NextRequest('https://admin.nova-it.se/api/admin/operativt', {
+      method: 'POST',
+      body: '{ inte giltig json',
+    })
+    const svar = await POST(trasigRequest)
+
+    expect(svar.status).toBe(400)
+    expect(await svar.json()).toEqual({ ok: false })
+    expect(skapaOperativKundMock).not.toHaveBeenCalled()
+  })
+
+  it('returnerar 400 om payload saknar typ/data-formen (t.ex. en JSON-array eller sträng)', async () => {
+    hamtaAutentiseradAnvandarIdMock.mockResolvedValue('user-1')
+    hamtaRollFranDatabasenMock.mockResolvedValue('administrator')
+
+    const svar = await POST(postRequest(['inte', 'ett', 'objekt']))
+
+    expect(svar.status).toBe(400)
+    expect(await svar.json()).toEqual({ ok: false })
+  })
+
   it('returnerar 400 vid kontrollerat valideringsfel', async () => {
     hamtaAutentiseradAnvandarIdMock.mockResolvedValue('user-1')
     hamtaRollFranDatabasenMock.mockResolvedValue('administrator')
@@ -351,6 +376,31 @@ describe('/api/admin/operativt', () => {
     hamtaRollFranDatabasenMock.mockResolvedValue('administrator')
 
     const svar = await PATCH(patchRequest({ typ: 'massuppdatera', data: {} }))
+
+    expect(svar.status).toBe(400)
+    expect(await svar.json()).toEqual({ ok: false })
+  })
+
+  it('returnerar 400 vid trasig (icke-JSON) PATCH-body i stället för att krascha', async () => {
+    hamtaAutentiseradAnvandarIdMock.mockResolvedValue('user-1')
+    hamtaRollFranDatabasenMock.mockResolvedValue('administrator')
+
+    const trasigRequest = new NextRequest('https://admin.nova-it.se/api/admin/operativt', {
+      method: 'PATCH',
+      body: '{ inte giltig json',
+    })
+    const svar = await PATCH(trasigRequest)
+
+    expect(svar.status).toBe(400)
+    expect(await svar.json()).toEqual({ ok: false })
+    expect(uppdateraOperativKundMock).not.toHaveBeenCalled()
+  })
+
+  it('returnerar 400 om PATCH-payload saknar typ/data-formen', async () => {
+    hamtaAutentiseradAnvandarIdMock.mockResolvedValue('user-1')
+    hamtaRollFranDatabasenMock.mockResolvedValue('administrator')
+
+    const svar = await PATCH(patchRequest(null))
 
     expect(svar.status).toBe(400)
     expect(await svar.json()).toEqual({ ok: false })
