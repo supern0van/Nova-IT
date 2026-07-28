@@ -28,6 +28,10 @@ describe('admin-api-svar', () => {
   it('läser profiler från ett giltigt API-svar', () => {
     expect(hamtaProfilerFranApiSvar({ profiler: [giltigProfil] })).toEqual([giltigProfil])
     expect(hamtaProfilFranApiSvar({ profil: giltigProfil })).toEqual(giltigProfil)
+    expect(hamtaProfilFranApiSvar({ profil: { ...giltigProfil, kontoHalsa: null } })).toEqual({
+      ...giltigProfil,
+      kontoHalsa: null,
+    })
   })
 
   it('nekar profiler med ogiltig systemroll eller kontoHälsa-form', () => {
@@ -115,6 +119,18 @@ describe('admin-api-svar', () => {
       hamtaMfaAterstallningFranApiSvar({
         ok: true,
         antalBorttagnaFaktorer: '2',
+      }),
+    ).toBeNull()
+    expect(
+      hamtaMfaAterstallningFranApiSvar({
+        ok: true,
+        antalBorttagnaFaktorer: -1,
+      }),
+    ).toBeNull()
+    expect(
+      hamtaMfaAterstallningFranApiSvar({
+        ok: true,
+        antalBorttagnaFaktorer: 1.5,
       }),
     ).toBeNull()
     expect(
