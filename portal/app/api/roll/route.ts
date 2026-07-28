@@ -27,10 +27,14 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ roll: null }, { status: 401 })
   }
 
-  const [roll, profil] = await Promise.all([
-    hamtaRollFranDatabasen(anvandareId),
-    hamtaEgenProfilFranDatabasen(anvandareId),
-  ])
+  try {
+    const [roll, profil] = await Promise.all([
+      hamtaRollFranDatabasen(anvandareId),
+      hamtaEgenProfilFranDatabasen(anvandareId),
+    ])
 
-  return NextResponse.json({ roll, profil })
+    return NextResponse.json({ roll, profil })
+  } catch {
+    return NextResponse.json({ roll: null, profil: null }, { status: 500 })
+  }
 }

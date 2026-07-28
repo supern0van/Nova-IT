@@ -88,4 +88,18 @@ describe('GET /api/roll', () => {
     expect(svar.status).toBe(200)
     expect(await svar.json()).toEqual({ roll: null, profil: null })
   })
+
+  it('fail-closed vid oväntat fel när systemrollen hämtas', async () => {
+    hamtaAutentiseradAnvandarId.mockResolvedValue('user-1')
+    hamtaRollFranDatabasen.mockRejectedValue(new Error('service saknas'))
+    hamtaEgenProfilFranDatabasen.mockResolvedValue({
+      epost: 'webmaster@nova-it.se',
+      namn: 'Webmaster',
+    })
+
+    const svar = await GET(fakeRequest())
+
+    expect(svar.status).toBe(500)
+    expect(await svar.json()).toEqual({ roll: null, profil: null })
+  })
 })
