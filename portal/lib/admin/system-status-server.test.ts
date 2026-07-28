@@ -41,9 +41,19 @@ describe('hamtaSystemStatus', () => {
     expect(status.profiler).toEqual({ antal: 3, status: 'ok' })
     expect(
       status.kontroller
-        .filter((kontroll) => !kontroll.id.startsWith('settings-'))
+        .filter(
+          (kontroll) =>
+            !kontroll.id.startsWith('settings-') && kontroll.id !== 'operations-demo-storage',
+        )
         .every((kontroll) => kontroll.status === 'ok'),
     ).toBe(true)
+    expect(status.kontroller).toContainEqual({
+      id: 'operations-demo-storage',
+      namn: 'Ärenden, kunder och bokningar',
+      status: 'varning',
+      beskrivning:
+        'Operativa flöden använder fortfarande demodatalager/localStorage tills databasmodell och RLS för adminärenden är beslutade.',
+    })
     expect(status.kontroller).toContainEqual({
       id: 'settings-recipients-storage',
       namn: 'E-postmottagare',

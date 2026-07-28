@@ -55,6 +55,13 @@ function arHttpsUrl(varde: string) {
 
 const konfigurationsKontroller: SystemStatusKontroll[] = [
   {
+    id: 'operations-demo-storage',
+    namn: 'Ärenden, kunder och bokningar',
+    status: 'varning',
+    beskrivning:
+      'Operativa flöden använder fortfarande demodatalager/localStorage tills databasmodell och RLS för adminärenden är beslutade.',
+  },
+  {
     id: 'settings-notifications-storage',
     namn: 'Aviseringsinställningar',
     status: 'varning',
