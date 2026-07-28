@@ -127,4 +127,24 @@ describe('AuthProvider – systemroll från /api/roll', () => {
     })
     expect(screen.getByTestId('roll').textContent).toBe('ingen-roll')
   })
+
+  it('fail-closed till roll=null när /api/roll inte kan tolkas som JSON', async () => {
+    hamtaSession.mockResolvedValue({ session, anvandare })
+    lyssnaPaSessionsandringar.mockReturnValue(vi.fn())
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: vi.fn().mockRejectedValue(new Error('trasig json')),
+      }),
+    )
+
+    renderaProvider()
+
+    await waitFor(() => {
+      expect(fetch).toHaveBeenCalledWith('/api/roll')
+      expect(screen.getByTestId('laddar-roll').textContent).toBe('klar')
+    })
+    expect(screen.getByTestId('roll').textContent).toBe('ingen-roll')
+  })
 })
