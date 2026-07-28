@@ -257,6 +257,23 @@ describe('listaTotpFaktorer', () => {
     const resultat = await listaTotpFaktorer(supabase)
     expect(resultat).toEqual([])
   })
+
+  it('returnerar svenskt fel om faktorer inte kan läsas', async () => {
+    const supabase = skapaMockSupabase({
+      listFactors: vi.fn().mockResolvedValue({
+        data: null,
+        error: { message: 'Network request failed' },
+      }),
+    })
+
+    const resultat = await listaTotpFaktorer(supabase)
+
+    expect(Array.isArray(resultat)).toBe(false)
+    if (!Array.isArray(resultat)) {
+      expect(resultat.ok).toBe(false)
+      expect(resultat.fel).toMatch(/internetanslutning/i)
+    }
+  })
 })
 
 describe('hamtaAssuransniva', () => {
