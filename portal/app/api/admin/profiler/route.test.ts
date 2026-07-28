@@ -131,6 +131,27 @@ describe('/api/admin/profiler', () => {
     expect(bjudInPortalProfil).not.toHaveBeenCalled()
   })
 
+  it('nekar inbjudan med för långt namn innan Supabase anropas', async () => {
+    hamtaAutentiseradAnvandarId.mockResolvedValue('user-1')
+    harAdminAtkomst.mockResolvedValue(true)
+
+    const svar = await POST(
+      begaran({
+        namn: 'A'.repeat(121),
+        epost: 'ny@nova-it.se',
+        roll: 'medarbetare',
+      }),
+    )
+    const body = await svar.json()
+
+    expect(svar.status).toBe(400)
+    expect(body).toEqual({
+      profil: null,
+      fel: 'Ange namn, giltig e-postadress och systemroll.',
+    })
+    expect(bjudInPortalProfil).not.toHaveBeenCalled()
+  })
+
   it('returnerar 409 om portalkontot redan finns', async () => {
     hamtaAutentiseradAnvandarId.mockResolvedValue('user-1')
     harAdminAtkomst.mockResolvedValue(true)

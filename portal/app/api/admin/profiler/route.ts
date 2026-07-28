@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
   const namn = typeof body === 'object' && body !== null && 'namn' in body ? body.namn : null
   const roll = typeof body === 'object' && body !== null && 'roll' in body ? body.roll : null
 
-  if (!arGiltigEpost(epost) || typeof namn !== 'string' || namn.trim().length < 2 || !arSystemRoll(roll)) {
+  if (!arGiltigEpost(epost) || !arGiltigtNamn(namn) || !arSystemRoll(roll)) {
     return NextResponse.json(
       {
         profil: null,
@@ -87,4 +87,10 @@ function arGiltigEpost(varde: unknown): varde is string {
     varde.trim().length <= 254 &&
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(varde.trim())
   )
+}
+
+function arGiltigtNamn(varde: unknown): varde is string {
+  if (typeof varde !== 'string') return false
+  const namn = varde.trim()
+  return namn.length >= 2 && namn.length <= 120
 }
