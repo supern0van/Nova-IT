@@ -163,7 +163,7 @@ const documents: Record<
         ),
       },
       {
-        heading: "Därför finns ingen samtyckesbanner",
+        heading: "Hur samtycke hanteras",
         body: (
           <p>
             Webbplatsen visar en samtyckesbanner där du kan neka alla valfria kategorier, spara ett
