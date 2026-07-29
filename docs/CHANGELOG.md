@@ -38,7 +38,8 @@ datum: 2026-07-29
 datumprecision: dag
 typ: funktion
 typ_2: säkerhet
-status: genomförd i källkod\ssystem: [Adminportal, autentisering, demo]
+status: genomförd i källkod
+system: [Adminportal, autentisering, demo]
 ```
 
 Adminportalen fick ett separat lösenordsskyddat gästdemoläge med seedad demodata. Demot separerades från riktiga användarsessioner och från produktionens kund- och ärendedata.
@@ -55,7 +56,8 @@ Gästvyn anpassades så att den inte försöker utföra skyddade produktionsåtg
 datum: 2026-07-29
 datumprecision: dag
 typ: säkerhet
-status: genomförd i källkod och test\ssystem: [Adminportal, Supabase Auth, Cloudflare Workers]
+status: genomförd i källkod och test
+system: [Adminportal, Supabase Auth, Cloudflare Workers]
 ```
 
 Inloggnings- och sessionsflödet härdades i flera steg. Adminportalen fick canonical host-hantering, tidsgränser för inloggning och inaktivitet, bevarande av oskickade utkast vid sessionsavbrott samt en servervaliderad sessionslease för skyddade anrop.
@@ -73,7 +75,8 @@ datum: 2026-07-28
 datumprecision: dag
 typ: funktion
 typ_2: infrastruktur
-status: genomförd och produktionsverifierad\ssystem: [Adminportal, Supabase, PostgreSQL, Cloudflare Workers]
+status: genomförd och produktionsverifierad
+system: [Adminportal, Supabase, PostgreSQL, Cloudflare Workers]
 ```
 
 Adminportalens tidigare demo- och lokallagringsbaserade hantering ersattes av riktiga operativa Supabase-tabeller för kunder, ärenden, meddelanden, aktiviteter, bokningar och kundanteckningar. Läsning och skrivning går via skyddade serverrutter med service role, RLS som extra skydd och nekad direkt klientåtkomst.
@@ -92,7 +95,8 @@ Den samlade releasekontrollen verifierade tester, lint, typkontroll, build, Open
 datum: 2026-07-29
 datumprecision: dag
 typ: funktion
-status: genomförd i källkod och test\ssystem: [Adminportal, Cloudflare Workers, 46elks]
+status: genomförd i källkod och test
+system: [Adminportal, Cloudflare Workers, 46elks]
 ```
 
 Adminportalens ärendedetaljsida fick en bekräftad åtgärd för att skicka SMS till kunden när ett ärende är klart och en produkt kan hämtas. Funktionen använder 46elks REST-API och kräver samma `svara_kund`-behörighet som annan kundkommunikation.
@@ -110,7 +114,8 @@ datum: 2026-07-29
 datumprecision: dag
 typ: funktion
 typ_2: design, seo, tillgänglighet
-status: genomförd och produktionsverifierad\ssystem: [Publik webbplats, Adminportal, Cloudflare Workers]
+status: genomförd och produktionsverifierad
+system: [Publik webbplats, Adminportal, Cloudflare Workers]
 ```
 
 Kontaktformuläret och supportassistenten kopplades till ett gemensamt, skyddat server-till-server-intag som skapar riktiga ärenden i adminportalens databas. Idempotens skyddar mot dubbletter och bekräftelsemejlets status lagras separat, så ett misslyckat mejl inte kan misstolkas som att själva ärendet misslyckades.
@@ -131,7 +136,8 @@ Mobil Lighthouse-mätning på skarp produktion gav prestanda 92–93 och 100/100
 datum: 2026-07-28
 datumprecision: dag
 typ: infrastruktur
-status: genomförd\ssystem: [Cloudflare Workers, GitHub Actions, Adminportal]
+status: genomförd
+system: [Cloudflare Workers, GitHub Actions, Adminportal]
 ```
 
 Adminportalen verifieras som en separat Cloudflare Worker i både lokal process och GitHub Actions. CI fick ett eget adminportaljobb för `portal/`, bygger den faktiska OpenNext Worker-bundlen och separerar portalens Next/pnpm-kedja från root-projektets Bun/Vite-kedja.
@@ -148,7 +154,8 @@ Ett särskilt smoke-test kontrollerar alla kopplade admin- och tillfälliga port
 datum: 2026-07-23
 datumprecision: dag
 typ: infrastruktur
-status: genomförd\ssystem: [GitHub, GitHub Actions, projektdokumentation]
+status: genomförd
+system: [GitHub, GitHub Actions, projektdokumentation]
 ```
 
 Ett sammanhängande dokumentationssystem skapades med dokumentationsnav, kontextuell changelog, beslutslogg, projekthistorik, arbetsflöde, changelog-fragment, PR-mall och automatisk validering i GitHub Actions.
