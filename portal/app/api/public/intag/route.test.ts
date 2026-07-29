@@ -1,8 +1,12 @@
 import { NextRequest } from 'next/server'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { POST } from './route'
-import { PubliktIntagFel, skapaPubliktIntag } from '@/lib/admin/publikt-intag-server'
+import { PATCH, POST } from './route'
+import {
+  PubliktIntagFel,
+  sattBekraftelseStatus,
+  skapaPubliktIntag,
+} from '@/lib/admin/publikt-intag-server'
 
 vi.mock('@/lib/admin/publikt-intag-server', () => ({
   PubliktIntagFel: class PubliktIntagFel extends Error {
@@ -13,15 +17,25 @@ vi.mock('@/lib/admin/publikt-intag-server', () => ({
     }
   },
   skapaPubliktIntag: vi.fn(),
+  sattBekraftelseStatus: vi.fn(),
 }))
 
 const skapaPubliktIntagMock = vi.mocked(skapaPubliktIntag)
+const sattBekraftelseStatusMock = vi.mocked(sattBekraftelseStatus)
 
 const GILTIG_HEMLIGHET = 'test-hemlighet-minst-16-tecken'
 
 function request(body: unknown, headers: Record<string, string> = {}) {
   return new NextRequest('https://admin.nova-it.se/api/public/intag', {
     method: 'POST',
+    headers: { 'content-type': 'application/json', ...headers },
+    body: JSON.stringify(body),
+  })
+}
+
+function patchRequest(body: unknown, headers: Record<string, string> = {}) {
+  return new NextRequest('https://admin.nova-it.se/api/public/intag', {
+    method: 'PATCH',
     headers: { 'content-type': 'application/json', ...headers },
     body: JSON.stringify(body),
   })
@@ -124,5 +138,64 @@ describe('/api/public/intag', () => {
     expect(svar.status).toBe(500)
     expect(JSON.stringify(kropp)).not.toContain('10.0.0.5')
     expect(JSON.stringify(kropp)).not.toContain('connection refused')
+  })
+})
+
+describe('PATCH /api/public/intag (bekräftelsestatus)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    process.env.PUBLIC_INTAG_SECRET = GILTIG_HEMLIGHET
+  })
+
+  it('returnerar 401 utan giltig hemlighet, uppdaterar inget', async () => {
+    const svar = await PATCH(patchRequest({ arendeId: 'arende-1', status: 'skickad' }))
+
+    expect(svar.status).toBe(401)
+    expect(sattBekraftelseStatusMock).not.toHaveBeenCalled()
+  })
+
+  it('returnerar 400 om arendeId saknas', async () => {
+    const svar = await PATCH(
+      patchRequest({ status: 'skickad' }, { 'x-intag-secret': GILTIG_HEMLIGHET }),
+    )
+
+    expect(svar.status).toBe(400)
+    expect(sattBekraftelseStatusMock).not.toHaveBeenCalled()
+  })
+
+  it('returnerar 400 för ett ogiltigt statusvärde', async () => {
+    const svar = await PATCH(
+      patchRequest(
+        { arendeId: 'arende-1', status: 'nagot-annat' },
+        { 'x-intag-secret': GILTIG_HEMLIGHET },
+      ),
+    )
+
+    expect(svar.status).toBe(400)
+    expect(sattBekraftelseStatusMock).not.toHaveBeenCalled()
+  })
+
+  it('uppdaterar status till skickad vid giltigt anrop', async () => {
+    const svar = await PATCH(
+      patchRequest(
+        { arendeId: 'arende-1', status: 'skickad' },
+        { 'x-intag-secret': GILTIG_HEMLIGHET },
+      ),
+    )
+
+    expect(svar.status).toBe(200)
+    expect(sattBekraftelseStatusMock).toHaveBeenCalledWith('arende-1', 'skickad')
+  })
+
+  it('uppdaterar status till misslyckad vid giltigt anrop', async () => {
+    const svar = await PATCH(
+      patchRequest(
+        { arendeId: 'arende-1', status: 'misslyckad' },
+        { 'x-intag-secret': GILTIG_HEMLIGHET },
+      ),
+    )
+
+    expect(svar.status).toBe(200)
+    expect(sattBekraftelseStatusMock).toHaveBeenCalledWith('arende-1', 'misslyckad')
   })
 })

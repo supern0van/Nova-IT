@@ -1,6 +1,10 @@
 import { NextResponse, type NextRequest } from 'next/server'
 
-import { PubliktIntagFel, skapaPubliktIntag } from '@/lib/admin/publikt-intag-server'
+import {
+  PubliktIntagFel,
+  sattBekraftelseStatus,
+  skapaPubliktIntag,
+} from '@/lib/admin/publikt-intag-server'
 
 /**
  * Säkert, publikt ärendeintag från nova-it.se (den publika webbplatsen).
@@ -26,15 +30,9 @@ import { PubliktIntagFel, skapaPubliktIntag } from '@/lib/admin/publikt-intag-se
  * kund-id, internt ärende-id, prioritet eller råa databasfel.
  */
 export async function POST(request: NextRequest) {
-  const konfigureradHemlighet = process.env.PUBLIC_INTAG_SECRET
-  if (!konfigureradHemlighet) {
-    console.error('PUBLIC_INTAG_SECRET saknas – det publika intaget kan inte verifiera anrop.')
-    return NextResponse.json({ ok: false }, { status: 500 })
-  }
-
-  const mottagenHemlighet = request.headers.get('x-intag-secret')
-  if (!mottagenHemlighet || !timmingSaker(mottagenHemlighet, konfigureradHemlighet)) {
-    return NextResponse.json({ ok: false }, { status: 401 })
+  const hemlighetsstatus = verifieraHemlighet(request)
+  if (hemlighetsstatus !== 200) {
+    return NextResponse.json({ ok: false }, { status: hemlighetsstatus })
   }
 
   let payload: unknown
@@ -77,6 +75,62 @@ export async function POST(request: NextRequest) {
     console.error('Publikt ärendeintag misslyckades.', error)
     return NextResponse.json({ accepted: false }, { status: 500 })
   }
+}
+
+/**
+ * Uppdaterar bekräftelsestatusen (`bekraftelse_status`) för ett ärende som
+ * redan skapats via POST ovan. Frikopplad från ärendets egen status – ett
+ * misslyckat e-postutskick från den publika webbplatsen ska aldrig kunna
+ * tolkas som att ärendet självt är trasigt.
+ *
+ * Tar medvetet inte emot något ärende-id från en obetrodd källa utan att
+ * verifiera – samma hemlighetskontroll som POST, och arendeId kommer
+ * uteslutande från det `internt`-fält POST redan returnerade till samma
+ * anropare (den publika webbplatsens serverfunktion), aldrig från
+ * besökarens webbläsare.
+ */
+export async function PATCH(request: NextRequest) {
+  const hemlighetsstatus = verifieraHemlighet(request)
+  if (hemlighetsstatus !== 200) {
+    return NextResponse.json({ ok: false }, { status: hemlighetsstatus })
+  }
+
+  let payload: unknown
+  try {
+    payload = await request.json()
+  } catch {
+    return NextResponse.json({ ok: false }, { status: 400 })
+  }
+
+  if (!arObjekt(payload) || typeof payload.arendeId !== 'string' || !payload.arendeId) {
+    return NextResponse.json({ ok: false }, { status: 400 })
+  }
+  if (payload.status !== 'skickad' && payload.status !== 'misslyckad') {
+    return NextResponse.json({ ok: false }, { status: 400 })
+  }
+
+  try {
+    await sattBekraftelseStatus(payload.arendeId, payload.status)
+    return NextResponse.json({ ok: true })
+  } catch (error) {
+    console.error('Kunde inte uppdatera bekräftelsestatus.', error)
+    return NextResponse.json({ ok: false }, { status: 500 })
+  }
+}
+
+function verifieraHemlighet(request: NextRequest): 200 | 401 | 500 {
+  const konfigureradHemlighet = process.env.PUBLIC_INTAG_SECRET
+  if (!konfigureradHemlighet) {
+    console.error('PUBLIC_INTAG_SECRET saknas – det publika intaget kan inte verifiera anrop.')
+    return 500
+  }
+
+  const mottagenHemlighet = request.headers.get('x-intag-secret')
+  if (!mottagenHemlighet || !timmingSaker(mottagenHemlighet, konfigureradHemlighet)) {
+    return 401
+  }
+
+  return 200
 }
 
 function timmingSaker(a: string, b: string): boolean {

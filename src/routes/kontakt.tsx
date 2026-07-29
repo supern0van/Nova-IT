@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState, type FormEvent, type ReactNode } from "react";
+import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -56,30 +56,42 @@ const preparationTips = [
   "Vad har redan testats: omstart, annan kabel, annan plats eller webbläsare?",
 ];
 
-const schema = z.object({
-  name: z.string().trim().min(2, "Ange ditt namn med minst två tecken").max(100),
-  email: z.string().trim().email("Ange en giltig e-postadress").max(255),
-  phone: z.string().trim().max(60, "Kontaktvägen får vara högst 60 tecken"),
-  customerType: z.enum(customerTypes, {
-    message: "Välj vilken typ av kund ärendet gäller",
-  }),
-  service: z.string().min(1, "Välj vilken tjänst som passar bäst"),
-  urgency: z.enum(urgencyLevels, { message: "Välj hur brådskande ärendet är" }),
-  message: z
-    .string()
-    .trim()
-    .min(10, "Beskriv ärendet med minst 10 tecken")
-    .max(MESSAGE_MAX, `Beskrivningen får vara högst ${MESSAGE_MAX} tecken`),
-  privacyAcknowledged: z.boolean().refine((value) => value, {
-    message: "Bekräfta att du har tagit del av integritetspolicyn",
-  }),
-});
+const schema = z
+  .object({
+    name: z.string().trim().min(2, "Ange ditt namn med minst två tecken").max(100),
+    email: z.string().trim().email("Ange en giltig e-postadress").max(255),
+    phone: z.string().trim().max(60, "Kontaktvägen får vara högst 60 tecken"),
+    customerType: z.enum(customerTypes, {
+      message: "Välj vilken typ av kund ärendet gäller",
+    }),
+    companyName: z.string().trim().max(160, "Verksamhetens namn får vara högst 160 tecken"),
+    service: z.string().min(1, "Välj vilken tjänst som passar bäst"),
+    urgency: z.enum(urgencyLevels, { message: "Välj hur brådskande ärendet är" }),
+    message: z
+      .string()
+      .trim()
+      .min(10, "Beskriv ärendet med minst 10 tecken")
+      .max(MESSAGE_MAX, `Beskrivningen får vara högst ${MESSAGE_MAX} tecken`),
+    privacyAcknowledged: z.boolean().refine((value) => value, {
+      message: "Bekräfta att du har tagit del av integritetspolicyn",
+    }),
+  })
+  .superRefine((data, ctx) => {
+    if (data.customerType !== "Privatperson" && !data.companyName.trim()) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["companyName"],
+        message: "Ange verksamhetens namn",
+      });
+    }
+  });
 
 type FormValues = {
   name: string;
   email: string;
   phone: string;
   customerType: "" | (typeof customerTypes)[number];
+  companyName: string;
   service: string;
   urgency: "" | (typeof urgencyLevels)[number];
   message: string;
@@ -102,6 +114,7 @@ function createInitialValues(service = ""): FormValues {
     email: "",
     phone: "",
     customerType: "",
+    companyName: "",
     service,
     urgency: "",
     message: "",
@@ -117,10 +130,18 @@ function ContactPage() {
   const [isSending, setIsSending] = useState(false);
   const [sent, setSent] = useState(false);
   const [sendError, setSendError] = useState<string | null>(null);
+  const [arendenummer, setArendenummer] = useState<string | null>(null);
+  const [confirmationSent, setConfirmationSent] = useState(true);
   const [errors, setErrors] = useState<FormErrors>({});
   const [assistantHandoffApplied, setAssistantHandoffApplied] = useState(false);
   const [assistantContext, setAssistantContext] = useState<AssistantContext | null>(null);
   const [values, setValues] = useState<FormValues>(() => createInitialValues(selectedServiceTitle));
+  // Stabil per formulärsession - samma nyckel skickas med vid varje
+  // sändningsförsök av SAMMA inskickning (dubbelklick, nätverksretry), så
+  // adminportalen kan känna igen och avvisa dubbletter. Ny nyckel genereras
+  // bara när formuläret faktiskt återställs (resetForm), inte vid varje
+  // omrendering.
+  const idempotencyKeyRef = useRef(crypto.randomUUID());
 
   useEffect(() => {
     if (!selectedServiceTitle) return;
@@ -170,25 +191,35 @@ function ContactPage() {
     setAssistantContext(null);
     setAssistantHandoffApplied(false);
     setValues(createInitialValues(selectedServiceTitle));
+    setArendenummer(null);
+    setConfirmationSent(true);
+    idempotencyKeyRef.current = crypto.randomUUID();
   }
 
   async function sendContactRequest() {
     setIsSending(true);
     setSendError(null);
 
+    const tjanstSlug = services.find((tjanst) => tjanst.title === values.service)?.slug ?? "";
+
     try {
-      await submitContactRequest({
+      const resultat = await submitContactRequest({
         data: {
           kalla: assistantHandoffApplied ? "supportassistent" : "kontaktformular",
           name: values.name,
           email: values.email,
           phone: values.phone,
           customerType: values.customerType as (typeof customerTypes)[number],
+          companyName: values.companyName,
           service: values.service,
+          tjanstSlug,
           urgency: values.urgency as (typeof urgencyLevels)[number],
           message: composeContactMessage(values.message, assistantContext),
+          idempotencyKey: idempotencyKeyRef.current,
         },
       });
+      setArendenummer(resultat.arendenummer);
+      setConfirmationSent(resultat.confirmationSent);
       setSent(true);
     } catch (error) {
       console.error("Contact request submission failed.", error);
@@ -236,11 +267,22 @@ function ContactPage() {
           </span>
           <p className="eyebrow mt-6">Kontaktförfrågan</p>
           <h1 className="mt-3 text-4xl font-semibold tracking-[-0.04em]">
-            {sent ? "Ärendet är skickat" : "Granska innan du skickar"}
+            {sent
+              ? confirmationSent
+                ? "Tack, din förfrågan är mottagen"
+                : "Din förfrågan är registrerad"
+              : "Granska innan du skickar"}
           </h1>
+          {sent && arendenummer && (
+            <p className="mt-4 font-mono text-lg font-semibold text-foreground">
+              Ärendenummer: {arendenummer}
+            </p>
+          )}
           <p className="mt-3 text-muted-foreground">
             {sent
-              ? `Tack. Nova IT återkommer till ${values.email} så snart vi kan.`
+              ? confirmationSent
+                ? `En bekräftelse har skickats till ${values.email}.`
+                : "Vi kunde inte skicka bekräftelsen just nu, men ärendet finns registrerat."
               : "När du skickar går ärendet direkt till Nova IT. Vi svarar till den e-postadress du har angett."}
           </p>
           <div className="mt-7 grid gap-px overflow-hidden rounded-lg border border-border bg-border text-left sm:grid-cols-2">
@@ -477,6 +519,22 @@ function ContactPage() {
                           </Select>
                         )}
                       </Field>
+                      {values.customerType && values.customerType !== "Privatperson" && (
+                        <Field
+                          label="Verksamhetens namn"
+                          name="companyName"
+                          error={errors.companyName}
+                        >
+                          {(fieldProps) => (
+                            <Input
+                              {...fieldProps}
+                              value={values.companyName}
+                              onChange={(event) => update("companyName", event.target.value)}
+                              autoComplete="organization"
+                            />
+                          )}
+                        </Field>
+                      )}
                     </div>
                   </fieldset>
 
