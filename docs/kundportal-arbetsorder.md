@@ -243,16 +243,45 @@ till Milstolpe 5.
 - Inga nya server-routes eller databasändringar - bygger helt på Supabase
   Auths inbyggda flöde.
 
-### Kvarstående manuellt steg (kräver Supabase Dashboard, inte kod)
+### Manuella Dashboard-steg (ägaren, inte kod) - genomförda
 
-Supabase Auth validerar `redirectTo`-värdet i `resetPasswordForEmail` mot en
-allowlist ("Redirect URLs") som ställs in i Dashboarden - det finns inget
-MCP-verktyg för att läsa/ändra den listan. **Ägaren behöver lägga till**
-`https://kundportal.nova-it.se/aterstall-losenord` under Authentication →
-URL Configuration → Redirect URLs för projektet `nova-it-kundportal`
-(`bueysepdmxsucmagijvo`), annars nekas eller ignoreras omdirigeringen och
-återställningslänken i mejlet fungerar inte. Inte verifierat live av
-assistenten av samma anledning.
+- **Redirect URL:** `https://kundportal.nova-it.se/aterstall-losenord`
+  tillagd under Authentication → URL Configuration → Redirect URLs för
+  `nova-it-kundportal` (`bueysepdmxsucmagijvo`).
+- **Anpassad avsändare/mall:** Custom SMTP (Resend, samma konto som redan
+  används för den publika sajtens kontaktformulär) aktiverat under
+  Authentication → Emails → SMTP Settings, och "Reset Password"-mallen
+  under Authentication → Emails → Templates ersatt med en Nova IT-märkt
+  HTML-mall (mörk header med "N"-märket, ljust innehållskort, samma
+  himmelsblå knappfärg som resten av portalen).
+
+### Buggar som hittades och åtgärdades vid den riktiga e2e-verifieringen
+
+Live-testat i skarp miljö (ägarens eget konto, `stefan.bergstrand@gmail.com`)
+efter varje fix, inte bara i teorin:
+
+1. **PKCE-kodens engångsanvändning krockade med e-postlänkskanning/enhetsbyte.**
+   Ursprunglig implementation bytte in Supabases PKCE-`code` automatiskt vid
+   sidladdning. Detta krävde att länken öppnades i EXAKT samma
+   webbläsarlagring som skickade återställningsbegäran - annars (eller om
+   en e-postleverantörs säkerhetsskanning hann besöka länken först) visades
+   "länken är ogiltig" även för en helt färsk, oanvänd länk. Första försöket
+   till fix (kräv en uttrycklig knapptryckning innan kodinlösen) löste inte
+   grundproblemet - kodens giltighet var fortfarande bunden till en specifik
+   webbläsarlagring.
+2. **Slutgiltig lösning:** `lib/supabase/client.ts` sätter nu
+   `flowType: 'implicit'` i stället för standardvärdet `'pkce'` - appen har
+   ingen OAuth-inloggning, så PKCE:s enda praktiska effekt var denna skörhet.
+   Med `implicit` bär länken i stället en självständig, tidsbegränsad token
+   direkt i URL-fragmentet: fungerar oavsett flik/enhet/webbläsarlagring,
+   och ett fragment når aldrig servern så det kan inte förbrukas av en
+   e-postskanning heller. `/aterstall-losenord` lyssnar nu bara på
+   `PASSWORD_RECOVERY`-eventet (Supabase-klientens automatiska
+   fragmentdetektering), utan manuell kodhantering.
+3. **E-postmallens utseende itererades tre gånger** utifrån ägarens direkta
+   granskning (för litet → större rubrik/text/knapp → bekräftat fungerande
+   i skarp Gmail-inkorg) innan den slutgiltiga versionen sparades i
+   Supabase Dashboard.
 
 ## Milstolpe 5 — Härdning och release-granskning (nästa)
 
