@@ -12,6 +12,11 @@ import {
 } from '@/lib/auth/supabase-auth'
 import { hamtaRollFranApiSvar } from '@/lib/auth/roll-api-svar'
 import { arAdministrator, type SystemRoll } from '@/lib/auth/roll'
+import {
+  INAKTIVITETS_TIMEOUT_MS,
+  SENAST_AKTIV_NYCKEL,
+  SESSIONSKONTROLL_INTERVALL_MS,
+} from '@/lib/auth/session-timeouts'
 import type { Anvandare } from '@/lib/types'
 
 /**
@@ -54,7 +59,6 @@ interface AuthContextVarde {
 
 const AuthContext = createContext<AuthContextVarde | null>(null)
 
-const KONTROLL_INTERVALL_MS = 30_000
 const SYSTEM_ADMIN_BEHORIGHETER: readonly Behorighet[] = [
   'se_installningar',
   'hantera_anvandare',
@@ -122,15 +126,58 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Bevaka utgången session medan portalen är öppen.
   useEffect(() => {
     if (!session) return
-    const intervall = setInterval(() => {
+    if (typeof window === 'undefined') return
+
+    const nu = Date.now()
+    const sparadSenastAktiv = Number(window.sessionStorage.getItem(SENAST_AKTIV_NYCKEL))
+    let senastAktiv = Number.isFinite(sparadSenastAktiv) && sparadSenastAktiv > 0 ? sparadSenastAktiv : nu
+    window.sessionStorage.setItem(SENAST_AKTIV_NYCKEL, String(senastAktiv))
+
+    let utloggningPagar = false
+    let senasteAktivitetsSkrivning = 0
+    const registreraAktivitet = () => {
+      const tid = Date.now()
+      if (tid - senasteAktivitetsSkrivning < 1000) return
+      senasteAktivitetsSkrivning = tid
+      senastAktiv = tid
+      window.sessionStorage.setItem(SENAST_AKTIV_NYCKEL, String(tid))
+    }
+
+    const loggaUtEfterInaktivitet = async () => {
+      if (utloggningPagar) return
+      utloggningPagar = true
+      await authAdapter.loggaUt()
+      window.sessionStorage.removeItem(SENAST_AKTIV_NYCKEL)
+      setSession(null)
+      setAnvandare(null)
+      setRoll(null)
+      setSessionUtgick(true)
+      setMfaVerifieradVersion(0)
+      router.replace('/logga-in')
+    }
+
+    const kontrolleraSession = () => {
       if (session.upphorVid !== null && Date.now() > session.upphorVid) {
         setSession(null)
         setAnvandare(null)
+        window.sessionStorage.removeItem(SENAST_AKTIV_NYCKEL)
         setSessionUtgick(true)
         router.replace('/logga-in')
+        return
       }
-    }, KONTROLL_INTERVALL_MS)
-    return () => clearInterval(intervall)
+
+      if (Date.now() - senastAktiv >= INAKTIVITETS_TIMEOUT_MS) {
+        void loggaUtEfterInaktivitet()
+      }
+    }
+
+    const aktivitetsHändelser = ['pointerdown', 'keydown', 'touchstart', 'scroll'] as const
+    aktivitetsHändelser.forEach((händelse) => window.addEventListener(händelse, registreraAktivitet, { passive: true }))
+    const intervall = setInterval(kontrolleraSession, SESSIONSKONTROLL_INTERVALL_MS)
+    return () => {
+      aktivitetsHändelser.forEach((händelse) => window.removeEventListener(händelse, registreraAktivitet))
+      clearInterval(intervall)
+    }
   }, [session, router])
 
   // Hämta den inloggade användarens roll från databasen (via /api/roll).
@@ -191,6 +238,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
         setSession(resultat.session)
         setAnvandare(resultat.anvandare)
+        if (typeof window !== 'undefined') {
+          window.sessionStorage.setItem(SENAST_AKTIV_NYCKEL, String(Date.now()))
+        }
         return { ok: true as const }
       } finally {
         setLoggarIn(false)
@@ -208,6 +258,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
     setSession(null)
     setAnvandare(null)
+    if (typeof window !== 'undefined') {
+      window.sessionStorage.removeItem(SENAST_AKTIV_NYCKEL)
+    }
     setSessionUtgick(false)
     setMfaVerifieradVersion(0)
     router.replace('/logga-in')

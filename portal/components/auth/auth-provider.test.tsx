@@ -4,6 +4,7 @@ import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
 import type { Session } from '@/lib/auth/supabase-auth'
 import type { Anvandare } from '@/lib/types'
+import { INAKTIVITETS_TIMEOUT_MS, SENAST_AKTIV_NYCKEL } from '@/lib/auth/session-timeouts'
 
 const replace = vi.fn()
 const hamtaSession = vi.fn()
@@ -84,6 +85,7 @@ describe('AuthProvider – systemroll från /api/roll', () => {
     vi.clearAllMocks()
     cleanup()
     vi.unstubAllGlobals()
+    window.sessionStorage.clear()
     vi.useRealTimers()
   })
 
@@ -194,6 +196,41 @@ describe('AuthProvider – systemroll från /api/roll', () => {
       vi.advanceTimersByTime(30_000)
     })
 
+    expect(screen.getByTestId('anvandare').textContent).toBe('ingen-anvandare')
+    expect(screen.getByTestId('session-utgick').textContent).toBe('utgången')
+    expect(replace).toHaveBeenCalledWith('/logga-in')
+  })
+
+  it('loggar ut efter inaktivitet även om Supabase-token fortfarande förnyas', async () => {
+    vi.useFakeTimers()
+    const start = new Date('2026-07-28T12:00:00.000Z')
+    vi.setSystemTime(start)
+    window.sessionStorage.setItem(SENAST_AKTIV_NYCKEL, String(start.getTime()))
+    hamtaSession.mockResolvedValue({ session, anvandare })
+    lyssnaPaSessionsandringar.mockReturnValue(vi.fn())
+    loggaUt.mockResolvedValue({ ok: true })
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: vi.fn().mockResolvedValue({ roll: 'administrator' }),
+      }),
+    )
+
+    renderaProvider()
+
+    await act(async () => {
+      await Promise.resolve()
+      await Promise.resolve()
+    })
+    expect(screen.getByTestId('anvandare').textContent).toBe('user-1')
+
+    await act(async () => {
+      vi.advanceTimersByTime(INAKTIVITETS_TIMEOUT_MS + 15_000)
+      await Promise.resolve()
+    })
+
+    expect(loggaUt).toHaveBeenCalled()
     expect(screen.getByTestId('anvandare').textContent).toBe('ingen-anvandare')
     expect(screen.getByTestId('session-utgick').textContent).toBe('utgången')
     expect(replace).toHaveBeenCalledWith('/logga-in')

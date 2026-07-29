@@ -28,6 +28,7 @@ import {
   type TotpFaktor,
 } from '@/lib/auth/mfa-klient'
 import { sakerOmdirigeringsSokvag } from '@/lib/auth/sakerOmdirigering'
+import { INLOGGNINGSSEKVENS_TIMEOUT_MS } from '@/lib/auth/session-timeouts'
 import { skapaSupabaseWebblasarklient } from '@/lib/supabase/client'
 
 const STANDARDVAG_EFTER_MFA = '/portal'
@@ -58,6 +59,13 @@ export function MfaVy() {
   const sokParametrar = useSearchParams()
   const [lage, setLage] = useState<Lage>({ typ: 'laddar' })
   const [supabase] = useState(() => skapaSupabaseWebblasarklient())
+
+  useEffect(() => {
+    const timeout = window.setTimeout(() => {
+      void authAdapter.loggaUt().finally(() => router.replace('/logga-in'))
+    }, INLOGGNINGSSEKVENS_TIMEOUT_MS)
+    return () => window.clearTimeout(timeout)
+  }, [router])
 
   useEffect(() => {
     let avbruten = false
