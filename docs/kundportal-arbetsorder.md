@@ -59,17 +59,34 @@ Se `docs/DECISIONS.md` (DEC-0006) för de beslut som fattades. Sammanfattning:
       där, `kundportal.nova-it.se` fortsatt M0-placeholdern - M1-koden är
       pushad men INTE deployad live än, se nedan).
 
-### Ej deployad live än
+### Deployad och verifierad live (2026-07-29)
 
-M1-koden ligger bara i GitHub-repot, inte deployad till `kundportal.nova-it.se`.
-Att deploya nu skulle kräva `NEXT_PUBLIC_SUPABASE_URL`/`NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
-som byggtidsvariabler (samma fallgrop som `VITE_TURNSTILE_SITE_KEY` på den
-publika sajten - Vite/Next bakar in `NEXT_PUBLIC__`-variabler vid bygget, inte
-vid körning) och `SUPABASE_SERVICE_ROLE_KEY` som runtime-secret. Ingen
-Cloudflare Workers Build-koppling (GitHub-integration) finns än för det nya
-repot heller - M0:s deploy gjordes manuellt via `wrangler deploy` i WSL.
-Detta är medvetet uppskjutet till dess att secrets är på plats, i linje med
-regeln att aldrig deploya något som inte fungerar.
+M1-koden är deployad till `kundportal.nova-it.se` (manuell `wrangler deploy` via
+WSL, samma metod som M0 - ingen Cloudflare Workers Build-koppling/GitHub-
+integration finns än för det nya repot). Samtliga tre secrets
+(`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`,
+`SUPABASE_SERVICE_ROLE_KEY`) är satta på Workern.
+
+Ett par lärdomar från driftsättningen, värda att komma ihåg till nästa milstolpe:
+
+- `NEXT_PUBLIC_`-variabler måste vara satta som miljövariabler VID BYGGET
+  (`opennextjs-cloudflare build`), inte bara som Worker-secrets - annars bakas
+  `undefined` in i klientbunten. Löst genom att exportera dem i WSL-skalet
+  innan build kördes, precis som Turnstile-fixen på den publika sajten.
+- Ett första försök att sätta `SUPABASE_SERVICE_ROLE_KEY` misslyckades - kommandot
+  kördes med nyckelvärdet som SECRET-NAMN istället för värde
+  (`wrangler secret put <värde>` istället för `wrangler secret put
+  SUPABASE_SERVICE_ROLE_KEY` följt av värdet vid prompten). Det felaktiga namnet
+  exponerade nyckeln i klartext via `wrangler secret list` och därmed i
+  verktygsloggar. Åtgärdat: det felaktiga secret-namnet togs bort, nyckeln
+  roterades i Supabase Dashboard, och det korrekta namnet sattes om. En andra
+  rond hade sedan fortfarande en felaktig/otillräcklig nyckel (gav 404 i
+  `/api/kund/konto` trots att raden fanns verifierad i databasen via direkt
+  SQL) - löst efter att ägaren kopierade om nyckeln en gång till.
+
+Live-verifierat efter fix: `/api/kund/konto` svarar `{"ok":true,"masteBytaLosenord":false}`
+för en inloggad session, `401` utan session, `/mina-arenden` ger `307` till
+`/logga-in` utan session.
 
 ## Milstolpe 2 — Automatiskt kundkonto + välkomstmejl (nästa)
 
