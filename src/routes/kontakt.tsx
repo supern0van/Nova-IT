@@ -623,7 +623,7 @@ function ContactPage() {
                               {assistantContext.context}
                             </p>
                           )}
-                          <p className="mt-2 text-xs leading-5 text-slate-500">
+                          <p className="mt-2 text-xs leading-5 text-slate-400">
                             {assistantContext.guidance}
                           </p>
                         </div>

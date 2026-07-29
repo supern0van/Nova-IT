@@ -5,15 +5,20 @@ import { ServiceAreas } from "@/components/service-areas";
 import { ProjectProof } from "@/components/project-proof";
 import { Container, PageHeader } from "@/components/design-system";
 
+const tjansterUrl = "https://nova-it.se/tjanster";
+const tjansterTitle = "Tjänster – Nova IT";
+const tjansterDescription = "Praktisk IT-hjälp för datorer, nätverk, installationer och konton.";
+
 export const Route = createFileRoute("/tjanster")({
   head: () => ({
     meta: [
-      { title: "Tjänster – Nova IT" },
-      {
-        name: "description",
-        content: "Praktisk IT-hjälp för datorer, nätverk, installationer och konton.",
-      },
+      { title: tjansterTitle },
+      { name: "description", content: tjansterDescription },
+      { property: "og:title", content: tjansterTitle },
+      { property: "og:description", content: tjansterDescription },
+      { property: "og:url", content: tjansterUrl },
     ],
+    links: [{ rel: "canonical", href: tjansterUrl }],
   }),
   component: ServicesPage,
 });

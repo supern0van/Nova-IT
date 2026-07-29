@@ -3,16 +3,21 @@ import { ArrowRight, ClipboardList, MonitorCog, ShieldCheck } from "lucide-react
 import { Button } from "@/components/ui/button";
 import { Container, PageHeader } from "@/components/design-system";
 
+const arbetssattUrl = "https://nova-it.se/arbetssatt";
+const arbetssattTitle = "Arbetssätt – Nova IT";
+const arbetssattDescription =
+  "Så arbetar Nova IT från första ärendebeskrivning till felsökning, åtgärd och uppföljning.";
+
 export const Route = createFileRoute("/arbetssatt")({
   head: () => ({
     meta: [
-      { title: "Arbetssätt – Nova IT" },
-      {
-        name: "description",
-        content:
-          "Så arbetar Nova IT från första ärendebeskrivning till felsökning, åtgärd och uppföljning.",
-      },
+      { title: arbetssattTitle },
+      { name: "description", content: arbetssattDescription },
+      { property: "og:title", content: arbetssattTitle },
+      { property: "og:description", content: arbetssattDescription },
+      { property: "og:url", content: arbetssattUrl },
     ],
+    links: [{ rel: "canonical", href: arbetssattUrl }],
   }),
   component: WorkMethodPage,
 });

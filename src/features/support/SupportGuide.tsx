@@ -483,13 +483,13 @@ export function SupportGuide({ compact = false, onNavigate }: SupportGuideProps)
 
             {state.choiceHistory.length > 0 && (
               <div className="ml-9 rounded-md border border-white/10 bg-[#081018]/70 px-4 py-3">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">
                   Dina val i ordning
                 </p>
                 <ol className="mt-2 space-y-1.5 text-xs leading-5 text-slate-400">
                   {state.choiceHistory.map((choice, index) => (
                     <li key={`${choice}-${index}`} className="flex gap-2">
-                      <span className="text-slate-600">{index + 1}.</span>
+                      <span className="text-slate-400">{index + 1}.</span>
                       <span>{choice}</span>
                     </li>
                   ))}
