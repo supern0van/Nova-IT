@@ -157,10 +157,74 @@ för en inloggad session, `401` utan session, `/mina-arenden` ger `307` till
   ta bort båda funktionerna. Inte åtgärdat av assistenten - flaggat till
   ägaren, kräver ombasering innan sammanslagning.
 
-## Milstolpe 3 — Visa egna ärenden (nästa)
+## Milstolpe 3/4 — Visa egna ärenden + kundinitierat svar (KLAR, 2026-07-29)
 
-Se `docs/kundportal-planering.md` för fullständig beskrivning av vad `/mina-arenden`
-ska visa (kundens egna ärenden, status, senaste aktivitet). Skrivs som en egen,
-detaljerad arbetsorder när ägaren vill fortsätta till nästa milstolpe. B2
+Byggda och körda som ett sammanhängande flöde, se `docs/kundportal-planering.md`
+för den ursprungliga scope-beskrivningen.
+
+### Vad som byggdes
+
+1. **Adminportalen:** tre nya server-till-server-endpoints
+   (`lib/admin/kundarenden-server.ts` + `app/api/internal/kundarenden/route.ts`,
+   `app/api/internal/kundarenden/[id]/route.ts`,
+   `app/api/internal/kundmeddelande/route.ts`), skyddade av en NY, egen
+   hemlighet `ADMINPORTAL_INTAG_SECRET` (motsatt riktning mot
+   `KUNDPORTAL_INTAG_SECRET` - kundportalen anropar HIT den här gången).
+   Listar en kunds ärenden, hämtar ett ärende med konversation (interna
+   meddelanden filtreras alltid bort), och sparar ett kundsvar - som
+   automatiskt flyttar ärendet från `vantar_pa_kund` till `pagaende`.
+   Varje funktion verifierar självständigt att ärendet tillhör den
+   `adminKundId` som skickats med, oavsett vad anroparen redan påstår.
+2. **Kundportalen:** `lib/admin/adminportal-client.ts` anropar adminportalens
+   nya endpoints. Till skillnad från Milstolpe 2:s kontoskapande (soft-fail)
+   kastar detta riktiga fel vid problem - att visa/skicka ärenden är en
+   primär kundfunktion, inte en tilläggsberikning. `/mina-arenden` listar nu
+   kundens riktiga ärenden, och en ny `/mina-arenden/[id]`-vy visar
+   konversationen med ett svarsformulär (dolt om ärendet är stängt).
+3. Adminportalens egen route-kontraktstest (`app/api/api-route-contract.test.ts`)
+   uppdaterades för att räkna in de tre nya routes som medvetna
+   server-till-server-vägar (samma kategori som `public/intag`).
+
+### Definition of Done
+
+- [x] Alla nya lib-/route-tester gröna (22 nya i adminportalen, 12 nya i
+      kundportalen), CI-kontrakt (test/lint/typecheck/build) grönt i båda
+      repona.
+- [x] `ADMINPORTAL_INTAG_SECRET` satt på båda Workers, alla tre system
+      deployade.
+- [x] End-to-end-verifierat i webbläsare (2026-07-29) med ett dedikerat
+      testkonto (skapat via den befintliga `/api/internal/kundkonto`,
+      städat bort igen efter verifieringen): en inloggad testkund
+      (M3-Test Kund A) såg EXAKT sina två egna ärenden (NIT-2509, NIT-2510)
+      - INTE en tredje kunds ärende (NIT-2511, M3-Test Kund B) som fanns i
+      samma databas. Ett svar skrivet i kundportalen på det öppna ärendet
+      dök omedelbart upp i databasen med `avsandare: 'kund'` och rätt
+      `avsandare_namn`, och ärendets status gick automatiskt från
+      `vantar_pa_kund` till `pagaende`. Det stängda ärendet visade
+      korrekt ingen svarsmöjlighet alls.
+
+### Lärdomar
+
+- **Browserautomation i den inbäddade Browser-panen orsakade upprepade
+  krascher** av själva Claude Code-appen under den här sessionen (krävde
+  force-close + reparation flera gånger). Bytte därför till Claude in
+  Chrome (användarens egen, synliga webbläsarflik) för all vidare
+  webbläsarverifiering - stabilt genom hela Milstolpe 3/4-arbetet.
+- Ett återkommande mönster i den webbläsaren: formulärfält fyllda direkt
+  efter ett `ref`-baserat klick hann ibland inte hydrera innan `type`
+  kördes, vilket gav tomma fält. Löst genom att klicka på koordinater,
+  skriva, och ta en skärmdump för att bekräfta innehållet innan nästa steg
+  - långsammare men pålitligt.
+- `KUNDPORTAL_INTAG_SECRET`s tidigare värde fanns inte kvar i den här
+  sessionens kontext (genererades i en tidigare, sedan sammanfattad, del av
+  samtalet) - eftersom det är assistentens EGEN interna hemlighet (inte en
+  tredjepartsuppgift) roterades den bara om och sattes på nytt på båda
+  Workers, i stället för att försöka återskapa/gissa det gamla värdet.
+
+## Milstolpe 5 — Härdning och release-granskning (nästa)
+
+Se `docs/kundportal-planering.md` för fullständig beskrivning (extern
+säkerhetsgenomgång, legal/integritetsgranskning, rate limiting, loggning).
+Skrivs som en egen, detaljerad arbetsorder när ägaren vill fortsätta. B2
 (autentiseringsmetod) och B3 (glömt lösenord) är fortfarande öppna
-ägarbeslut, se Milstolpe 0 ovan.
+ägarbeslut, se Milstolpe 0 ovan - bör beslutas innan release-granskningen.
