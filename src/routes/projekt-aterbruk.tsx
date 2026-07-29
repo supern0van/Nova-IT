@@ -63,7 +63,7 @@ function ProjectReusePage() {
   return (
     <div className="nova-section">
       <section className="overflow-hidden border-b border-white/10 bg-[#091119]">
-        <Container className="grid min-h-[640px] items-stretch lg:grid-cols-[minmax(0,1.25fr)_minmax(320px,0.75fr)]">
+        <Container className="grid min-h-[560px] items-stretch lg:grid-cols-[minmax(0,1.25fr)_minmax(320px,0.75fr)]">
           <div className="flex flex-col justify-center py-20 pr-0 sm:py-24 lg:pr-16">
             <p className="eyebrow mb-7">Dokumenterat LIA-projekt</p>
             <h1 className="max-w-4xl text-4xl font-semibold leading-[1.05] sm:text-6xl lg:text-7xl">
@@ -76,10 +76,12 @@ function ProjectReusePage() {
             </p>
           </div>
 
-          <div className="flex flex-col justify-end border-t border-white/10 py-12 lg:border-l lg:border-t-0 lg:py-20 lg:pl-14">
-            <div className="text-[7rem] font-semibold leading-none text-[#43b6ee] sm:text-[10rem]">116</div>
-            <p className="mt-3 text-xl font-semibold">datorer funktionstestades</p>
-            <div className="mt-10 grid grid-cols-2 gap-x-8 gap-y-7 border-t border-white/10 pt-8 text-sm">
+          <div className="flex flex-col justify-center gap-8 py-12 lg:border-l lg:border-white/10 lg:py-20 lg:pl-14">
+            <div>
+              <div className="text-[7rem] font-semibold leading-none text-[#43b6ee] sm:text-[8rem]">116</div>
+              <p className="mt-3 text-xl font-semibold">datorer funktionstestades</p>
+            </div>
+            <div className="grid grid-cols-2 gap-x-8 gap-y-6 text-sm">
               <div>
                 <p className="text-[#7f96aa]">Fokus</p>
                 <p className="mt-1 font-medium">Funktion före ålder</p>
@@ -103,87 +105,50 @@ function ProjectReusePage() {
 
       <section className="nova-section-muted py-20 sm:py-28">
         <Container>
-          <div className="grid gap-12 lg:grid-cols-[0.72fr_1.28fr] lg:gap-20">
-            <div>
-              <p className="eyebrow mb-5">Från restlager till elevdatorer</p>
-              <h2 className="max-w-xl text-3xl font-semibold leading-tight sm:text-5xl">
-                Bedöm först. Byt ut när det faktiskt behövs.
-              </h2>
-              <p className="mt-6 max-w-lg text-lg leading-8 text-[#aebdcc]">
-                Projektet började med datorer som inte längre räknades som en användbar resurs. Vårt
-                uppdrag var att ta reda på vilka som fortfarande hade mer att ge.
-              </p>
-            </div>
-
-            <div className="border-t border-white/10">
-              {projectSteps.map((step) => (
-                <div
-                  key={step.title}
-                  className="grid gap-4 border-b border-white/10 py-8 sm:grid-cols-[64px_1fr] sm:gap-7"
-                >
-                  <span className="flex h-10 w-10 items-center justify-center rounded-md border border-[#43b6ee]/30 bg-[#43b6ee]/10 text-[#8ed8f7]">
-                    <FileText aria-hidden="true" className="size-5" strokeWidth={1.6} />
-                  </span>
-                  <div>
-                    <h3 className="text-xl font-semibold sm:text-2xl">{step.title}</h3>
-                    <p className="mt-3 max-w-2xl leading-7 text-[#aebdcc]">{step.text}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
+          <div className="max-w-2xl">
+            <p className="eyebrow mb-5">Från restlager till elevdatorer</p>
+            <h2 className="text-3xl font-semibold leading-tight sm:text-5xl">
+              Bedöm först. Byt ut när det faktiskt behövs.
+            </h2>
+            <p className="mt-6 text-lg leading-8 text-[#aebdcc]">
+              Projektet började med datorer som inte längre räknades som en användbar resurs. Vårt
+              uppdrag var att ta reda på vilka som fortfarande hade mer att ge - och sedan avgöra vad
+              som faktiskt kontrollerades och vilket system som passade bäst.
+            </p>
           </div>
-        </Container>
-      </section>
 
-      <section className="border-y border-white/10 nova-section py-20 sm:py-28">
-        <Container>
-          <div className="grid gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:gap-20">
-            <div>
-              <p className="eyebrow mb-5">Vad som kontrollerades</p>
-              <h2 className="text-3xl font-semibold leading-tight sm:text-5xl">Ett beslut behöver ett underlag.</h2>
-              <p className="mt-6 max-w-lg text-lg leading-8 text-[#aebdcc]">
-                En dator är mer än modellnamn och tillverkningsår. Vi tittade på det som avgör om den
-                kan fungera stabilt, säkert och rimligt i sitt nästa sammanhang.
-              </p>
-            </div>
-
-            <div className="grid border-t border-white/10 sm:grid-cols-2">
-              {checks.map(([title, text], index) => (
-                <div
-                  key={title}
-                  className={`border-b border-white/10 py-7 sm:py-9 ${
-                    index % 2 === 0 ? "sm:pr-8" : "sm:border-l sm:pl-8"
-                  }`}
-                >
-                  <h3 className="text-lg font-semibold">{title}</h3>
-                  <p className="mt-2 leading-7 text-[#9eb0c1]">{text}</p>
-                </div>
-              ))}
-            </div>
+          <div className="mt-14 grid gap-8 md:grid-cols-3">
+            {projectSteps.map((step) => (
+              <div key={step.title} className="border-t border-white/10 pt-6">
+                <span className="flex h-10 w-10 items-center justify-center rounded-md border border-[#43b6ee]/30 bg-[#43b6ee]/10 text-[#8ed8f7]">
+                  <FileText aria-hidden="true" className="size-5" strokeWidth={1.6} />
+                </span>
+                <h3 className="mt-5 text-lg font-semibold">{step.title}</h3>
+                <p className="mt-2 leading-7 text-[#aebdcc]">{step.text}</p>
+              </div>
+            ))}
           </div>
-        </Container>
-      </section>
 
-      <section className="nova-section-muted py-20 sm:py-28">
-        <Container>
-          <div className="grid gap-12 lg:grid-cols-[0.72fr_1.28fr] lg:gap-20">
-            <div>
-              <p className="eyebrow mb-5">Rätt system för uppgiften</p>
-              <h2 className="text-3xl font-semibold leading-tight sm:text-5xl">Ingen standardlösning passar alla.</h2>
-              <p className="mt-6 max-w-lg text-lg leading-8 text-[#aebdcc]">
-                Valet av operativsystem gjordes efter hårdvara, behov och förvaltning, inte efter vana
-                eller en förutbestämd favorit.
-              </p>
-            </div>
+          <div className="mt-16 grid gap-8 sm:grid-cols-2">
+            {checks.map(([title, text]) => (
+              <div key={title} className="border-t border-white/10 pt-6">
+                <h3 className="font-semibold">{title}</h3>
+                <p className="mt-2 leading-7 text-[#9eb0c1]">{text}</p>
+              </div>
+            ))}
+          </div>
 
-            <div className="border-t border-white/10">
+          <div className="mt-16">
+            <p className="eyebrow mb-5">Rätt system för uppgiften</p>
+            <p className="max-w-2xl leading-7 text-[#aebdcc]">
+              Ingen standardlösning passar alla. Valet av operativsystem gjordes efter hårdvara, behov
+              och förvaltning, inte efter vana eller en förutbestämd favorit.
+            </p>
+            <div className="mt-8 grid gap-8 md:grid-cols-3">
               {systems.map((system) => (
-                <div
-                  key={system.name}
-                  className="grid gap-3 border-b border-white/10 py-7 sm:grid-cols-[180px_1fr] sm:items-baseline sm:gap-8"
-                >
-                  <h3 className="text-xl font-semibold">{system.name}</h3>
-                  <p className="leading-7 text-[#aebdcc]">{system.detail}</p>
+                <div key={system.name} className="border-t border-white/10 pt-6">
+                  <h3 className="font-semibold">{system.name}</h3>
+                  <p className="mt-2 leading-7 text-[#aebdcc]">{system.detail}</p>
                 </div>
               ))}
             </div>
@@ -240,7 +205,7 @@ function ProjectReusePage() {
                 Öppna presentationen
                 <ArrowUpRight aria-hidden="true" className="size-4" />
               </a>
-              <p className="mt-8 border-t border-white/10 pt-6 text-sm leading-6 text-[#7f96aa]">
+              <p className="mt-8 text-sm leading-6 text-[#7f96aa]">
                 Projektet genomfördes inom LIA/utbildning och är inte en kundreferens för Nova IT.
                 Presentationsmaterialet är upphovsrättsligt skyddat och får inte spridas vidare utan
                 uttryckligt tillstånd.
@@ -262,7 +227,7 @@ function ProjectReusePage() {
           </div>
           <Link
             to="/kontakt"
-            search={{ form: "request", service: "datorservice-uppgradering" }}
+            search={{ form: "request", service: "datorservice" }}
             className="inline-flex w-fit items-center gap-2 bg-[#43b6ee] px-5 py-3 font-semibold text-[#071019] transition hover:bg-[#69c7f2] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8ed8f7]"
           >
             Beskriv datorn

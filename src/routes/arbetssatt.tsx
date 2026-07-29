@@ -56,7 +56,7 @@ function WorkMethodPage() {
               Så går det till
             </p>
             <h2 className="mt-3 text-3xl font-semibold tracking-normal text-balance">
-              Så går det till.
+              Tre steg från ärende till åtgärd.
             </h2>
             <p className="mt-4 leading-7 text-slate-300">
               Målet är enkelt: du ska kunna få hjälp utan att först behöva bli tekniker själv.
