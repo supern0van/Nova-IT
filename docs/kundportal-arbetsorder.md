@@ -1,64 +1,56 @@
-# Arbetsorder: Kundportal, Milstolpe 0
+# Arbetsorder: Kundportal
 
 Senast uppdaterad: 2026-07-29
-Föregås av: `docs/kundportal-planering.md` (läs den först - det här är utförandeordern
-för planens Milstolpe 0, inte en ersättning för planen)
+Föregås av: `docs/kundportal-planering.md` (läs den först)
 
-## Syfte
+## Milstolpe 0 — KLAR (2026-07-29)
 
-Den här arbetsordern startar det faktiska arbetet med kundportalen. Den täcker
-**endast Milstolpe 0** (beslut + grundstruktur) - inte hela bygget. En ny
-arbetsorder skrivs för varje milstolpe när den föregående är klarmarkerad.
+Se `docs/DECISIONS.md` (DEC-0006) för de beslut som fattades. Sammanfattning:
 
-## Förutsättning som måste kontrolleras INNAN arbetet startar
+- Supabase-projekt `nova-it-kundportal` (org "Nova-IT", `eu-west-1`, 0 kr/mån).
+- GitHub-repo `supern0van/Nova-IT-Kundportal` (privat).
+- Cloudflare Worker `nova-it-kundportal` på `kundportal.nova-it.se`, live och
+  verifierad (200 OK).
+- CI grönt (test/lint/typecheck/build).
+- B2 (autentiseringsmetod) och B3 (glömt-lösenord i M2) är fortsatt INTE
+  slutgiltigt bekräftade av ägaren - arbetet nedan fortsätter med
+  rekommendationen (lösenord + tvingat byte) som arbetshypotes. Bekräfta eller
+  ändra i slutsamlingen av manuella beslut.
 
-1. Kontrollera att `main` i huvudrepot (`Nova-IT`) är grönt: `git log --oneline -3`,
-   `gh api repos/supern0van/Nova-IT/commits/HEAD/check-runs`. Om något är rött:
-   stanna och rapportera, börja inte kundportalsarbetet på en instabil grund.
-2. Kontrollera att ingen annan session/process just då gör auth-relaterade
-   ändringar i `portal/` (se planeringsdokumentets avsnitt 7). Om osäker: fråga
-   ägaren.
+## Milstolpe 1 — Datamodell och autentisering (pågående)
 
-## Beslut som krävs av ägaren innan kodning (blockerar M0 → M1)
+### Uppgifter
 
-Presentera dessa tre val för ägaren. Om inget annat sägs, är **rekommendationen
-default** och arbetet fortsätter med den efter en rimlig svarstid - men de ska
-alltid ställas, aldrig antas tyst.
+1. **Migration i `nova-it-kundportal`:** tabell `kund_konton` (id, `admin_kund_id`
+   text, `auth_user_id` uuid → `auth.users`, `maste_byta_losenord` boolean
+   default true, `skapad`/`uppdaterad`). Samma säkerhetsmönster som
+   adminportalens `profiles`-tabell: RLS aktiverad som försvar-på-djupet, men
+   `anon`/`authenticated` får inga privilegier - all åtkomst sker server-side
+   med service-rollnyckeln.
+2. **Supabase-klienter:** `lib/supabase/service.ts` (service-roll, server-only)
+   och `lib/supabase/server.ts` (`@supabase/ssr`, användarens egen session i
+   Route Handlers/Server Components) - speglar adminportalens uppdelning.
+3. **Inloggningssida** (`/logga-in`): e-post + lösenord mot Supabase Auth.
+4. **Tvingat lösenordsbyte:** efter lyckad inloggning, kontrollera
+   `kund_konton.maste_byta_losenord` server-side. Om sant: omdirigera till
+   `/byt-losenord` innan något annat är nåbart. Formuläret sätter nytt lösenord
+   via Supabase Auth och `maste_byta_losenord = false`.
+5. **Tom, skyddad "inloggad"-vy** (`/mina-arenden`, ingen riktig ärendedata än)
+   - bara för att bevisa att sessionskontrollen fungerar.
+6. **Manuellt testkonto:** skapa ett testkonto (via Supabase Auth Admin API,
+   ett litet engångsskript) för att verifiera hela flödet end-to-end.
 
-| # | Fråga | Rekommendation | Alternativ |
-|---|---|---|---|
-| B1 | Separat Supabase-projekt för kundportalen, eller delat med adminportalen? | Separat projekt | Delat projekt, eget schema |
-| B2 | Engångslösenord med tvingat byte, eller passwordless magic link? | Lösenord + tvingat byte (matchar ursprunglig efterfrågan) | Magic link (enklare, säkrare, inget lösenord att läcka) |
-| B3 | Ska kunden redan i M2 kunna begära ett nytt engångslösenord om välkomstmejlet uteblir? | Ja, bygg in det direkt i M2 | Skjut till en senare milstolpe |
+### Definition of Done
 
-Dokumentera svaren som en ny post i `docs/DECISIONS.md` (nästa lediga DEC-nummer)
-innan M1 påbörjas.
+- [ ] Migration applicerad, verifierad med `list_tables`/`execute_sql`.
+- [ ] Ett manuellt skapat testkonto kan logga in på `/logga-in`.
+- [ ] Inloggningen tvingar lösenordsbyte första gången (`maste_byta_losenord`).
+- [ ] Efter bytet: `maste_byta_losenord` är `false`, kontot kan logga in direkt
+      nästa gång.
+- [ ] `/mina-arenden` är helt otillgänglig utan giltig session (verifierat med
+      en direkt request utan cookie).
+- [ ] CI grönt, verifierat i webbläsare (inte bara att koden kompilerar).
+- [ ] Huvudrepot och adminportalen opåverkade.
 
-## Konkreta uppgifter i Milstolpe 0
-
-1. **Skapa kundportalens grundstruktur.**
-   - Om B1 = separat projekt: nytt Supabase-projekt, ny Cloudflare Worker
-     (t.ex. `nova-it-kundportal`), ny mapp/repo för koden.
-   - Om B1 = delat projekt: nytt schema i befintligt Supabase-projekt, fortfarande
-     egen Cloudflare Worker (redan beslutat oavsett B1, se planens avsnitt 1).
-   - Grundläggande CI: spegla `documentation-guard.yml` och `ci.yml`-mönstret från
-     huvudrepot (test/lint/typecheck/build som måste vara gröna).
-2. **Deploya ett minimalt "Hello world"-skydd** på den tilltänkta domänen, så att
-   Worker, DNS och byggkedjan är bevisat fungerande innan något riktigt innehåll
-   byggs.
-3. **Skriv DEC-posten** i `docs/DECISIONS.md` med de bekräftade svaren på B1-B3.
-4. **Uppdatera `docs/roadmap.md`**: flytta kundportalen från "Senare beslut som
-   kräver ägarinput" till en ny, aktiv sektion i linje med hur resten av filen är
-   strukturerad.
-
-## Definition of Done för Milstolpe 0
-
-- [ ] B1, B2, B3 beslutade och skrivna som DEC-post.
-- [ ] Ny Worker/domän deployad med minimalt innehåll, nåbar över HTTPS.
-- [ ] CI grönt för den nya kodbasen (test/lint/typecheck/build).
-- [ ] `docs/roadmap.md` uppdaterad.
-- [ ] Inget av det befintliga (publik sajt, adminportal) har påverkats eller
-      gått sönder under arbetet - kontrollera med samma CI-koll som i
-      förutsättningen ovan, efteråt också.
-
-Först när samtliga punkter är avbockade skrivs nästa arbetsorder, för Milstolpe 1.
+Nästa arbetsorder (Milstolpe 2: automatiskt kundkonto + välkomstmejl vid nytt
+ärende) skrivs när samtliga punkter ovan är avbockade.
