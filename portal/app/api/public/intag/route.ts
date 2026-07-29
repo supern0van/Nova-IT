@@ -66,7 +66,12 @@ export async function POST(request: NextRequest) {
       mottagetVid: resultat.mottagetVid,
       // Internt bruk för den publika webbplatsens e-postutskick – aldrig
       // vidarebefordrat till besökarens webbläsare av kontakt-servern.
-      internt: { arendeId: resultat.arendeId, kundEpost: resultat.kundEpost, kundNamn: resultat.kundNamn },
+      internt: {
+        arendeId: resultat.arendeId,
+        kundEpost: resultat.kundEpost,
+        kundNamn: resultat.kundNamn,
+        kundportalKonto: resultat.kundportalKonto,
+      },
     })
   } catch (error) {
     if (error instanceof PubliktIntagFel) {

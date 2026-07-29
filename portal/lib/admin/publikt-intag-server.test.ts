@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 const profileRows = vi.fn()
 const arendeInsert = vi.fn()
@@ -87,4 +87,94 @@ describe('skapaPubliktIntag – ansvarig routing', () => {
     expect(arendeInsert).toHaveBeenCalledWith(expect.objectContaining({ ansvarig_id: 'support-id' }))
   })
 
+})
+
+describe('skapaPubliktIntag – kundportalskonto (Milstolpe 2)', () => {
+  const ENV_NYCKLAR = ['KUNDPORTAL_URL', 'KUNDPORTAL_INTAG_SECRET'] as const
+  const ursprungligEnv: Record<string, string | undefined> = {}
+  let ursprungligFetch: typeof fetch
+
+  beforeEach(() => {
+    vi.clearAllMocks()
+    profileRows.mockReturnValue([
+      { id: 'support-id', namn: 'Nova IT Support', epost: 'support@nova-it.se', roll: 'medarbetare', aktiv: true },
+    ])
+    rpc.mockResolvedValue({ data: 'NIT-3002', error: null })
+    arendeSingle.mockResolvedValue({
+      data: { id: 'arende-1', arendenummer: 'NIT-3002', skapad: new Date().toISOString() },
+      error: null,
+    })
+    for (const nyckel of ENV_NYCKLAR) ursprungligEnv[nyckel] = process.env[nyckel]
+    ursprungligFetch = globalThis.fetch
+  })
+
+  afterEach(() => {
+    for (const nyckel of ENV_NYCKLAR) {
+      if (ursprungligEnv[nyckel] === undefined) delete process.env[nyckel]
+      else process.env[nyckel] = ursprungligEnv[nyckel]
+    }
+    globalThis.fetch = ursprungligFetch
+  })
+
+  const uppgifter = {
+    kalla: 'kontaktformular' as const, namn: 'Test Kund', epost: 'test@example.com', telefon: '070-1234567',
+    kundtyp: 'privatperson' as const, tjanstSlug: 'it-support', angelagenhet: 'normal' as const,
+    meddelande: 'Detta är en tillräckligt lång testförfrågan.', idempotensnyckel: 'test-intag-kundportal-123',
+  }
+
+  it('returnerar odefinierat kundportalKonto om KUNDPORTAL_URL/KUNDPORTAL_INTAG_SECRET saknas, utan att anropa fetch', async () => {
+    delete process.env.KUNDPORTAL_URL
+    delete process.env.KUNDPORTAL_INTAG_SECRET
+    let fetchAnropad = false
+    globalThis.fetch = (async () => {
+      fetchAnropad = true
+      throw new Error('ska inte anropas')
+    }) as unknown as typeof fetch
+
+    const { skapaPubliktIntag } = await import('@/lib/admin/publikt-intag-server')
+    const resultat = await skapaPubliktIntag(uppgifter)
+
+    expect(resultat.kundportalKonto).toBeUndefined()
+    expect(fetchAnropad).toBe(false)
+  })
+
+  it('returnerar tillfälligt lösenord när kundportalen skapar ett nytt konto', async () => {
+    process.env.KUNDPORTAL_URL = 'https://kundportal.nova-it.se'
+    process.env.KUNDPORTAL_INTAG_SECRET = 'test-hemlighet'
+    globalThis.fetch = (async () =>
+      new Response(JSON.stringify({ ok: true, kontoSkapat: true, tillfalligtLosenord: 'hemligt-123' }), {
+        status: 200,
+      })) as unknown as typeof fetch
+
+    const { skapaPubliktIntag } = await import('@/lib/admin/publikt-intag-server')
+    const resultat = await skapaPubliktIntag(uppgifter)
+
+    expect(resultat.kundportalKonto).toEqual({ kontoSkapat: true, tillfalligtLosenord: 'hemligt-123' })
+  })
+
+  it('returnerar odefinierat kundportalKonto (utan att kasta) om kundportalen svarar med fel', async () => {
+    process.env.KUNDPORTAL_URL = 'https://kundportal.nova-it.se'
+    process.env.KUNDPORTAL_INTAG_SECRET = 'test-hemlighet'
+    globalThis.fetch = (async () => new Response(JSON.stringify({ ok: false }), { status: 401 })) as unknown as typeof fetch
+
+    const { skapaPubliktIntag } = await import('@/lib/admin/publikt-intag-server')
+    const resultat = await skapaPubliktIntag(uppgifter)
+
+    expect(resultat.kundportalKonto).toBeUndefined()
+    expect(resultat.arendenummer).toBe('NIT-3002')
+  })
+
+  it('returnerar odefinierat kundportalKonto (utan att kasta) om kundportalen inte kan nås', async () => {
+    process.env.KUNDPORTAL_URL = 'https://kundportal.nova-it.se'
+    process.env.KUNDPORTAL_INTAG_SECRET = 'test-hemlighet'
+    globalThis.fetch = (async () => {
+      throw new Error('connection refused')
+    }) as unknown as typeof fetch
+
+    const { skapaPubliktIntag } = await import('@/lib/admin/publikt-intag-server')
+    const resultat = await skapaPubliktIntag(uppgifter)
+
+    expect(resultat.kundportalKonto).toBeUndefined()
+    expect(resultat.arendenummer).toBe('NIT-3002')
+  })
 })
