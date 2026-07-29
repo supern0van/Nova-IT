@@ -10,8 +10,6 @@ import { pathToFileURL } from 'node:url'
 export const workerDomains = [
   'admin.nova-it.se',
   'admin.novait.se',
-  'portal.novait.se',
-  'portal.nova-it.se',
 ]
 
 export const apiChecks = [

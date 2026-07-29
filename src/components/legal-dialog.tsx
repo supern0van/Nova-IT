@@ -74,6 +74,18 @@ const documents: Record<
         ),
       },
       {
+        heading: "Säkerhet och missbruksskydd",
+        body: (
+          <p>
+            För att förebygga automatiserat missbruk och skydda tjänsterna kan Cloudflare Turnstile,
+            hastighetsbegränsning och tekniska säkerhetsloggar användas. När kundportalen används
+            behandlas även uppgifter som behövs för inloggning, återställning av lösenord och
+            sessionssäkerhet. Sådana skyddsåtgärder används för drift och säkerhet, inte för
+            annonsering eller profilering.
+          </p>
+        ),
+      },
+      {
         heading: "Varför och med vilken grund",
         body: (
           <>
@@ -344,7 +356,7 @@ function LegalDocument({ document }: { document: (typeof documents)[LegalDocumen
           <span className="text-sm font-bold tracking-wide text-sky-700">NOVA IT</span>
         </div>
         <p className="pt-4 text-xs font-semibold uppercase tracking-[0.14em] text-sky-700">
-          {document.label} · Version 1.0
+          {document.label} · Version 1.1
         </p>
         <DialogTitle className="pt-1 text-2xl font-semibold tracking-normal text-slate-950 sm:text-3xl">
           {document.title}
@@ -374,7 +386,7 @@ function LegalDocument({ document }: { document: (typeof documents)[LegalDocumen
       </div>
 
       <div className="flex items-center justify-between border-t border-slate-200 bg-slate-50 px-6 py-3 text-xs text-slate-500 sm:px-8">
-        <span>Senast uppdaterad 17 juli 2026</span>
+        <span>Senast uppdaterad 30 juli 2026</span>
         <a
           href="https://www.nova-it.se"
           className="inline-flex items-center gap-1 font-medium text-sky-700 hover:text-sky-900"

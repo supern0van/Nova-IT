@@ -8,8 +8,6 @@ export const adminWorkerWorkersDevAktiv = false
 export const adminWorkerDomäner = [
   primarAdminDomän,
   'admin.novait.se',
-  'portal.novait.se',
-  'portal.nova-it.se',
 ] as const
 
 export const obligatoriskaWorkerSecrets = [
