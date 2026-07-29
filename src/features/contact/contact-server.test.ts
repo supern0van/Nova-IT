@@ -6,6 +6,7 @@ const ENV_KEYS = [
   "INTAG_SECRET",
   "RESEND_API_KEY",
   "CONTACT_FORM_FROM",
+  "TURNSTILE_SECRET_KEY",
 ] as const;
 
 const originalEnv: Record<string, string | undefined> = {};
@@ -17,6 +18,7 @@ beforeEach(() => {
   process.env.INTAG_SECRET = "test-hemlighet";
   process.env.RESEND_API_KEY = "test-resend-key";
   process.env.CONTACT_FORM_FROM = "no-reply@nova-it.se";
+  delete process.env.TURNSTILE_SECRET_KEY; // default: ej konfigurerad (soft-fail)
   originalFetch = globalThis.fetch;
 });
 
@@ -40,6 +42,9 @@ const validPayload = {
   urgency: "Normal" as const,
   message: "Datorn startar inte och ger inget felmeddelande.",
   idempotencyKey: "a".repeat(32),
+  website: "",
+  formRenderedAt: Date.now() - 10_000,
+  turnstileToken: null as string | null,
 };
 
 function jsonResponse(body: unknown, ok = true, status = 200) {
@@ -151,4 +156,110 @@ test("fails closed and does not leak internal error details when the intake is u
     expect(messageText).not.toContain("10.0.0.5");
     expect(messageText).not.toContain("connection refused");
   }
+});
+
+test("rejects a filled-in honeypot field without ever calling the intake", async () => {
+  let fetchCalled = false;
+  globalThis.fetch = (async () => {
+    fetchCalled = true;
+    throw new Error("should not be called");
+  }) as unknown as typeof fetch;
+
+  await expect(
+    skickaKontaktforfragan({ ...validPayload, website: "http://spam.example" }),
+  ).rejects.toThrow();
+  expect(fetchCalled).toBe(false);
+});
+
+test("rejects a submission that arrives implausibly fast after the form rendered", async () => {
+  let fetchCalled = false;
+  globalThis.fetch = (async () => {
+    fetchCalled = true;
+    throw new Error("should not be called");
+  }) as unknown as typeof fetch;
+
+  await expect(
+    skickaKontaktforfragan({ ...validPayload, formRenderedAt: Date.now() }),
+  ).rejects.toThrow();
+  expect(fetchCalled).toBe(false);
+});
+
+test("skips Turnstile verification entirely when TURNSTILE_SECRET_KEY is not configured", async () => {
+  globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
+    const url = String(input);
+    if (url.includes("challenges.cloudflare.com")) {
+      throw new Error("Turnstile should not be called when unconfigured");
+    }
+    if (url.endsWith("/api/public/intag") && init?.method === "POST") {
+      return jsonResponse({
+        accepted: true,
+        arendenummer: "NIT-2603",
+        mottagetVid: "2026-07-29T11:00:00.000Z",
+        internt: { arendeId: "arende-3", kundEpost: "anna@example.se", kundNamn: "Anna Andersson" },
+      });
+    }
+    if (url.endsWith("/api/public/intag") && init?.method === "PATCH")
+      return jsonResponse({ ok: true });
+    if (url.includes("api.resend.com")) return jsonResponse({ id: "email-1" });
+    throw new Error(`Unexpected fetch to ${url}`);
+  }) as unknown as typeof fetch;
+
+  const result = await skickaKontaktforfragan(validPayload);
+  expect(result.accepted).toBe(true);
+});
+
+test("rejects the submission when Turnstile is configured but no token was provided", async () => {
+  process.env.TURNSTILE_SECRET_KEY = "test-turnstile-secret";
+  let intakeCalled = false;
+  globalThis.fetch = (async (input: RequestInfo | URL) => {
+    if (String(input).endsWith("/api/public/intag")) intakeCalled = true;
+    throw new Error("should not reach the intake without a valid token");
+  }) as unknown as typeof fetch;
+
+  await expect(skickaKontaktforfragan({ ...validPayload, turnstileToken: null })).rejects.toThrow();
+  expect(intakeCalled).toBe(false);
+});
+
+test("rejects the submission when Cloudflare reports the Turnstile token as invalid", async () => {
+  process.env.TURNSTILE_SECRET_KEY = "test-turnstile-secret";
+  let intakeCalled = false;
+  globalThis.fetch = (async (input: RequestInfo | URL) => {
+    const url = String(input);
+    if (url.includes("challenges.cloudflare.com")) {
+      return jsonResponse({ success: false });
+    }
+    if (url.endsWith("/api/public/intag")) intakeCalled = true;
+    throw new Error("should not reach the intake with an invalid token");
+  }) as unknown as typeof fetch;
+
+  await expect(
+    skickaKontaktforfragan({ ...validPayload, turnstileToken: "invalid-token" }),
+  ).rejects.toThrow();
+  expect(intakeCalled).toBe(false);
+});
+
+test("proceeds when Turnstile is configured and Cloudflare confirms the token is valid", async () => {
+  process.env.TURNSTILE_SECRET_KEY = "test-turnstile-secret";
+  globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
+    const url = String(input);
+    if (url.includes("challenges.cloudflare.com")) {
+      return jsonResponse({ success: true });
+    }
+    if (url.endsWith("/api/public/intag") && init?.method === "POST") {
+      return jsonResponse({
+        accepted: true,
+        arendenummer: "NIT-2604",
+        mottagetVid: "2026-07-29T11:05:00.000Z",
+        internt: { arendeId: "arende-4", kundEpost: "anna@example.se", kundNamn: "Anna Andersson" },
+      });
+    }
+    if (url.endsWith("/api/public/intag") && init?.method === "PATCH")
+      return jsonResponse({ ok: true });
+    if (url.includes("api.resend.com")) return jsonResponse({ id: "email-1" });
+    throw new Error(`Unexpected fetch to ${url}`);
+  }) as unknown as typeof fetch;
+
+  const result = await skickaKontaktforfragan({ ...validPayload, turnstileToken: "valid-token" });
+  expect(result.accepted).toBe(true);
+  expect(result.arendenummer).toBe("NIT-2604");
 });

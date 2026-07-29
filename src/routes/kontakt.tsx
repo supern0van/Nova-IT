@@ -24,6 +24,7 @@ import {
   type ContactAssistantContext,
 } from "@/features/contact/contact-submission";
 import { consumeSupportHandoff } from "@/features/support/support-handoff";
+import { TurnstileWidget } from "@/components/turnstile-widget";
 
 export const Route = createFileRoute("/kontakt")({
   validateSearch: (search: Record<string, unknown>) => {
@@ -142,6 +143,11 @@ function ContactPage() {
   // bara när formuläret faktiskt återställs (resetForm), inte vid varje
   // omrendering.
   const idempotencyKeyRef = useRef(crypto.randomUUID());
+  // Spam-/missbruksskydd: se skickaKontaktforfragan() i contact-server.ts
+  // för varför dessa tre kontrolleras server-side, inte bara här.
+  const formRenderedAtRef = useRef(Date.now());
+  const [honeypot, setHoneypot] = useState("");
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
 
   useEffect(() => {
     if (!selectedServiceTitle) return;
@@ -194,6 +200,8 @@ function ContactPage() {
     setArendenummer(null);
     setConfirmationSent(true);
     idempotencyKeyRef.current = crypto.randomUUID();
+    formRenderedAtRef.current = Date.now();
+    setHoneypot("");
   }
 
   async function sendContactRequest() {
@@ -216,6 +224,9 @@ function ContactPage() {
           urgency: values.urgency as (typeof urgencyLevels)[number],
           message: composeContactMessage(values.message, assistantContext),
           idempotencyKey: idempotencyKeyRef.current,
+          website: honeypot,
+          formRenderedAt: formRenderedAtRef.current,
+          turnstileToken,
         },
       });
       setArendenummer(resultat.arendenummer);
@@ -688,10 +699,31 @@ function ContactPage() {
                       )}
                     </div>
 
+                    <TurnstileWidget onToken={setTurnstileToken} />
+
                     <Button type="submit" size="lg" className="mt-5 w-full sm:w-auto">
                       Visa ärendesammanfattning
                     </Button>
                   </fieldset>
+
+                  {/* Honeypot - osynligt och onåbart för en människa som fyller i formuläret
+                      normalt. Fyllt fält = troligen ett automatiserat skript, se
+                      skickaKontaktforfragan() i contact-server.ts. */}
+                  <div
+                    aria-hidden="true"
+                    className="absolute left-[-9999px] top-auto h-px w-px overflow-hidden"
+                  >
+                    <label htmlFor="website">Lämna detta fält tomt</label>
+                    <input
+                      id="website"
+                      name="website"
+                      type="text"
+                      tabIndex={-1}
+                      autoComplete="off"
+                      value={honeypot}
+                      onChange={(event) => setHoneypot(event.target.value)}
+                    />
+                  </div>
                 </form>
               </CardContent>
             </Card>

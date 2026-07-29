@@ -21,7 +21,13 @@ const contactRequestSchema = z.object({
   urgency: z.enum(["Planerat", "Normal", "Akut"]),
   message: z.string().trim().min(10).max(2000),
   idempotencyKey: z.string().trim().min(16).max(200),
+  // Spam-/missbruksskydd - se skickaKontaktforfragan().
+  website: z.string().max(200).optional(), // honeypot, ska alltid vara tomt
+  formRenderedAt: z.number(),
+  turnstileToken: z.string().nullable().optional(),
 });
+
+const MIN_SUBMIT_DELAY_MS = 2500;
 
 export type SubmitContactRequestResult = {
   accepted: true;
@@ -59,6 +65,28 @@ type ContactRequestData = ReturnType<typeof contactRequestSchema.parse>;
 export async function skickaKontaktforfragan(
   data: ContactRequestData,
 ): Promise<SubmitContactRequestResult> {
+  // Honeypot: ett fält som är osynligt och onåbart för en människa som
+  // använder formuläret normalt, men som enkla bottar ofta fyller i
+  // automatiskt. Generiskt fel - avslöjar inte att det är en spamkontroll.
+  if (data.website && data.website.trim().length > 0) {
+    console.error("Kontaktformulär avvisat: honeypot-fält ifyllt.");
+    throw new Error(
+      "Ärendet kunde inte skickas just nu. Försök igen, eller skriv direkt till oss.",
+    );
+  }
+
+  // Tidskontroll: ett formulär som skickas nästan omedelbart efter att det
+  // renderades är typiskt för ett automatiserat skript, inte en människa
+  // som läser och fyller i fälten.
+  if (Date.now() - data.formRenderedAt < MIN_SUBMIT_DELAY_MS) {
+    console.error("Kontaktformulär avvisat: skickades orimligt snabbt efter rendering.");
+    throw new Error(
+      "Ärendet kunde inte skickas just nu. Försök igen, eller skriv direkt till oss.",
+    );
+  }
+
+  await verifieraTurnstile(data.turnstileToken ?? null);
+
   const intakeUrl = process.env.ADMIN_INTAKE_URL;
   const intakeSecret = process.env.INTAG_SECRET;
 
@@ -140,6 +168,43 @@ export async function skickaKontaktforfragan(
 export const submitContactRequest = createServerFn({ method: "POST" })
   .validator(contactRequestSchema)
   .handler(({ data }) => skickaKontaktforfragan(data));
+
+/**
+ * Verifierar en Cloudflare Turnstile-token server-side.
+ *
+ * Soft-fail (hoppar över kontrollen, hindrar inget) om TURNSTILE_SECRET_KEY
+ * inte är konfigurerad - ett medvetet val. Turnstile aktiveras i två steg
+ * (Cloudflare Dashboard + denna kod), och om verifieringen var hard-fail
+ * skulle en deploy av den här koden INNAN Turnstile faktiskt är konfigurerat
+ * i Cloudflare göra att kontaktformuläret slutade fungera helt för alla
+ * besökare. Once konfigurerad blir kontrollen skarp: en saknad eller
+ * ogiltig token nekas då alltid.
+ */
+async function verifieraTurnstile(token: string | null): Promise<void> {
+  const secretKey = process.env.TURNSTILE_SECRET_KEY;
+  if (!secretKey) return;
+
+  if (!token) {
+    throw new Error("Verifieringen kunde inte genomföras. Ladda om sidan och försök igen.");
+  }
+
+  try {
+    const response = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ secret: secretKey, response: token }),
+    });
+    const result = (await response.json().catch(() => null)) as { success?: boolean } | null;
+
+    if (!response.ok || !result?.success) {
+      throw new Error("Verifieringen kunde inte genomföras. Ladda om sidan och försök igen.");
+    }
+  } catch (error) {
+    if (error instanceof Error && error.message.startsWith("Verifieringen")) throw error;
+    console.error("Turnstile-verifiering misslyckades.", error);
+    throw new Error("Verifieringen kunde inte genomföras. Ladda om sidan och försök igen.");
+  }
+}
 
 async function forsokSkickaInternAvisering(
   data: Parameters<typeof formatContactEmail>[0],
