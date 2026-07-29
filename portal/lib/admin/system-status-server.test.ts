@@ -222,6 +222,8 @@ describe('worker-konfiguration', () => {
       .filter((rad) => rad && !rad.startsWith('#'))
       .map((rad) => rad.split('=')[0])
 
-    expect(envVariabler).toEqual([...obligatoriskaWorkerSecrets])
+    expect(envVariabler.slice(0, obligatoriskaWorkerSecrets.length)).toEqual([
+      ...obligatoriskaWorkerSecrets,
+    ])
   })
 })

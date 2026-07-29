@@ -20,7 +20,13 @@ import {
 } from '@/lib/admin/operativa-server'
 import { hamtaAutentiseradAnvandarId } from '@/lib/supabase/route-anvandare'
 
-vi.mock('@/lib/supabase/route-anvandare', () => ({ hamtaAutentiseradAnvandarId: vi.fn() }))
+const { hamtaAutentiseradAnvandare } = vi.hoisted(() => ({
+  hamtaAutentiseradAnvandare: vi.fn(),
+}))
+vi.mock('@/lib/supabase/route-anvandare', () => ({
+  hamtaAutentiseradAnvandarId: vi.fn(),
+  hamtaAutentiseradAnvandare,
+}))
 vi.mock('@/lib/auth/roll-server', () => ({ hamtaRollFranDatabasen: vi.fn() }))
 vi.mock('@/lib/admin/operativa-server', () => ({
   OperativtAdminFel: class OperativtAdminFel extends Error {
@@ -105,6 +111,10 @@ const kundStomme = {
 describe('/api/admin/operativt', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    hamtaAutentiseradAnvandare.mockImplementation(async (request: NextRequest) => {
+      const id = await hamtaAutentiseradAnvandarIdMock(request)
+      return id ? { id, epost: 'test@example.com', demogast: false } : null
+    })
   })
 
   it('returnerar 401 utan AAL2-session', async () => {

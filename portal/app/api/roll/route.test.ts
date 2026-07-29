@@ -2,15 +2,20 @@ import type { NextRequest } from 'next/server'
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
 const hamtaAutentiseradAnvandarId = vi.fn()
+const hamtaAutentiseradAnvandare = vi.fn()
 const hamtaRollFranDatabasen = vi.fn()
 const hamtaEgenProfilFranDatabasen = vi.fn()
 
-vi.mock('@/lib/supabase/route-anvandare', () => ({ hamtaAutentiseradAnvandarId }))
+vi.mock('@/lib/supabase/route-anvandare', () => ({ hamtaAutentiseradAnvandarId, hamtaAutentiseradAnvandare }))
 vi.mock('@/lib/auth/roll-server', () => ({ hamtaEgenProfilFranDatabasen, hamtaRollFranDatabasen }))
 
 let GET: typeof import('@/app/api/roll/route').GET
 
 beforeAll(async () => {
+  hamtaAutentiseradAnvandare.mockImplementation(async (request: NextRequest) => {
+    const id = await hamtaAutentiseradAnvandarId(request)
+    return id ? { id, epost: 'test@example.com', demogast: false } : null
+  })
   ;({ GET } = await import('@/app/api/roll/route'))
 })
 

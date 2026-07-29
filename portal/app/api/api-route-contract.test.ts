@@ -51,7 +51,9 @@ describe('admin API route-kontrakt', () => {
 
       expect(statSync(testFil).isFile()).toBe(true)
       if (publikaServerTillServerRoutes.has(relativ)) continue
-      expect(innehall).toContain('hamtaAutentiseradAnvandarId')
+      expect(
+        innehall.includes('hamtaAutentiseradAnvandarId') || innehall.includes('hamtaAutentiseradAnvandare'),
+      ).toBe(true)
     }
   })
 

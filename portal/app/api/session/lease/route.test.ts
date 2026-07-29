@@ -1,12 +1,20 @@
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-const { hamtaAutentiseradAnvandarId } = vi.hoisted(() => ({
+const { hamtaAutentiseradAnvandarId, hamtaAutentiseradAnvandare } = vi.hoisted(() => ({
   hamtaAutentiseradAnvandarId: vi.fn(),
+  hamtaAutentiseradAnvandare: vi.fn(),
 }))
 
-vi.mock('@/lib/supabase/route-anvandare', () => ({ hamtaAutentiseradAnvandarId }))
+vi.mock('@/lib/supabase/route-anvandare', () => ({ hamtaAutentiseradAnvandarId, hamtaAutentiseradAnvandare }))
 
 import { POST } from './route'
+
+beforeEach(() => {
+  hamtaAutentiseradAnvandare.mockImplementation(async (request: Request) => {
+    const id = await hamtaAutentiseradAnvandarId(request)
+    return id ? { id, epost: 'test@example.com', demogast: false } : null
+  })
+})
 
 describe('POST /api/session/lease', () => {
   it('kräver en verifierad AAL2-session', async () => {
