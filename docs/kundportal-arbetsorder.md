@@ -283,10 +283,48 @@ efter varje fix, inte bara i teorin:
    i skarp Gmail-inkorg) innan den slutgiltiga versionen sparades i
    Supabase Dashboard.
 
-## Milstolpe 5 — Härdning och release-granskning (nästa)
+## Milstolpe 5/6 — Härdning, release-granskning och lansering (KLAR, 2026-07-30)
 
-Se `docs/kundportal-planering.md` för fullständig beskrivning (extern
-säkerhetsgenomgång, legal/integritetsgranskning, rate limiting, loggning).
-Skrivs som en egen, detaljerad arbetsorder när ägaren vill fortsätta. B2
-(autentiseringsmetod) och B3 (glömt lösenord) är fortfarande öppna
-ägarbeslut, se Milstolpe 0 ovan - bör beslutas innan release-granskningen.
+Genomförd av en parallell session (ChatGPT) i samma repo, sammanflätad med
+denna arbetsordersession. Fullständig granskning i
+`docs/m5-auth-privacy-review.md` - sammanfattning här:
+
+- **Kodgranskning av auth-flödet:** godkänd (fail-closed serverkontroller,
+  AAL2/MFA där föreskrivet, session-lease/HMAC/idle-timeout, validerad
+  `next`-redirect, generisk bekräftelse vid lösenordsåterställning oavsett
+  om kontot finns, service-rollen aldrig exponerad klientsidan). Se även
+  denna assistents egen säkerhetsgenomgång tidigare i detta dokuments
+  historik (Milstolpe 3/4) - samstämmig bedömning, inga fynd.
+- **Integritetspolicyn** utökad (version 1.1, 2026-07-30) med kundportalens
+  auth-/sessionsdata och missbruksskydd (Turnstile, hastighetsbegränsning,
+  säkerhetsloggar).
+- **Rate limiting-beslut:** webbplatsens befintliga Cloudflare-regel
+  (`Kontakt och publikt intag`) lämnas oförändrad. Kundportalens egen
+  inloggning/återställning går direkt mot Supabase Auth från
+  webbläsarkoden - en Cloudflare-regel på portalens host skulle inte se
+  själva auth-anropet. Supabase Auths inbyggda `429`-gräns på tokenvägen
+  används i stället; bekräftat aktiv i Auth-loggarna.
+- **Läckta lösenord (HIBP):** kundportalens egen kontroll (k-anonymitet mot
+  Have I Been Pwned) är aktiv och verifierad i lösenordsåterställnings-
+  flödet - accepterat som releasebeslut. Supabase Security Advisors
+  separata Pro-funktion för samma sak är fortsatt avstängd (kräver
+  uppgradering) - inte blockerande.
+- **Milstolpe 6 (lansering) genomförd samtidigt:** `portal.nova-it.se` och
+  `portal.novait.se` flyttade från `nova-it-admin` till
+  `nova-it-kundportal`s egen Worker. Ett konfigurationsglapp upptäcktes och
+  åtgärdades av denna assistent efteråt: domänerna var redan live på
+  kundportalens Worker (verifierat med `curl`), men saknades i
+  `Nova-IT-Kundportal/wrangler.jsonc` - lades till och redeployades så att
+  koden matchar verkligheten.
+
+### Kvarstående, kräver ägaren (inte kod)
+
+- Externt penetrationstest, om M5 ska kunna åberopas som oberoende
+  säkerhetsgranskning - den genomförda granskningen är kod-/
+  konfigurationsbaserad, inte ett sådant test.
+- Juridisk slutbekräftelse av organisationsnummer, adress,
+  leverantörsroller (Resend/Cloudflare/Supabase), eventuella
+  tredjelandsöverföringar och gallringstider i integritetspolicyn.
+- Beslut om Supabase Security Advisors Pro-funktion för leaked-password
+  protection ska aktiveras (kräver uppgradering) utöver kundportalens
+  redan aktiva egna HIBP-kontroll.

@@ -42,8 +42,12 @@ samt `docs/DECISIONS.md` (DEC-0006) för det som redan är beslutat.
 - [x] Milstolpe 4: kundinitierat svar på ärende.
 - [x] Milstolpe 4b: glömt-lösenord-flöde (Supabase Auth, implicit flow, egen
       Nova IT-märkt e-postmall).
-- [ ] Milstolpe 5: säkerhets- och release-granskning.
-- [ ] Milstolpe 6: lansering (DNS-omläggning av `portal.nova-it.se`/`portal.novait.se`).
+- [x] Milstolpe 5: kod-/konfigurationsgranskning av auth, integritetstext och
+      rate limiting (se `docs/m5-auth-privacy-review.md`). Externt
+      penetrationstest och juridisk slutgranskning är fortfarande inte gjorda.
+- [x] Milstolpe 6: `portal.nova-it.se`/`portal.novait.se` flyttade från
+      `nova-it-admin` till `nova-it-kundportal`s egen Worker - live sedan
+      2026-07-30.
 
 ## Senare beslut som kräver ägarinput
 
