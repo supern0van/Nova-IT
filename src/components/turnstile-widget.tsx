@@ -67,17 +67,16 @@ export function TurnstileWidget({ onToken }: { onToken: (token: string | null) =
       })
       .then((siteKey) => {
         if (!siteKey || cancelled || !containerRef.current || !window.turnstile) return;
-        const reset = () => {
-          onToken(null);
-          if (widgetIdRef.current) window.turnstile?.reset(widgetIdRef.current);
-        };
+        // Turnstile sköter själv retry/reset vid timeout och auto-retry.
+        // Anropa inte reset() här igen: det kan skapa en callback/reset-loop.
+        const clearToken = () => onToken(null);
         widgetIdRef.current = window.turnstile.render(containerRef.current, {
           sitekey: siteKey,
           action: "contact",
           callback: (token: string) => onToken(token),
-          "error-callback": reset,
-          "expired-callback": reset,
-          "timeout-callback": reset,
+          "error-callback": clearToken,
+          "expired-callback": clearToken,
+          "timeout-callback": clearToken,
         });
       })
       .catch(() => onToken(null));
