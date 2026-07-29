@@ -7,7 +7,23 @@ import {
   tillAdminKundtyp,
 } from "./contact-submission";
 
+/**
+ * Kundens synliga kontaktväg (reply-to på bekräftelsemejlet) - matchar
+ * webbplatsens egen text ("Alla förfrågningar går till kontakt@nova-it.se").
+ * Ska INTE blandas ihop med `INTERN_AVISERING_MOTTAGARE` nedan - olika
+ * syften, kan skilja sig åt.
+ */
 const CONTACT_FORM_RECIPIENT = "kontakt@nova-it.se";
+
+/**
+ * Mottagare för den interna aviseringen om ett nytt ärende. Satt till
+ * support@nova-it.se eftersom det matchar adminportalens automatiska
+ * ärendetilldelning (se `hittaIntagsansvarig` i adminportalens
+ * publikt-intag-server.ts, som letar efter en aktiv profil med just den
+ * e-postadressen) - samma person ska få både ärendet i portalen och en
+ * avisering i sin egen inkorg.
+ */
+const INTERN_AVISERING_MOTTAGARE = "support@nova-it.se";
 
 const contactRequestSchema = z.object({
   kalla: z.enum(["kontaktformular", "supportassistent"]),
@@ -273,7 +289,7 @@ async function forsokSkickaInternAvisering(
       },
       body: JSON.stringify({
         from,
-        to: [CONTACT_FORM_RECIPIENT],
+        to: [INTERN_AVISERING_MOTTAGARE],
         reply_to: data.email,
         subject,
         text,
