@@ -113,7 +113,6 @@ describe('admin API route-kontrakt', () => {
     expect(existsSync(middlewarePath)).toBe(true)
     expect(existsSync(rootProxyPath)).toBe(false)
     expect(middleware).toContain('uppdateraSessionOchSkyddaPortal')
-    expect(middleware).toContain("'/portal/:path*'")
-    expect(middleware).toContain("'/mfa/:path*'")
+    expect(middleware).toContain("matcher: ['/:path*']")
   })
 })

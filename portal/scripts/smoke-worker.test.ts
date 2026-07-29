@@ -83,7 +83,7 @@ describe('smoke-worker', () => {
     )
   })
 
-  it('samlar domän- och API-kontroller för alla domäner i en smoke-status', async () => {
+  it('samlar domänkontroller för alla aliases men API-kontroller bara för huvuddomänen', async () => {
     const logger = { log: vi.fn(), error: vi.fn() }
     const fetchRunner = vi
       .fn()
@@ -95,6 +95,7 @@ describe('smoke-worker', () => {
     await expect(
       runSmokeWorker({
         domains: ['admin.nova-it.se', 'admin.novait.se'],
+        apiDomains: ['admin.nova-it.se'],
         checks: [{ path: '/api/roll', expectedStatus: 401, expectedBody: { roll: null } }],
         fetchRunner,
         logger,
@@ -103,11 +104,6 @@ describe('smoke-worker', () => {
     expect(fetchRunner).toHaveBeenNthCalledWith(
       3,
       'https://admin.nova-it.se/api/roll',
-      expect.objectContaining({ redirect: 'manual' }),
-    )
-    expect(fetchRunner).toHaveBeenNthCalledWith(
-      4,
-      'https://admin.novait.se/api/roll',
       expect.objectContaining({ redirect: 'manual' }),
     )
     expect(logger.log).toHaveBeenLastCalledWith('Worker smoke passerade.')

@@ -13,12 +13,12 @@ function request(origin: string) {
 }
 
 describe('admin-url', () => {
-  it('behåller kända Worker-domäner som redirect-origin', () => {
+  it('använder alltid huvuddomänen som redirect-origin', () => {
     expect(hamtaSakerAdminOrigin(request('https://admin.novait.se'))).toBe(
-      'https://admin.novait.se',
+      'https://admin.nova-it.se',
     )
     expect(byggLosenordsAterstallningsUrl(request('https://portal.nova-it.se'))).toBe(
-      'https://portal.nova-it.se/logga-in?aterstall=1',
+      'https://admin.nova-it.se/logga-in?aterstall=1',
     )
   })
 

@@ -45,6 +45,8 @@ export const apiChecks = [
   },
 ]
 
+export const canonicalApiDomains = ['admin.nova-it.se']
+
 const timeoutMs = 20_000
 
 export function sameJson(actual, expected) {
@@ -125,7 +127,7 @@ export async function checkApi(domain, check, { fetchRunner = fetch, logger = co
 export async function runSmokeWorker({
   domains = workerDomains,
   checks = apiChecks,
-  apiDomains = domains,
+  apiDomains = canonicalApiDomains,
   fetchRunner = fetch,
   logger = console,
 } = {}) {

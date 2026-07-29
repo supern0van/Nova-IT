@@ -1,9 +1,12 @@
 export const adminWorkerNamn = 'nova-it-admin'
 
+/** Den enda permanenta adressen för administratörsportalen. */
+export const primarAdminDomän = 'admin.nova-it.se'
+
 export const adminWorkerWorkersDevAktiv = false
 
 export const adminWorkerDomäner = [
-  'admin.nova-it.se',
+  primarAdminDomän,
   'admin.novait.se',
   'portal.novait.se',
   'portal.nova-it.se',
