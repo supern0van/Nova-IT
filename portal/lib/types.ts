@@ -104,6 +104,7 @@ export interface Aktivitet {
     | 'anteckning'
     | 'bokning'
     | 'bilaga'
+    | 'sms'
   beskrivning: string
   aktor: string
   tidpunkt: string

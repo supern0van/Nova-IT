@@ -1,6 +1,6 @@
 'use client'
 
-import { CalendarPlusIcon, CheckCircle2Icon, LockIcon } from 'lucide-react'
+import { CalendarPlusIcon, CheckCircle2Icon, LockIcon, SmartphoneIcon } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { toast } from 'sonner'
 
@@ -38,6 +38,7 @@ import {
   andraPrioritet,
   andraStatus,
   markeraSomLost,
+  skickaKlarSms,
   tilldelaArende,
 } from '@/lib/store'
 import type { Anvandare, Arende, ArendeStatus, Prioritet } from '@/lib/types'
@@ -65,6 +66,7 @@ export function ArendeAtgarder({
   const aktor = anvandare?.namn ?? 'Okänd'
 
   const kanTilldela = kan('tilldela_arende')
+  const kanSkickaSms = kan('svara_kund')
   const avslutat = arende.status === 'lost' || arende.status === 'stangd'
 
   function felmeddelande(error: unknown) {
@@ -127,6 +129,19 @@ export function ArendeAtgarder({
       toast.success('Ärendet är markerat som löst')
     } catch (error) {
       toast.error('Kunde inte markera ärendet som löst', { description: felmeddelande(error) })
+    } finally {
+      setSparar(null)
+    }
+  }
+
+  async function skickaSms() {
+    if (sparar) return
+    setSparar('sms')
+    try {
+      const resultat = await skickaKlarSms(arende.id, aktor)
+      toast.success(`SMS skickat till ${resultat.till}`)
+    } catch (error) {
+      toast.error('Kunde inte skicka SMS', { description: felmeddelande(error) })
     } finally {
       setSparar(null)
     }
@@ -243,6 +258,34 @@ export function ArendeAtgarder({
           <CalendarPlusIcon data-icon="inline-start" />
           Boka tid
         </Button>
+        {kanSkickaSms && (
+          <AlertDialog>
+            <AlertDialogTrigger
+              render={
+                <Button variant="outline" size="sm" disabled={sparar === 'sms'}>
+                  <SmartphoneIcon data-icon="inline-start" />
+                  SMS: klart för upphämtning
+                </Button>
+              }
+            />
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogMedia>
+                  <SmartphoneIcon />
+                </AlertDialogMedia>
+                <AlertDialogTitle>Skicka SMS till kunden?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Kunden får ett SMS om att ärende {arende.arendenummer} är klart och produkten kan
+                  hämtas, till {arende.telefon}.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Avbryt</AlertDialogCancel>
+                <AlertDialogAction onClick={skickaSms}>Skicka SMS</AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        )}
         {avslutat ? (
           <Button size="sm" disabled>
             <CheckCircle2Icon data-icon="inline-start" />

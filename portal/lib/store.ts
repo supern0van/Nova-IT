@@ -188,7 +188,8 @@ async function andraViaOperativApi<T>(
     | 'avboka_bokning'
     | 'uppdatera_arende'
     | 'uppdatera_kundanteckning'
-    | 'ta_bort_kundanteckning',
+    | 'ta_bort_kundanteckning'
+    | 'skicka_sms',
   data: Record<string, unknown>,
   svarsNyckel: string,
 ): Promise<T | null> {
@@ -502,6 +503,26 @@ export async function markeraSomLost(arendeId: string, aktor: string) {
   arende.uppdaterad = new Date().toISOString()
   loggaAktivitet(db, arendeId, 'status', 'Ärendet markerades som löst', aktor)
   skriv(db)
+}
+
+/**
+ * Skickar SMS till kunden om att ärendet är klart för upphämtning. Till
+ * skillnad från övriga skrivåtgärder ovan finns inget meningsfullt
+ * lokalt demolägesfall att falla tillbaka på - att låtsas att ett SMS
+ * skickades vore vilseledande, så ett null-svar (API ej nåbart) kastas
+ * som ett tydligt fel i stället för att tystnat lyckas.
+ */
+export async function skickaKlarSms(
+  arendeId: string,
+  aktor: string,
+): Promise<{ skickat: true; till: string }> {
+  const resultat = await andraViaOperativApi<{ skickat: true; till: string }>(
+    'skicka_sms',
+    { arendeId, aktor },
+    'sms',
+  )
+  if (!resultat) throw new Error('SMS-tjänsten kunde inte nås just nu.')
+  return resultat
 }
 
 /**

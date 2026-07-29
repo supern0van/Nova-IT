@@ -6,6 +6,7 @@ import {
   FlagIcon,
   MessageSquareIcon,
   PaperclipIcon,
+  SmartphoneIcon,
   SparklesIcon,
   StickyNoteIcon,
   UserCheckIcon,
@@ -24,6 +25,7 @@ const ikoner: Record<Aktivitet['typ'], typeof FlagIcon> = {
   anteckning: StickyNoteIcon,
   bokning: CalendarIcon,
   bilaga: PaperclipIcon,
+  sms: SmartphoneIcon,
 }
 
 /**
