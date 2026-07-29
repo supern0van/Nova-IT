@@ -26,7 +26,12 @@ function listaRouteFiler(rot: string): string[] {
 // i stället en egen, likvärdig server-till-server-kontroll (delad
 // hemlighet, se route-filens egen dokumentation). Lägg ALDRIG till en route
 // här utan att verifiera att den har en egen, minst lika stark spärr.
-const publikaServerTillServerRoutes = new Set(['public/intag/route.ts'])
+const publikaServerTillServerRoutes = new Set([
+  'public/intag/route.ts',
+  'internal/kundarenden/route.ts',
+  'internal/kundarenden/[id]/route.ts',
+  'internal/kundmeddelande/route.ts',
+])
 
 describe('admin API route-kontrakt', () => {
   it('har testfil och AAL2-serverhelper för varje admin-API-route', () => {
@@ -38,6 +43,9 @@ describe('admin API route-kontrakt', () => {
       'admin/profiler/route.ts',
       'admin/operativt/route.ts',
       'admin/systemstatus/route.ts',
+      'internal/kundarenden/[id]/route.ts',
+      'internal/kundarenden/route.ts',
+      'internal/kundmeddelande/route.ts',
       'mfa/aterstall/route.ts',
       'public/intag/route.ts',
       'roll/route.ts',
