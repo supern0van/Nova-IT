@@ -125,7 +125,10 @@ export async function skickaKontaktforfragan(
     accepted?: boolean;
     arendenummer?: string;
     mottagetVid?: string;
-    internt?: { arendeId?: string };
+    internt?: {
+      arendeId?: string;
+      kundportalKonto?: { kontoSkapat?: boolean; tillfalligtLosenord?: string };
+    };
   } | null;
 
   if (!intakeResponse.ok || !intakeBody?.accepted || !intakeBody.arendenummer) {
@@ -142,10 +145,16 @@ export async function skickaKontaktforfragan(
   // misslyckat internt mejl loggas men stoppar aldrig svaret till kunden.
   await forsokSkickaInternAvisering(data, arendenummer);
 
+  const tillfalligtLosenord =
+    internt?.kundportalKonto?.kontoSkapat === true
+      ? internt.kundportalKonto.tillfalligtLosenord
+      : undefined;
+
   const confirmationSent = await forsokSkickaKundbekraftelse({
     namn: data.name,
     epost: data.email,
     arendenummer,
+    tillfalligtLosenord,
   });
 
   if (internt?.arendeId) {
@@ -277,6 +286,12 @@ async function forsokSkickaKundbekraftelse(uppgifter: {
   namn: string;
   epost: string;
   arendenummer: string;
+  /**
+   * Endast satt när kundportalen faktiskt skapade ett NYTT konto för den här
+   * kunden (se skickaKontaktforfragan ovan). Skickas ALDRIG till konsolen
+   * eller loggas - den enda platsen detta värde syns är i detta ena mejl.
+   */
+  tillfalligtLosenord?: string;
 }): Promise<boolean> {
   const apiKey = process.env.RESEND_API_KEY;
   const from = process.env.CONTACT_FORM_FROM;
@@ -288,7 +303,13 @@ async function forsokSkickaKundbekraftelse(uppgifter: {
     return false;
   }
 
-  const { subject, text } = formatCustomerConfirmationEmail(uppgifter.namn, uppgifter.arendenummer);
+  const { subject, text } = formatCustomerConfirmationEmail(
+    uppgifter.namn,
+    uppgifter.arendenummer,
+    uppgifter.tillfalligtLosenord
+      ? { epost: uppgifter.epost, tillfalligtLosenord: uppgifter.tillfalligtLosenord }
+      : undefined,
+  );
 
   try {
     const response = await fetch("https://api.resend.com/emails", {

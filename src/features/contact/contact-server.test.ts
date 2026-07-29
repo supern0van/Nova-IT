@@ -93,6 +93,75 @@ test("creates the ticket via the admin intake, then sends confirmation and inter
   });
 });
 
+test("forwards the temporary kundportal password into the customer confirmation email", async () => {
+  const calls: { url: string; init?: RequestInit }[] = [];
+  globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
+    const url = String(input);
+    calls.push({ url, init });
+    if (url.endsWith("/api/public/intag") && init?.method === "POST") {
+      return jsonResponse({
+        accepted: true,
+        arendenummer: "NIT-2601",
+        mottagetVid: "2026-07-29T10:00:00.000Z",
+        internt: {
+          arendeId: "arende-1",
+          kundEpost: "anna@example.se",
+          kundNamn: "Anna Andersson",
+          kundportalKonto: { kontoSkapat: true, tillfalligtLosenord: "xR7-tillfalligt-9k2" },
+        },
+      });
+    }
+    if (url.endsWith("/api/public/intag") && init?.method === "PATCH") {
+      return jsonResponse({ ok: true });
+    }
+    if (url.includes("api.resend.com")) {
+      return jsonResponse({ id: "email-1" });
+    }
+    throw new Error(`Unexpected fetch to ${url}`);
+  }) as unknown as typeof fetch;
+
+  await skickaKontaktforfragan(validPayload);
+
+  const resendCalls = calls.filter((call) => call.url.includes("api.resend.com"));
+  const customerEmailCall = resendCalls.find((call) =>
+    String(call.init?.body).includes("Din förfrågan är mottagen"),
+  );
+  expect(customerEmailCall).toBeDefined();
+  expect(String(customerEmailCall?.init?.body)).toContain("xR7-tillfalligt-9k2");
+});
+
+test("does not mention the kundportal when no new account was created", async () => {
+  const calls: { url: string; init?: RequestInit }[] = [];
+  globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
+    const url = String(input);
+    calls.push({ url, init });
+    if (url.endsWith("/api/public/intag") && init?.method === "POST") {
+      return jsonResponse({
+        accepted: true,
+        arendenummer: "NIT-2601",
+        mottagetVid: "2026-07-29T10:00:00.000Z",
+        internt: { arendeId: "arende-1", kundEpost: "anna@example.se", kundNamn: "Anna Andersson" },
+      });
+    }
+    if (url.endsWith("/api/public/intag") && init?.method === "PATCH") {
+      return jsonResponse({ ok: true });
+    }
+    if (url.includes("api.resend.com")) {
+      return jsonResponse({ id: "email-1" });
+    }
+    throw new Error(`Unexpected fetch to ${url}`);
+  }) as unknown as typeof fetch;
+
+  await skickaKontaktforfragan(validPayload);
+
+  const resendCalls = calls.filter((call) => call.url.includes("api.resend.com"));
+  const customerEmailCall = resendCalls.find((call) =>
+    String(call.init?.body).includes("Din förfrågan är mottagen"),
+  );
+  expect(customerEmailCall).toBeDefined();
+  expect(String(customerEmailCall?.init?.body)).not.toContain("kundportal");
+});
+
 test("never shows a ticket number when the intake itself rejects the request", async () => {
   globalThis.fetch = (async (input: RequestInfo | URL) => {
     if (String(input).endsWith("/api/public/intag")) {

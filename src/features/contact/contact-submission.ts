@@ -92,13 +92,24 @@ export function formatContactEmail(submission: ContactSubmission) {
   return { subject, text };
 }
 
+const KUNDPORTAL_INLOGGNING_URL = "https://kundportal.nova-it.se/logga-in";
+
 /**
  * Kundens mottagningsbekräftelse - inte samma sak som `formatContactEmail`
  * (som är den interna aviseringen till Nova IT). Innehåller uttryckligen
  * ingen uppmaning om att skicka lösenord/koder i svar, och inget som ser ut
  * som en teknisk lösning innan ärendet faktiskt bedömts.
+ *
+ * `kundportalKonto` är bara satt när kundportalen (Milstolpe 2, se
+ * docs/kundportal-planering.md i huvudrepot) faktiskt skapade ett NYTT konto
+ * för den här kunden - en återkommande kund som redan har ett konto får inget
+ * (nytt) tillfälligt lösenord, bara den vanliga bekräftelsetexten.
  */
-export function formatCustomerConfirmationEmail(namn: string, arendenummer: string) {
+export function formatCustomerConfirmationEmail(
+  namn: string,
+  arendenummer: string,
+  kundportalKonto?: { epost: string; tillfalligtLosenord: string },
+) {
   const subject = `Din förfrågan är mottagen – ${arendenummer}`;
   const text = [
     `Hej ${namn},`,
@@ -108,6 +119,16 @@ export function formatCustomerConfirmationEmail(namn: string, arendenummer: stri
     `Ärendenummer: ${arendenummer}`,
     "",
     "Vi återkommer så snart vi kan med hur vi bäst kan hjälpa till.",
+    ...(kundportalKonto
+      ? [
+          "",
+          "Du kan följa ärendet i vår kundportal:",
+          KUNDPORTAL_INLOGGNING_URL,
+          `E-post: ${kundportalKonto.epost}`,
+          `Tillfälligt lösenord: ${kundportalKonto.tillfalligtLosenord}`,
+          "Du blir ombedd att byta lösenordet första gången du loggar in.",
+        ]
+      : []),
     "",
     "Skriv gärna direkt på det här mejlet om du vill lägga till något - men skicka",
     "aldrig lösenord, engångskoder eller annan känslig information i ett svar.",

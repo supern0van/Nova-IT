@@ -89,6 +89,18 @@ test("formats a customer confirmation email with the ärendenummer and no leaked
   expect(email.text).toContain("Ärendenummer: NIT-2601");
   expect(email.text).toContain("Anna Andersson");
   expect(email.text.toLowerCase()).toContain("aldrig lösenord");
+  expect(email.text).not.toContain("kundportal");
+});
+
+test("includes kundportal login details only when a new account was created", () => {
+  const email = formatCustomerConfirmationEmail("Anna Andersson", "NIT-2601", {
+    epost: "anna@example.se",
+    tillfalligtLosenord: "xR7-tillfalligt-9k2",
+  });
+
+  expect(email.text).toContain("kundportal");
+  expect(email.text).toContain("E-post: anna@example.se");
+  expect(email.text).toContain("Tillfälligt lösenord: xR7-tillfalligt-9k2");
 });
 
 test("keeps the locked contact reason separate from the customer's description", () => {
