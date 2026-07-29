@@ -5,9 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Container } from "@/components/design-system";
 import { contactChannels } from "@/lib/nova-data";
 import { LegalDialogTrigger } from "@/components/legal-dialog";
+import { CookiePreferencesButton } from "@/components/cookie-consent";
 
 const nav = [
   { to: "/", label: "Hem" },
+  { to: "/privatpersoner", label: "Privatpersoner" },
+  { to: "/foretag-foreningar", label: "Företag & föreningar" },
   { to: "/tjanster", label: "Tjänster" },
   { to: "/arbetssatt", label: "Så arbetar vi" },
   { to: "/faq", label: "FAQ" },
@@ -180,6 +183,7 @@ export function SiteFooter() {
         >
           <FooterLink to="/om-oss">Om Nova IT</FooterLink>
           <FooterLink to="/faq">Vanliga frågor</FooterLink>
+          <FooterLink to="/assistent">Förbered ditt ärende</FooterLink>
         </FooterColumn>
 
         <FooterColumn title="Kontaktuppgifter" className="py-7 lg:pl-10">
@@ -195,7 +199,7 @@ export function SiteFooter() {
         </FooterColumn>
       </Container>
       <div className="border-t border-white/10 bg-black/10">
-        <Container className="flex flex-col gap-3 py-5 text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between">
+        <Container className="flex flex-col gap-3 py-5 text-xs text-slate-400 sm:flex-row sm:items-center sm:justify-between">
           <span>© {new Date().getFullYear()} Nova IT. Alla rättigheter förbehållna.</span>
           <nav aria-label="Juridisk information" className="flex flex-wrap gap-x-4 gap-y-2">
             <LegalDialogTrigger
@@ -210,6 +214,7 @@ export function SiteFooter() {
             >
               Kakor
             </LegalDialogTrigger>
+            <CookiePreferencesButton />
             <LegalDialogTrigger
               document="terms"
               className="transition-colors hover:text-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
@@ -248,7 +253,7 @@ function FooterLink({
   to,
   children,
 }: {
-  to: "/tjanster" | "/arbetssatt" | "/om-oss" | "/faq";
+  to: "/tjanster" | "/arbetssatt" | "/om-oss" | "/faq" | "/assistent";
   children: React.ReactNode;
 }) {
   return (

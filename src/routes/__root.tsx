@@ -15,6 +15,7 @@ import { reportLovableError } from "../integrations/lovable/error-reporting";
 import { SiteHeader, SiteFooter } from "../components/site-chrome";
 import { SupportBotLauncher } from "../features/support/SupportBotLauncher";
 import { LegalDialogProvider } from "../components/legal-dialog";
+import { CookieConsent } from "../components/cookie-consent";
 
 const siteUrl = "https://nova-it.se";
 const socialImageUrl = `${siteUrl}/nova-it-workspace.png`;
@@ -158,6 +159,7 @@ function RootComponent() {
           </main>
           <SiteFooter />
           <SupportBotLauncher />
+          <CookieConsent />
         </div>
       </LegalDialogProvider>
     </QueryClientProvider>

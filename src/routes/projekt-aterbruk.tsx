@@ -3,16 +3,21 @@ import { ArrowRight, ArrowUpRight, FileText } from "lucide-react";
 
 import { Container } from "@/components/design-system";
 
+const projektAterbrukUrl = "https://nova-it.se/projekt-aterbruk";
+const projektAterbrukTitle = "Projekt Återbruk – Nova IT";
+const projektAterbrukDescription =
+  "Ett dokumenterat LIA-projekt där 116 datorer inventerades, testades och förbereddes för fortsatt användning.";
+
 export const Route = createFileRoute("/projekt-aterbruk")({
   head: () => ({
     meta: [
-      { title: "Projekt Återbruk – Nova IT" },
-      {
-        name: "description",
-        content:
-          "Ett dokumenterat LIA-projekt där 116 datorer inventerades, testades och förbereddes för fortsatt användning.",
-      },
+      { title: projektAterbrukTitle },
+      { name: "description", content: projektAterbrukDescription },
+      { property: "og:title", content: projektAterbrukTitle },
+      { property: "og:description", content: projektAterbrukDescription },
+      { property: "og:url", content: projektAterbrukUrl },
     ],
+    links: [{ rel: "canonical", href: projektAterbrukUrl }],
   }),
   component: ProjectReusePage,
 });
@@ -56,7 +61,7 @@ const systems = [
 
 function ProjectReusePage() {
   return (
-    <div className="bg-[#0d151e] text-white">
+    <div className="nova-section">
       <section className="overflow-hidden border-b border-white/10 bg-[#091119]">
         <Container className="grid min-h-[640px] items-stretch lg:grid-cols-[minmax(0,1.25fr)_minmax(320px,0.75fr)]">
           <div className="flex flex-col justify-center py-20 pr-0 sm:py-24 lg:pr-16">
@@ -96,7 +101,7 @@ function ProjectReusePage() {
         </Container>
       </section>
 
-      <section className="bg-[#101922] py-20 sm:py-28">
+      <section className="nova-section-muted py-20 sm:py-28">
         <Container>
           <div className="grid gap-12 lg:grid-cols-[0.72fr_1.28fr] lg:gap-20">
             <div>
@@ -130,7 +135,7 @@ function ProjectReusePage() {
         </Container>
       </section>
 
-      <section className="border-y border-white/10 bg-[#0d151e] py-20 sm:py-28">
+      <section className="border-y border-white/10 nova-section py-20 sm:py-28">
         <Container>
           <div className="grid gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:gap-20">
             <div>
@@ -159,7 +164,7 @@ function ProjectReusePage() {
         </Container>
       </section>
 
-      <section className="bg-[#101922] py-20 sm:py-28">
+      <section className="nova-section-muted py-20 sm:py-28">
         <Container>
           <div className="grid gap-12 lg:grid-cols-[0.72fr_1.28fr] lg:gap-20">
             <div>
@@ -202,16 +207,19 @@ function ProjectReusePage() {
         </Container>
       </section>
 
-      <section className="bg-[#0d151e] py-20 sm:py-28">
+      <section className="nova-section py-20 sm:py-28">
         <Container>
-          <div className="grid overflow-hidden border border-white/10 bg-[#101922] lg:grid-cols-[1.05fr_0.95fr]">
+          <div className="grid overflow-hidden border border-white/10 nova-section-muted lg:grid-cols-[1.05fr_0.95fr]">
             <div className="relative min-h-[300px] overflow-hidden border-b border-white/10 lg:min-h-[540px] lg:border-b-0 lg:border-r">
-              <img
-                src="/projekt-aterbruk/presentation-cover.png"
-                alt="Förstasidan ur presentationen för Projekt Återbruk"
-                className="absolute inset-0 h-full w-full object-cover object-center"
-                loading="lazy"
-              />
+              <picture>
+                <source srcSet="/projekt-aterbruk/presentation-cover.webp" type="image/webp" />
+                <img
+                  src="/projekt-aterbruk/presentation-cover.png"
+                  alt="Förstasidan ur presentationen för Projekt Återbruk"
+                  className="absolute inset-0 h-full w-full object-cover object-center"
+                  loading="lazy"
+                />
+              </picture>
               <div className="absolute inset-0 bg-gradient-to-t from-[#091119]/65 via-transparent to-transparent" />
             </div>
 

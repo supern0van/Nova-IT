@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Building2, HeartHandshake, MapPin, Network, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Container, PageHeader } from "@/components/design-system";
-import { serviceRegion } from "@/lib/nova-data";
+import { serviceRegion } from "@/lib/service-region";
 
 export const Route = createFileRoute("/om-oss")({
   head: () => ({

@@ -20,13 +20,6 @@ export const contactChannels = {
   showOnContactPage: true,
 };
 
-export const serviceRegion = {
-  base: "Hässelby",
-  primary: "Västerort",
-  description:
-    "Nova IT utgår från Hässelby och fokuserar på Västerort och närliggande områden. Exakt upplägg och plats bedöms utifrån ärendet.",
-};
-
 export type Service = {
   slug: string;
   title: string;

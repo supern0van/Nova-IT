@@ -2,16 +2,21 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Container, PageHeader } from "@/components/design-system";
 import { SupportGuide } from "@/features/support/SupportGuide";
 
+const assistentUrl = "https://nova-it.se/assistent";
+const assistentTitle = "Förbered ditt IT-ärende – Nova IT";
+const assistentDescription =
+  "Beskriv vad som krånglar och få hjälp att samla rätt underlag innan du kontaktar Nova IT.";
+
 export const Route = createFileRoute("/assistent")({
   head: () => ({
     meta: [
-      { title: "Förbered ditt IT-ärende – Nova IT" },
-      {
-        name: "description",
-        content:
-          "Beskriv vad som krånglar och få hjälp att samla rätt underlag innan du kontaktar Nova IT.",
-      },
+      { title: assistentTitle },
+      { name: "description", content: assistentDescription },
+      { property: "og:title", content: assistentTitle },
+      { property: "og:description", content: assistentDescription },
+      { property: "og:url", content: assistentUrl },
     ],
+    links: [{ rel: "canonical", href: assistentUrl }],
   }),
   component: AssistantPage,
 });

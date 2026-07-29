@@ -77,3 +77,67 @@ Cloudflare-kontots inloggningsadress paverkar inte formularets funktion. Bytet t
 ## Fore bred lansering
 
 Kontaktformularet bor fa Cloudflare Turnstile och en enkel begransning av upprepade skick innan det marknadsfors brett. Det minskar spam och onodiga kostnader utan att lagga en tung inloggning framfor kunden.
+
+Status (2026-07-29): honeypot- och tidskontrollen ar redan byggda och aktiva i koden (`src/features/contact/contact-server.ts`). Turnstile-koden (klient + server) ar ocksa byggd men soft-fail:ar tills nycklarna nedan ar satta - se korordern nedan for att aktivera den skarpt.
+
+## Kororder: aktivera ratebegransning, Turnstile och INTAG_SECRET
+
+Dessa steg kraver inloggning i Cloudflare Dashboard och kan darfor inte utforas av assistenten - de listas har som en konkret att-gora-lista, i rekommenderad ordning.
+
+### 1. INTAG_SECRET (delad hemlighet mellan de tva Workers)
+
+Kravs for att den publika sajtens kontaktformular ska kunna skapa arenden i adminportalen via `/api/public/intag`. Samma varde maste finnas pa **bada** Workers.
+
+1. Generera ett langt slumpmassigt varde, t.ex.:
+   ```powershell
+   openssl rand -hex 32
+   ```
+2. Satt det pa den publika sajtens Worker (fran repots rot, efter en lyckad `bun run build`):
+   ```powershell
+   bun run build
+   bunx wrangler secret put INTAG_SECRET --config .output/server/wrangler.json
+   bunx wrangler secret put ADMIN_INTAKE_URL --config .output/server/wrangler.json
+   ```
+   `ADMIN_INTAKE_URL` = `https://admin.nova-it.se` (adminportalens Worker-URL, utan avslutande snedstreck).
+3. Satt **exakt samma** `INTAG_SECRET`-varde pa adminportalens Worker:
+   ```powershell
+   cd portal
+   bunx wrangler secret put INTAG_SECRET
+   ```
+4. Deploya bada Workers med de vanliga produktionsrutinerna (`bun run deploy:production` i respektive mapp) sa att de nya hemligheterna borjar anvandas.
+5. Verifiera: skicka ett testarende via `/kontakt` pa `nova-it.se` och bekrafta att det dyker upp som ett riktigt arende i adminportalen (inte bara ett e-postmeddelande).
+
+### 2. Cloudflare Turnstile
+
+1. Ga till Cloudflare Dashboard -> Turnstile -> Add site. Domain: `nova-it.se`. Widget mode: rekommenderas "Managed".
+2. Kopiera **Site Key** (publik) och **Secret Key** (hemlig).
+3. Satt Site Key som en vanlig miljovariabel pa den publika sajtens Worker (den ar avsedd att exponeras i webblasaren):
+   ```powershell
+   bunx wrangler secret put VITE_TURNSTILE_SITE_KEY --config .output/server/wrangler.json
+   ```
+   (Byggs in i klientkoden vid `bun run build` - kor darfor om build + deploy efter detta steg.)
+4. Satt Secret Key server-side, ENDAST pa den publika sajtens Worker (aldrig i adminportalen, aldrig i klientkod):
+   ```powershell
+   bunx wrangler secret put TURNSTILE_SECRET_KEY --config .output/server/wrangler.json
+   ```
+5. Bygg och deploya om (`bun run deploy:production`).
+6. Verifiera: ladda `/kontakt?form=request` i en vanlig webblasare och bekrafta att Turnstile-widgeten syns ovanfor skicka-knappen. Skicka ett testarende och bekrafta att det fortfarande fungerar.
+
+Tills bada nycklarna ar satta fungerar formularet exakt som idag (ingen Turnstile-kontroll genomfors) - se `verifieraTurnstile()` i `contact-server.ts`.
+
+### 3. Ratebegransning (Cloudflare Dashboard, inte Workers-kod)
+
+Rekommenderat: en Rate Limiting Rule pa zonniva (Security -> WAF -> Rate limiting rules), inte ny kod i Workern.
+
+- **Regel 1** - kontaktformularets sidvisning/inskick: matcha `URI Path` `equals` `/kontakt`, trosklevarde t.ex. **20 forfragningar per minut per IP**, atgard **Managed Challenge** (inte "Block", eftersom aktiveringssidan besoks av legitima kunder aven vid hog trafik).
+- **Regel 2** - sjalva intags-endpointen: matcha `URI Path` `equals` `/api/public/intag`, trosklevarde t.ex. **10 forfragningar per minut per IP**, atgard **Block** (den anropas bara av den egna servern-till-server-koden och supportassistentens flode, aldrig direkt av en vanlig anvandares webblasare i normalt bruk).
+
+Justera troskelvardena efter faktisk trafik nar de forsta veckorna har gett en baslinje.
+
+## Beslutat: bygg inte "Forsok skicka bekraftelse igen" nu
+
+En admin-knapp for att manuellt forsoka skicka om en misslyckad kundbekraftelse (nar `bekraftelse_status = 'misslyckad'`) diskuterades men byggs inte i denna omgang.
+
+Skal: adminportalen har inga Resend-nycklar idag, och att lagga till dem dar skulle dubblera e-postkonfigurationen i tva separata Workers. Alternativet - att adminportalen anropar den publika sajtens `createServerFn`-endpoint over natverket - ar inte ett monster TanStack Start ar byggt for (den typen av serverfunktioner ar tankta att anropas av den egna appens klient, inte fran en extern tjanst) och skulle bli en skor, odokumenterad genvag.
+
+Om behovet blir stort (t.ex. manga misslyckade bekraftelser i praktiken) bor detta byggas som en egen, avgransad uppgift - troligen genom att lagga till en tredje, liten skyddad endpoint i den publika sajten (`/api/intern/skicka-bekraftelse-igen` e.d.) som adminportalen far anropa med samma `INTAG_SECRET`-monster som redan finns, snarare an att adminportalen skickar e-post sjalv.

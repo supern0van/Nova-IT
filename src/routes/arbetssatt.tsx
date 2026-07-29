@@ -1,17 +1,23 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { ClipboardList, MonitorCog, ShieldCheck } from "lucide-react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { ArrowRight, ClipboardList, MonitorCog, ShieldCheck } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Container, PageHeader } from "@/components/design-system";
+
+const arbetssattUrl = "https://nova-it.se/arbetssatt";
+const arbetssattTitle = "Arbetssätt – Nova IT";
+const arbetssattDescription =
+  "Så arbetar Nova IT från första ärendebeskrivning till felsökning, åtgärd och uppföljning.";
 
 export const Route = createFileRoute("/arbetssatt")({
   head: () => ({
     meta: [
-      { title: "Arbetssätt – Nova IT" },
-      {
-        name: "description",
-        content:
-          "Så arbetar Nova IT från första ärendebeskrivning till felsökning, åtgärd och uppföljning.",
-      },
+      { title: arbetssattTitle },
+      { name: "description", content: arbetssattDescription },
+      { property: "og:title", content: arbetssattTitle },
+      { property: "og:description", content: arbetssattDescription },
+      { property: "og:url", content: arbetssattUrl },
     ],
+    links: [{ rel: "canonical", href: arbetssattUrl }],
   }),
   component: WorkMethodPage,
 });
@@ -70,6 +76,22 @@ function WorkMethodPage() {
               </li>
             ))}
           </ol>
+        </Container>
+      </section>
+
+      <section className="nova-section border-t border-white/10">
+        <Container className="flex flex-col items-start gap-5 py-14 sm:flex-row sm:items-center sm:justify-between sm:py-16">
+          <div>
+            <p className="eyebrow">Nästa steg</p>
+            <h2 className="mt-3 max-w-xl text-2xl font-semibold tracking-normal text-balance">
+              Redo att beskriva vad som krånglar?
+            </h2>
+          </div>
+          <Button asChild size="lg" className="shrink-0">
+            <Link to="/kontakt" search={{ form: "request", service: undefined }}>
+              Beskriv ärende <ArrowRight className="h-4 w-4" />
+            </Link>
+          </Button>
         </Container>
       </section>
     </>

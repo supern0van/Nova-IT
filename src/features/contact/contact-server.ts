@@ -1,58 +1,319 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { formatContactEmail } from "./contact-submission";
+import {
+  formatContactEmail,
+  formatCustomerConfirmationEmail,
+  tillAdminAngelagenhet,
+  tillAdminKundtyp,
+} from "./contact-submission";
 
 const CONTACT_FORM_RECIPIENT = "kontakt@nova-it.se";
 
 const contactRequestSchema = z.object({
+  kalla: z.enum(["kontaktformular", "supportassistent"]),
   name: z.string().trim().min(2).max(100),
   email: z.string().trim().email().max(255),
   phone: z.string().trim().max(60),
   customerType: z.enum(["Privatperson", "Företag", "Skola", "Annat"]),
+  companyName: z.string().trim().max(160),
   service: z.string().trim().min(1).max(120),
+  tjanstSlug: z.string().trim().min(1).max(60),
   urgency: z.enum(["Planerat", "Normal", "Akut"]),
   message: z.string().trim().min(10).max(2000),
+  idempotencyKey: z.string().trim().min(16).max(200),
+  // Spam-/missbruksskydd - se skickaKontaktforfragan().
+  website: z.string().max(200).optional(), // honeypot, ska alltid vara tomt
+  formRenderedAt: z.number(),
+  turnstileToken: z.string().nullable().optional(),
 });
+
+const MIN_SUBMIT_DELAY_MS = 2500;
+
+export type SubmitContactRequestResult = {
+  accepted: true;
+  arendenummer: string;
+  mottagetVid: string;
+  confirmationSent: boolean;
+};
+
+type ContactRequestData = ReturnType<typeof contactRequestSchema.parse>;
+
+/**
+ * Central ärendeintagningsväg för BÅDE kontaktformuläret och
+ * supportassistenten (se `kalla`-fältet ovan) - de skiljer sig bara i
+ * gränssnitt, inte i backend. Ett lyckat anrop:
+ *
+ *   1. Skapar/matchar kund och riktigt ärende i adminportalens databas via
+ *      den skyddade `/api/public/intag`-endpointen (server-till-server,
+ *      delad hemlighet, ALDRIG anropad direkt av besökarens webbläsare).
+ *   2. Försöker DÄREFTER skicka en kundbekräftelse via Resend. Ett
+ *      misslyckat bekräftelsemejl kastar INTE ett fel - ärendet är redan
+ *      skapat och kvar oavsett. `confirmationSent: false` signalerar detta
+ *      till klienten, som visar en annan, ärlig text i stället för att
+ *      låtsas att bekräftelsen gick fram.
+ *
+ * Om steg 1 misslyckas (adminportalen nere, avvisar anropet, valideringsfel
+ * etc.) kastas ett fel och INGET returneras till klienten - inget
+ * ärendenummer visas då, och det finns ingen tyst e-postfallback som gör
+ * att ett misslyckat ärendeskapande ändå ser ut som en lyckad inskickning.
+ *
+ * Logiken bor i `skickaKontaktforfragan` (en vanlig, testbar funktion) i
+ * stället för direkt i `.handler()` nedan - `createServerFn`-wrappade
+ * funktioner kräver TanStack Starts server-runtime-kontext (AsyncLocalStorage)
+ * för att anropas alls, vilket gör dem otestbara isolerat i `bun:test`.
+ */
+export async function skickaKontaktforfragan(
+  data: ContactRequestData,
+): Promise<SubmitContactRequestResult> {
+  // Honeypot: ett fält som är osynligt och onåbart för en människa som
+  // använder formuläret normalt, men som enkla bottar ofta fyller i
+  // automatiskt. Generiskt fel - avslöjar inte att det är en spamkontroll.
+  if (data.website && data.website.trim().length > 0) {
+    console.error("Kontaktformulär avvisat: honeypot-fält ifyllt.");
+    throw new Error(
+      "Ärendet kunde inte skickas just nu. Försök igen, eller skriv direkt till oss.",
+    );
+  }
+
+  // Tidskontroll: ett formulär som skickas nästan omedelbart efter att det
+  // renderades är typiskt för ett automatiserat skript, inte en människa
+  // som läser och fyller i fälten.
+  if (Date.now() - data.formRenderedAt < MIN_SUBMIT_DELAY_MS) {
+    console.error("Kontaktformulär avvisat: skickades orimligt snabbt efter rendering.");
+    throw new Error(
+      "Ärendet kunde inte skickas just nu. Försök igen, eller skriv direkt till oss.",
+    );
+  }
+
+  await verifieraTurnstile(data.turnstileToken ?? null);
+
+  const intakeUrl = process.env.ADMIN_INTAKE_URL;
+  const intakeSecret = process.env.INTAG_SECRET;
+
+  if (!intakeUrl || !intakeSecret) {
+    console.error("Public intake is missing ADMIN_INTAKE_URL or INTAG_SECRET.");
+    throw new Error("Ärendeintaget är inte konfigurerat just nu. Försök igen om en stund.");
+  }
+
+  let intakeResponse: Response;
+  try {
+    intakeResponse = await fetch(`${intakeUrl}/api/public/intag`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "x-intag-secret": intakeSecret,
+      },
+      body: JSON.stringify({
+        kalla: data.kalla,
+        namn: data.name,
+        epost: data.email,
+        telefon: data.phone,
+        kundtyp: tillAdminKundtyp(data.customerType),
+        verksamhetsnamn: data.companyName || undefined,
+        tjanstSlug: data.tjanstSlug,
+        angelagenhet: tillAdminAngelagenhet(data.urgency),
+        meddelande: data.message,
+        idempotensnyckel: data.idempotencyKey,
+      }),
+    });
+  } catch (error) {
+    console.error("Kunde inte nå det interna ärendeintaget.", error);
+    throw new Error("Ärendet kunde inte skickas just nu. Försök igen om en stund.");
+  }
+
+  const intakeBody = (await intakeResponse.json().catch(() => null)) as {
+    accepted?: boolean;
+    arendenummer?: string;
+    mottagetVid?: string;
+    internt?: { arendeId?: string };
+  } | null;
+
+  if (!intakeResponse.ok || !intakeBody?.accepted || !intakeBody.arendenummer) {
+    console.error("Ärendeintaget avvisade förfrågan.", intakeResponse.status, intakeBody);
+    throw new Error(
+      "Ärendet kunde inte registreras just nu. Försök igen, eller skriv direkt till oss.",
+    );
+  }
+
+  const { arendenummer, mottagetVid, internt } = intakeBody;
+
+  // Intern avisering till Nova IT, frikopplad från kundbekräftelsen
+  // nedan - ärendet syns redan i adminportalen oavsett, så ett
+  // misslyckat internt mejl loggas men stoppar aldrig svaret till kunden.
+  await forsokSkickaInternAvisering(data, arendenummer);
+
+  const confirmationSent = await forsokSkickaKundbekraftelse({
+    namn: data.name,
+    epost: data.email,
+    arendenummer,
+  });
+
+  if (internt?.arendeId) {
+    await uppdateraBekraftelseStatus({
+      intakeUrl,
+      intakeSecret,
+      arendeId: internt.arendeId,
+      status: confirmationSent ? "skickad" : "misslyckad",
+    });
+  }
+
+  return {
+    accepted: true,
+    arendenummer,
+    mottagetVid: mottagetVid ?? new Date().toISOString(),
+    confirmationSent,
+  };
+}
 
 export const submitContactRequest = createServerFn({ method: "POST" })
   .validator(contactRequestSchema)
-  .handler(async ({ data }) => {
-    const apiKey = process.env.RESEND_API_KEY;
-    const from = process.env.CONTACT_FORM_FROM;
+  .handler(({ data }) => skickaKontaktforfragan(data));
 
-    if (!apiKey || !from) {
-      console.error("Contact form delivery is missing RESEND_API_KEY or CONTACT_FORM_FROM.");
-      throw new Error("Kontaktformuläret är inte konfigurerat.");
+/**
+ * Verifierar en Cloudflare Turnstile-token server-side.
+ *
+ * Soft-fail (hoppar över kontrollen, hindrar inget) om TURNSTILE_SECRET_KEY
+ * inte är konfigurerad - ett medvetet val. Turnstile aktiveras i två steg
+ * (Cloudflare Dashboard + denna kod), och om verifieringen var hard-fail
+ * skulle en deploy av den här koden INNAN Turnstile faktiskt är konfigurerat
+ * i Cloudflare göra att kontaktformuläret slutade fungera helt för alla
+ * besökare. Once konfigurerad blir kontrollen skarp: en saknad eller
+ * ogiltig token nekas då alltid.
+ */
+async function verifieraTurnstile(token: string | null): Promise<void> {
+  const secretKey = process.env.TURNSTILE_SECRET_KEY;
+  if (!secretKey) return;
+
+  if (!token) {
+    throw new Error("Verifieringen kunde inte genomföras. Ladda om sidan och försök igen.");
+  }
+
+  try {
+    const response = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ secret: secretKey, response: token }),
+    });
+    const result = (await response.json().catch(() => null)) as { success?: boolean } | null;
+
+    if (!response.ok || !result?.success) {
+      throw new Error("Verifieringen kunde inte genomföras. Ladda om sidan och försök igen.");
+    }
+  } catch (error) {
+    if (error instanceof Error && error.message.startsWith("Verifieringen")) throw error;
+    console.error("Turnstile-verifiering misslyckades.", error);
+    throw new Error("Verifieringen kunde inte genomföras. Ladda om sidan och försök igen.");
+  }
+}
+
+async function forsokSkickaInternAvisering(
+  data: Parameters<typeof formatContactEmail>[0],
+  arendenummer: string,
+): Promise<void> {
+  const apiKey = process.env.RESEND_API_KEY;
+  const from = process.env.CONTACT_FORM_FROM;
+
+  if (!apiKey || !from) {
+    console.error(
+      "Intern avisering kunde inte skickas - RESEND_API_KEY eller CONTACT_FORM_FROM saknas.",
+    );
+    return;
+  }
+
+  const { subject, text } = formatContactEmail({ ...data, arendenummer });
+
+  try {
+    const response = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+        "User-Agent": "Nova-IT-contact-form/1.0",
+      },
+      body: JSON.stringify({
+        from,
+        to: [CONTACT_FORM_RECIPIENT],
+        reply_to: data.email,
+        subject,
+        text,
+      }),
+    });
+
+    if (!response.ok) {
+      const body = await response.text();
+      console.error("Intern avisering kunde inte skickas.", response.status, body);
+    }
+  } catch (error) {
+    console.error("Intern avisering kunde inte skickas.", error);
+  }
+}
+
+async function forsokSkickaKundbekraftelse(uppgifter: {
+  namn: string;
+  epost: string;
+  arendenummer: string;
+}): Promise<boolean> {
+  const apiKey = process.env.RESEND_API_KEY;
+  const from = process.env.CONTACT_FORM_FROM;
+
+  if (!apiKey || !from) {
+    console.error(
+      "Kundbekräftelse kunde inte skickas - RESEND_API_KEY eller CONTACT_FORM_FROM saknas.",
+    );
+    return false;
+  }
+
+  const { subject, text } = formatCustomerConfirmationEmail(uppgifter.namn, uppgifter.arendenummer);
+
+  try {
+    const response = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+        "User-Agent": "Nova-IT-contact-form/1.0",
+      },
+      body: JSON.stringify({
+        from,
+        to: [uppgifter.epost],
+        reply_to: CONTACT_FORM_RECIPIENT,
+        subject,
+        text,
+      }),
+    });
+
+    if (!response.ok) {
+      const body = await response.text();
+      console.error("Kundbekräftelse kunde inte skickas.", response.status, body);
+      return false;
     }
 
-    const { subject, text } = formatContactEmail(data);
+    return true;
+  } catch (error) {
+    console.error("Kundbekräftelse kunde inte skickas.", error);
+    return false;
+  }
+}
 
-    try {
-      const response = await fetch("https://api.resend.com/emails", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
-          "User-Agent": "Nova-IT-contact-form/1.0",
-        },
-        body: JSON.stringify({
-          from,
-          to: [CONTACT_FORM_RECIPIENT],
-          reply_to: data.email,
-          subject,
-          text,
-        }),
-      });
-
-      if (!response.ok) {
-        const responseBody = await response.text();
-        console.error("Contact form email delivery failed", response.status, responseBody);
-        throw new Error("Contact form delivery failed.");
-      }
-    } catch (error) {
-      console.error("Contact form email delivery failed.", error);
-      throw new Error("Kontaktformuläret kunde inte skicka ärendet.");
-    }
-
-    return { accepted: true, recipient: CONTACT_FORM_RECIPIENT };
-  });
+async function uppdateraBekraftelseStatus(uppgifter: {
+  intakeUrl: string;
+  intakeSecret: string;
+  arendeId: string;
+  status: "skickad" | "misslyckad";
+}): Promise<void> {
+  try {
+    await fetch(`${uppgifter.intakeUrl}/api/public/intag`, {
+      method: "PATCH",
+      headers: {
+        "content-type": "application/json",
+        "x-intag-secret": uppgifter.intakeSecret,
+      },
+      body: JSON.stringify({ arendeId: uppgifter.arendeId, status: uppgifter.status }),
+    });
+  } catch (error) {
+    // Ärendet är redan skapat och kunden har redan fått (eller inte fått)
+    // sin bekräftelse - att inte kunna logga statusen i adminportalen är
+    // inte kritiskt nog att misslyckas hela requesten för.
+    console.error("Kunde inte uppdatera bekräftelsestatus i adminportalen.", error);
+  }
+}
