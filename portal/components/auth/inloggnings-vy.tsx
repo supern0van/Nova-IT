@@ -37,6 +37,8 @@ export function InloggningsVy() {
   const sokParametrar = useSearchParams()
   const { anvandare, initierar, loggaIn, loggarIn, sessionUtgick, rensaSessionUtgick } = useAuth()
   const aterstallerLosenord = sokParametrar.get('aterstall') === '1'
+  const serverSessionUtgick = sokParametrar.get('session') === 'expired'
+  const [serverSessionRensad, setServerSessionRensad] = useState(!serverSessionUtgick)
 
   const [lage, setLage] = useState<Lage>(aterstallerLosenord ? 'nytt_losenord' : 'inloggning')
   const [epost, setEpost] = useState('')
@@ -49,11 +51,23 @@ export function InloggningsVy() {
   // Redan inloggad? Skicka vidare in i portalen – eller till den ursprungliga
   // destinationen om proxyn skickade med en giltig `next`-parameter.
   useEffect(() => {
+    if (!serverSessionUtgick) return
+    let avbruten = false
+    authAdapter.loggaUtLokalt().finally(() => {
+      if (!avbruten) setServerSessionRensad(true)
+    })
+    return () => {
+      avbruten = true
+    }
+  }, [serverSessionUtgick])
+
+  useEffect(() => {
     if (aterstallerLosenord) return
+    if (!serverSessionRensad) return
     if (initierar || !anvandare) return
     const destination = sakerOmdirigeringsSokvag(sokParametrar.get('next')) ?? STANDARDVAG_EFTER_INLOGGNING
     router.replace(destination)
-  }, [aterstallerLosenord, initierar, anvandare, router, sokParametrar])
+  }, [aterstallerLosenord, initierar, anvandare, router, sokParametrar, serverSessionRensad])
 
   useEffect(() => {
     if (aterstallerLosenord) setLage('nytt_losenord')
@@ -125,7 +139,7 @@ export function InloggningsVy() {
                 </p>
               </header>
 
-              {sessionUtgick && (
+              {(sessionUtgick || serverSessionUtgick) && (
                 <div className="mt-5 flex items-start gap-2.5 rounded-lg bg-warning/10 px-3.5 py-3">
                   <ClockIcon className="mt-0.5 size-4 shrink-0 text-warning" />
                   <p className="text-[13px] leading-relaxed text-text-secondary">

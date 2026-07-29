@@ -41,6 +41,7 @@ describe('admin API route-kontrakt', () => {
       'mfa/aterstall/route.ts',
       'public/intag/route.ts',
       'roll/route.ts',
+      'session/lease/route.ts',
     ].sort())
 
     for (const route of routes) {
@@ -63,7 +64,8 @@ describe('admin API route-kontrakt', () => {
       const harRollKontroll =
         innehall.includes('harAdminAtkomst') ||
         innehall.includes('hamtaRollFranDatabasen') ||
-        relativ === 'roll/route.ts'
+        relativ === 'roll/route.ts' ||
+        relativ === 'session/lease/route.ts'
 
       expect(harRollKontroll, relativ).toBe(true)
     }

@@ -249,6 +249,12 @@ export const authAdapter = {
     return { ok: !error }
   },
 
+  /** Rensar bara den här webbläsarens session när servern har löpt ut leasen. */
+  async loggaUtLokalt(): Promise<void> {
+    const supabase = skapaSupabaseWebblasarklient()
+    await supabase.auth.signOut({ scope: 'local' })
+  },
+
   /**
    * Läser den aktuella Supabase-sessionen (om någon).
    */

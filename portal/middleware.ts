@@ -44,7 +44,11 @@ export async function middleware(request: NextRequest) {
     pathname === '/logga-in' ||
     pathname.startsWith('/logga-in/') ||
     pathname === '/mfa' ||
-    pathname.startsWith('/mfa/')
+    pathname.startsWith('/mfa/') ||
+    pathname === '/api/roll' ||
+    pathname === '/api/session/lease' ||
+    pathname.startsWith('/api/admin/') ||
+    pathname.startsWith('/api/mfa/')
 
   if (!arAuthPath) return NextResponse.next()
   return uppdateraSessionOchSkyddaPortal(request)

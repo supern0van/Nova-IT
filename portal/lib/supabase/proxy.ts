@@ -3,6 +3,8 @@ import { NextResponse, type NextRequest } from 'next/server'
 
 import { sakerOmdirigeringsSokvag } from '@/lib/auth/sakerOmdirigering'
 import { MFA_VAG, harUppnattAal2 } from '@/lib/auth/mfa'
+import { skapaSessionLease, SESSION_LEASE_COOKIE, verifieraSessionLease } from '@/lib/auth/session-lease'
+import { INAKTIVITETS_TIMEOUT_MS } from '@/lib/auth/session-timeouts'
 
 const INLOGGNINGSVAG = '/logga-in'
 const STANDARDVAG_EFTER_INLOGGNING = '/portal'
@@ -104,6 +106,44 @@ export async function uppdateraSessionOchSkyddaPortal(request: NextRequest) {
   // `aal` saknas aldrig i praktiken när `claims` finns (obligatoriskt claim
   // enligt Supabase), men faller stängt (`aal1`) om det ändå skulle saknas.
   const mfaVerifierad = inloggad && harUppnattAal2(claims?.aal ?? 'aal1')
+
+  async function hanteraServerSessionLease() {
+    if (!mfaVerifierad || typeof claims?.sub !== 'string' || typeof claims?.session_id !== 'string') {
+      return null
+    }
+
+    const lease = await verifieraSessionLease(
+      request.cookies.get(SESSION_LEASE_COOKIE)?.value ?? null,
+      claims.session_id,
+      claims.sub,
+    )
+    if (!lease.giltig && lease.orsak !== 'saknas') {
+      const malAdress = request.nextUrl.clone()
+      malAdress.pathname = INLOGGNINGSVAG
+      malAdress.search = '?session=expired'
+      const timeoutSvar = NextResponse.redirect(malAdress, 307)
+      timeoutSvar.cookies.set(SESSION_LEASE_COOKIE, '', { maxAge: 0, path: '/' })
+      request.cookies.getAll().forEach(({ name }) => {
+        if (name.startsWith('sb-')) timeoutSvar.cookies.set(name, '', { maxAge: 0, path: '/' })
+      })
+      timeoutSvar.headers.set('Cache-Control', 'no-store')
+      return timeoutSvar
+    }
+
+    const nyLease = await skapaSessionLease(claims.session_id, claims.sub)
+    if (!nyLease) return null
+    svar.cookies.set(SESSION_LEASE_COOKIE, nyLease, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'lax',
+      path: '/',
+      maxAge: Math.ceil(INAKTIVITETS_TIMEOUT_MS / 1000),
+    })
+    return null
+  }
+
+  const leaseSvar = await hanteraServerSessionLease()
+  if (leaseSvar) return leaseSvar
 
   /** Skickar en inloggad, MFA-verifierad användare vidare till /portal (eller en validerad `next`-destination). */
   function omdirigeraTillInloggadDestination() {

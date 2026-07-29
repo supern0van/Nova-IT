@@ -140,6 +140,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     let utloggningPagar = false
     let senasteAktivitetsSkrivning = 0
+    let senasteServerPing = 0
     const registreraAktivitet = () => {
       const tid = Date.now()
       if (tid - senasteAktivitetsSkrivning < 1000) return
@@ -147,6 +148,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       senastAktiv = tid
       window.sessionStorage.setItem(SENAST_AKTIV_NYCKEL, String(tid))
       setInaktivitetKvarMs(INAKTIVITETS_TIMEOUT_MS)
+      if (tid - senasteServerPing >= 60_000) {
+        senasteServerPing = tid
+        void fetch('/api/session/lease', { method: 'POST', credentials: 'same-origin', keepalive: true }).catch(() => {})
+      }
     }
 
     const loggaUtEfterInaktivitet = async () => {
@@ -196,6 +201,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const tid = Date.now()
     window.sessionStorage.setItem(SENAST_AKTIV_NYCKEL, String(tid))
     setInaktivitetKvarMs(INAKTIVITETS_TIMEOUT_MS)
+    void fetch('/api/session/lease', { method: 'POST', credentials: 'same-origin', keepalive: true }).catch(() => {})
   }, [session])
 
   // Hämta den inloggade användarens roll från databasen (via /api/roll).
