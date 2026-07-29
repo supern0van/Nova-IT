@@ -127,6 +127,12 @@ export async function skapaPubliktIntag(
     verksamhetsnamn: uppgifter.verksamhetsnamn,
   })
 
+  // Alla publika förfrågningar måste ha en tydlig första ägare. Support är
+  // den gemensamma intagskön; en aktiv administratör är säkerhetsfallback om
+  // supportkontot tillfälligt är avstängt. Det gör att inget ärende tyst
+  // lämnas utan ansvarig mellan support och webmaster.
+  const intagsansvarig = await hittaIntagsansvarig(supabase)
+
   const arendenummer = await nastaArendenummerForPubliktIntag(supabase)
   const { data: arendeRad, error: arendeFel } = await supabase
     .from('admin_arenden')
@@ -144,6 +150,7 @@ export async function skapaPubliktIntag(
       prioritet,
       kanal: uppgifter.kalla,
       beskrivning: meddelande,
+      ansvarig_id: intagsansvarig.id,
       idempotensnyckel,
     })
     .select('id, arendenummer, skapad')
@@ -190,6 +197,12 @@ export async function skapaPubliktIntag(
       beskrivning: `Ärende inkom via ${uppgifter.kalla === 'kontaktformular' ? 'kontaktformuläret' : 'supportassistenten'} på nova-it.se`,
       aktor: kund.namn,
     }),
+    supabase.from('admin_aktiviteter').insert({
+      arende_id: arendeId,
+      typ: 'tilldelning',
+      beskrivning: `Automatiskt tilldelat till ${intagsansvarig.namn} (${intagsansvarig.epost})`,
+      aktor: 'Systemet',
+    }),
   ])
 
   return {
@@ -199,6 +212,40 @@ export async function skapaPubliktIntag(
     kundEpost: kund.epost,
     kundNamn: kund.namn,
   }
+}
+
+async function hittaIntagsansvarig(
+  supabase: ReturnType<typeof skapaSupabaseServiceklient>,
+): Promise<{ id: string; namn: string; epost: string }> {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('id, namn, epost, roll, aktiv')
+    .eq('aktiv', true)
+
+  if (error) throw new Error('Kunde inte hitta ansvarig för inkommande ärenden.')
+
+  const aktiva = (data ?? []).filter(
+    (rad): rad is { id: string; namn: string; epost: string; roll: string; aktiv: boolean } =>
+      typeof rad === 'object' &&
+      rad !== null &&
+      typeof rad.id === 'string' &&
+      typeof rad.namn === 'string' &&
+      typeof rad.epost === 'string' &&
+      typeof rad.roll === 'string' &&
+      rad.aktiv === true,
+  )
+  const ansvarig =
+    aktiva.find((rad) => rad.epost.trim().toLowerCase() === 'support@nova-it.se') ??
+    aktiva.find((rad) => rad.roll === 'administrator')
+
+  if (!ansvarig) {
+    throw new PubliktIntagFel(
+      'Ärendet kunde inte tas emot eftersom ingen aktiv intagsansvarig är konfigurerad.',
+      503,
+    )
+  }
+
+  return { id: ansvarig.id, namn: ansvarig.namn, epost: ansvarig.epost }
 }
 
 /**
