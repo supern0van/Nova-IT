@@ -20,8 +20,16 @@ function listaRouteFiler(rot: string): string[] {
   })
 }
 
+// Routes som medvetet INTE använder AAL2-sessionsautentisering. En anonym
+// besökare på den publika webbplatsen har varken ett portalkonto eller en
+// MFA-verifierad session, så AAL2-kontraktet nedan gäller inte dem – de har
+// i stället en egen, likvärdig server-till-server-kontroll (delad
+// hemlighet, se route-filens egen dokumentation). Lägg ALDRIG till en route
+// här utan att verifiera att den har en egen, minst lika stark spärr.
+const publikaServerTillServerRoutes = new Set(['public/intag/route.ts'])
+
 describe('admin API route-kontrakt', () => {
-  it('har testfil och AAL2-serverhelper för varje API-route', () => {
+  it('har testfil och AAL2-serverhelper för varje admin-API-route', () => {
     const routes = listaRouteFiler(apiRoot)
 
     expect(routes.map(relativApiPath).sort()).toEqual([
@@ -31,21 +39,26 @@ describe('admin API route-kontrakt', () => {
       'admin/operativt/route.ts',
       'admin/systemstatus/route.ts',
       'mfa/aterstall/route.ts',
+      'public/intag/route.ts',
       'roll/route.ts',
     ].sort())
 
     for (const route of routes) {
+      const relativ = relativApiPath(route)
       const innehall = readFileSync(route, 'utf8')
       const testFil = path.join(path.dirname(route), 'route.test.ts')
 
       expect(statSync(testFil).isFile()).toBe(true)
+      if (publikaServerTillServerRoutes.has(relativ)) continue
       expect(innehall).toContain('hamtaAutentiseradAnvandarId')
     }
   })
 
-  it('kräver admin- eller rollkontroll för varje skyddad route', () => {
+  it('kräver admin- eller rollkontroll för varje AAL2-skyddad route', () => {
     for (const route of listaRouteFiler(apiRoot)) {
       const relativ = relativApiPath(route)
+      if (publikaServerTillServerRoutes.has(relativ)) continue
+
       const innehall = readFileSync(route, 'utf8')
       const harRollKontroll =
         innehall.includes('harAdminAtkomst') ||
@@ -53,6 +66,14 @@ describe('admin API route-kontrakt', () => {
         relativ === 'roll/route.ts'
 
       expect(harRollKontroll, relativ).toBe(true)
+    }
+  })
+
+  it('kräver en delad hemlighetskontroll för publika server-till-server-routes', () => {
+    for (const relativ of publikaServerTillServerRoutes) {
+      const innehall = readFileSync(path.join(apiRoot, relativ), 'utf8')
+      expect(innehall, relativ).toMatch(/PUBLIC_INTAG_SECRET/)
+      expect(innehall, relativ).not.toContain('hamtaAutentiseradAnvandarId')
     }
   })
 
@@ -70,6 +91,15 @@ describe('admin API route-kontrakt', () => {
       const innehall = readFileSync(route, 'utf8')
 
       for (const monster of forbjudnaFelLackor) {
+        // public/intag/route.ts visar medvetet .message – men ENDAST från
+        // PubliktIntagFel, en av oss skriven, kontrollerad valideringssträng
+        // (t.ex. "Ange en giltig e-postadress.") som är avsedd att visas för
+        // den publika webbplatsens formulär. Okända/oväntade fel faller
+        // uttryckligen till ett meddelandelöst 500 – verifierat separat i
+        // route.test.ts ("läcker inte interna felobjekt vid oväntat fel").
+        if (relativ === 'public/intag/route.ts' && monster.source === /\.message\b/.source) {
+          continue
+        }
         expect(innehall, `${relativ} får inte exponera ${monster}`).not.toMatch(monster)
       }
     }
