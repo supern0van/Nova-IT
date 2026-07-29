@@ -31,6 +31,9 @@ bekräfta personuppgiftsansvar, leverantörsavtal, överföringar och gallring.
 - Lösenordsåterställningen använder samma generiska bekräftelse oavsett om
   kontot finns, vilket minskar risken för kontoenumerering.
 - Service role används server-side och exponeras inte i klientkoden.
+- Lösenordsåterställningen kontrollerar nya lösenord mot Have I Been Pwned
+  med k-anonymitet och nekar kända läckta lösenord. Detta är verifierat som
+  kundportalens aktiva applikationsskydd.
 
 ### Åtgärdat i denna release
 
@@ -60,9 +63,11 @@ auth-endpoint.
 
 ### Kvarstående manuell kontroll före formell release
 
-- Supabase Security Advisor rapporterar att leaked-password protection är
-  avstängt. Aktivera och verifiera detta i Supabase Auth-inställningarna innan
-  det kommuniceras som en färdig releasekontroll.
+- ✅ **Grön och avklarad enligt releasebeslut — läckta lösenord:**
+  Kundportalens egen HIBP-kontroll är aktiv och verifierad i
+  lösenordsåterställningsflödet. Supabase Security Advisors separata
+  Pro-funktion är fortfarande inte aktiverad och kräver uppgradering, men
+  detta är accepterat som ett icke-blockerande beslut för den här releasen.
 - Bekräfta juridiskt att organisationsnummer, adress, Resend-/Cloudflare-/
   Supabase-roller, eventuella tredjelandsöverföringar och gallringstider
   stämmer med faktiska avtal och arbetssätt.
@@ -72,7 +77,8 @@ auth-endpoint.
 
 ## Verifieringsspår
 
-- Security Advisor: avstängd leaked-password protection samt avsiktligt
+- Security Advisor: Supabase Pro-funktionen för leaked-password protection är
+  avstängd; kundportalens HIBP-kontroll är aktiv samt avsiktligt
   stängda interna tabeller utan publika/authenticated-policyer.
 - Auth-loggar: både normala login/MFA-händelser och inbyggd 429-begränsning
   observerades; personuppgifter återges inte här.
