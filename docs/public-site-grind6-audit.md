@@ -76,17 +76,33 @@ Alla övriga stickprov (`text-slate-300`, `text-slate-400`, länkar i huvudnavig
 8. **`/tjanster` säger "Tre områden" i rubriken** — kontrollerat mot `serviceAreas` i
    `lib/nova-data.ts`: exakt tre poster. Stämmer, inget fel - fyndet från Grind 1 är stängt.
 
+## Åtgärdat i tredje uppföljningen
+
+9. **Faktisk fältmätning körd med Lighthouse CLI (`npx lighthouse`) mot skarpa `nova-it.se`**,
+   mobil-emulering med standardthrottling (samma som PageSpeed Insights använder):
+
+   | Sida | Prestanda | Tillgänglighet | Best Practices | SEO | LCP | CLS | TBT |
+   | --- | --- | --- | --- | --- | --- | --- | --- |
+   | `/` | 93 | 100 | 100 | 100 | 2,7 s | 0 | 10 ms |
+   | `/kontakt?form=request` | 82 → 92 (andra körningen) | 100 | 100 | 100 | 3,7 s → 2,7 s | 0 | 50 ms |
+
+   Den första `/kontakt`-körningen (82, LCP 3,7 s) var kallstartsbrus - en andra körning gav
+   92 och LCP 2,7 s, i linje med startsidan. `/kontakt` har `unused-javascript` på ~86 KiB
+   (sannolikt Radix-komponenter som inte alla används på just den sidan) - en möjlig framtida
+   optimering, men inte tillräckligt stort för att prioritera nu givet att prestandan redan är
+   god. Accessibility, Best Practices och SEO är 100/100 på båda sidorna - inga kvarvarande
+   fynd i de kategorierna. CLS är 0 på båda, vilket bekräftar att bild- och layoutändringarna
+   i detta pass inte introducerat något layoutskift.
+
 ## Kvarstående, inte åtgärdat
 
-9. **Faktisk fältmätning (Lighthouse/PageSpeed Insights, LCP/CLS/INP i skarp miljö)** har inte
-   körts — kräver en publikt nåbar URL eller ett verktyg som inte finns i den här miljön.
-   Rekommenderas som ett manuellt steg efter nästa produktionsdeploy, nu med de komprimerade
-   bilderna på plats bör LCP vara märkbart bättre än innan.
 10. **Skärmläsarbeteende i praktiken** (NVDA/VoiceOver) är inte testat — kräver en riktig
-    skärmläsare, inte bara DOM-/kontrastanalys. Tangentbordsfokusordning i kontaktformuläret är
-    dock redan verifierad tidigare (Grind 4): tomt formulär flyttar fokus till första ogiltiga
-    fält och visar `role="alert"` per fält.
+    skärmläsare, inte bara DOM-/kontrastanalys eller Lighthouses automatiserade a11y-revision
+    (som redan ger 100/100, men det täcker inte allt en riktig skärmläsare skulle avslöja).
+    Tangentbordsfokusordning i kontaktformuläret är dock redan verifierad tidigare (Grind 4):
+    tomt formulär flyttar fokus till första ogiltiga fält och visar `role="alert"` per fält.
 
 ## Kvalitetsgrindar
 
 `bun run ci` (test + lint + typecheck + build) grönt efter samtliga ändringar i detta pass.
+Lighthouse körd direkt mot produktion (`nova-it.se`) efter deploy, se tabellen ovan.
