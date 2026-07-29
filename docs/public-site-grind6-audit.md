@@ -58,26 +58,34 @@ Alla övriga stickprov (`text-slate-300`, `text-slate-400`, länkar i huvudnavig
   ofarliga `data-tsd-source`-hydreringsfelet (Lovables dev-instrumentation, bekräftat frånvarande
   i produktionsbygget `.output/`).
 
-## Kvarstående fynd — inte åtgärdade i detta pass
+## Åtgärdat i uppföljningspasset
 
-7. **Hero-bilden (`public/nova-it-workspace.png`, 1,57 MB) och `projekt-aterbruk`-bilden
-   (`presentation-cover.png`, 957 KB) är stora, okomprimerade PNG:er.** Hero-bilden är sidans
-   LCP-element (`fetchPriority="high"` är redan satt, vilket är rätt) men själva filstorleken
-   påverkar sannolikt LCP negativt på mobil/svagare uppkoppling. Åtgärdades inte i detta pass:
-   ingen bildkomprimeringsverktyg (`sharp`, `cwebp`, `imagemagick`) finns tillgängligt i den
-   här miljön, och att införa ett nytt npm-beroende enbart för detta är ett beslut som bör tas
-   separat snarare än göras i förbigående. Rekommendation: komprimera båda till WebP eller en
-   optimerad PNG (t.ex. via `squoosh.app` eller `bunx @squoosh/cli`) innan bred lansering,
-   sikta på under ~200 KB för hero-bilden.
-8. **Faktisk fältmätning (Lighthouse/PageSpeed Insights, LCP/CLS/INP i skarp miljö)** har inte
+7. **Hero-bilden och `projekt-aterbruk`-bilden komprimerade till WebP.**
+   `public/nova-it-workspace.png` (1,57 MB) → `nova-it-workspace.webp` (56 KB, 96 % mindre) och
+   `presentation-cover.png` (957 KB) → `presentation-cover.webp` (70 KB, 93 % mindre), båda
+   genererade med `bunx sharp-cli -f webp -q 78` (körs via `bunx`, inget nytt beroende
+   tillagt i `package.json`/lockfilen - verifierat med `git diff --stat -- package.json
+   bun.lock`, ingen ändring). Originalen behålls oförändrade som fallback: båda bilderna
+   använder nu `<picture><source type="image/webp">` + `<img src=".png">`, så webbläsare utan
+   WebP-stöd (finns i praktiken inte kvar, men kostar inget att behålla) fortfarande fungerar.
+   Kvalitet visuellt granskad före byte (läst in båda WebP-filerna som bilder) - ingen synlig
+   artefakt, text i presentationsbilden fortsatt skarp. Verifierat live: hero-bildens
+   `img.currentSrc` pekar på `.webp`, korrekt renderad storlek (1425×760 mot samma sektion som
+   innan), och ett direkt `fetch()` av `/projekt-aterbruk/presentation-cover.webp` gav `200` med
+   `content-type: image/webp` och exakt förväntad filstorlek.
+8. **`/tjanster` säger "Tre områden" i rubriken** — kontrollerat mot `serviceAreas` i
+   `lib/nova-data.ts`: exakt tre poster. Stämmer, inget fel - fyndet från Grind 1 är stängt.
+
+## Kvarstående, inte åtgärdat
+
+9. **Faktisk fältmätning (Lighthouse/PageSpeed Insights, LCP/CLS/INP i skarp miljö)** har inte
    körts — kräver en publikt nåbar URL eller ett verktyg som inte finns i den här miljön.
-   Rekommenderas som ett manuellt steg efter nästa produktionsdeploy.
-9. **Skärmläsarbeteende i praktiken** (NVDA/VoiceOver) är inte testat — kräver en riktig
-   skärmläsare, inte bara DOM-/kontrastanalys. Tangentbordsfokusordning i kontaktformuläret är
-   dock redan verifierad tidigare (Grind 4): tomt formulär flyttar fokus till första ogiltiga
-   fält och visar `role="alert"` per fält.
-10. **`/tjanster` säger "Tre områden" i rubriken** (Grind 1, fynd 10) — inte stämt av mot
-    faktisk kategoriindelning i detta pass, kvarstår som öppet fynd.
+   Rekommenderas som ett manuellt steg efter nästa produktionsdeploy, nu med de komprimerade
+   bilderna på plats bör LCP vara märkbart bättre än innan.
+10. **Skärmläsarbeteende i praktiken** (NVDA/VoiceOver) är inte testat — kräver en riktig
+    skärmläsare, inte bara DOM-/kontrastanalys. Tangentbordsfokusordning i kontaktformuläret är
+    dock redan verifierad tidigare (Grind 4): tomt formulär flyttar fokus till första ogiltiga
+    fält och visar `role="alert"` per fält.
 
 ## Kvalitetsgrindar
 

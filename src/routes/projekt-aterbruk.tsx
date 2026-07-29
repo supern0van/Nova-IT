@@ -211,12 +211,15 @@ function ProjectReusePage() {
         <Container>
           <div className="grid overflow-hidden border border-white/10 nova-section-muted lg:grid-cols-[1.05fr_0.95fr]">
             <div className="relative min-h-[300px] overflow-hidden border-b border-white/10 lg:min-h-[540px] lg:border-b-0 lg:border-r">
-              <img
-                src="/projekt-aterbruk/presentation-cover.png"
-                alt="Förstasidan ur presentationen för Projekt Återbruk"
-                className="absolute inset-0 h-full w-full object-cover object-center"
-                loading="lazy"
-              />
+              <picture>
+                <source srcSet="/projekt-aterbruk/presentation-cover.webp" type="image/webp" />
+                <img
+                  src="/projekt-aterbruk/presentation-cover.png"
+                  alt="Förstasidan ur presentationen för Projekt Återbruk"
+                  className="absolute inset-0 h-full w-full object-cover object-center"
+                  loading="lazy"
+                />
+              </picture>
               <div className="absolute inset-0 bg-gradient-to-t from-[#091119]/65 via-transparent to-transparent" />
             </div>
 
