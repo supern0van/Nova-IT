@@ -2,6 +2,47 @@
 
 Beslutsloggen förklarar större vägval. Den kompletterar changelogen: changelogen visar vad som förändrades, medan denna fil visar varför en riktning valdes framför andra alternativ.
 
+## DEC-0006 – Kundportalens grundarkitektur (separat repo, Worker, databas)
+
+**Status:** accepterat
+**Datum:** 2026-07-29
+
+### Bakgrund
+
+Kundportalen (kundinloggning, ärendevy, kundkommunikation) skulle byggas efter att
+adminportalen och det publika ärendeintaget redan var i skarp drift. Se
+`docs/kundportal-planering.md` för fullständigt resonemang - denna post
+sammanfattar bara de beslut som planeringen identifierade som blockerande innan
+kodning kunde börja (B1–B3), samt vilket val som gjordes.
+
+### Beslut
+
+- **B1 (Supabase-projekt):** separat Supabase-projekt (`nova-it-kundportal`,
+  projekt-id `bueysepdmxsucmagijvo`, region `eu-west-1`), inte delat med
+  adminportalens projekt. Skapat i samma Supabase-organisation ("Nova-IT") som
+  redan äger adminportalens projekt - inget nytt Supabase-konto skapades.
+  Kostnad: 0 kr/månad, bekräftat innan projektet skapades.
+- **Repo:** ny, separat GitHub-repo `supern0van/Nova-IT-Kundportal` (privat,
+  eftersom kundportalen kommer hantera kunddata och engångslösenord), inte en
+  mapp i huvudrepot. Matchar `docs/roadmap.md`s tidigare formulering ("egen
+  repo, Worker och databas").
+- **Worker:** ny, separat Cloudflare Worker `nova-it-kundportal`, egen domän
+  `kundportal.nova-it.se` (medvetet inte `portal.nova-it.se`/`portal.novait.se`,
+  som fortsatt pekar mot `nova-it-admin` tills lansering, se Milstolpe 6 i
+  planeringsdokumentet).
+- **B2 (autentisering) och B3 (glömt-lösenord-flöde i M2):** ännu INTE
+  slutgiltigt beslutade av ägaren - min rekommendation (lösenord med tvingat
+  byte vid första inloggning, samt ett glömt-lösenord-flöde redan i M2) gäller
+  som arbetshypotes tills vidare, se öppna frågor i
+  `docs/kundportal-planering.md`. Uppdatera denna post när de är bekräftade.
+
+### Konsekvens
+
+Adminportalens kod och databas påverkas inte av kundportalsarbetet - de är helt
+separata system som endast kommunicerar via skyddade server-till-server-API:er
+(samma mönster som redan finns för `INTAG_SECRET`). En bugg eller
+säkerhetsincident i kundportalen kan inte direkt exponera adminportalens data.
+
 ## DEC-0005 – Handskriven historik ska inte ersättas av automatisk text
 
 **Status:** accepterat  

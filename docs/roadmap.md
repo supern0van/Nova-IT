@@ -21,11 +21,27 @@ Den här listan ska hålla fokus på hemsidan och undvika att projektet sprids �
 - [x] Gå igenom `/kontakt` och gör bokningsflödet tydligare.
 - [x] Se över `/tjanster` så varje tjänst känns konkret och säljbar utan att bli överdriven.
 - [x] Kontrollera den flytande robotassistenten mot skarpare ärendefokus.
-- [ ] Slutjustera kundtext, tjänstebeskrivningar och kontaktbudskap sida för sida.
-- [ ] Förbättra SEO metadata och social preview-texter.
-- [ ] Göra en tillgänglighetsrunda: fokus, kontrast, labels och tangentbord.
-- [ ] Göra en pre-deploy-runda med riktig mobil viewport.
+- [x] Slutjustera kundtext, tjänstebeskrivningar och kontaktbudskap sida för sida (Grind 6, UI/UX- och språköversyn).
+- [x] Förbättra SEO metadata och social preview-texter (Grind 6).
+- [x] Göra en tillgänglighetsrunda: fokus, kontrast, labels och tangentbord (Grind 6, WCAG AA-kontrastfixar).
+- [x] Göra en pre-deploy-runda med riktig mobil viewport (verifierat 375/768/1440px, Lighthouse körd mot skarp produktion).
 - [ ] Flytta e-postens DNS från tidigare Strato-poster till Loopias verifierade MX-, SPF-, DKIM- och DMARC-poster.
+
+## Kundportal (pågående)
+
+Egen repo, Worker och databas - se `docs/kundportal-planering.md` (arkitektur,
+kärnbeslut, milstolpar) och `docs/kundportal-arbetsorder.md` (aktuell arbetsorder)
+samt `docs/DECISIONS.md` (DEC-0006) för det som redan är beslutat.
+
+- [x] Milstolpe 0 påbörjad: separat Supabase-projekt (`nova-it-kundportal`) och
+      separat GitHub-repo (`supern0van/Nova-IT-Kundportal`) skapade.
+- [ ] Milstolpe 0 klar: Worker deployad på `kundportal.nova-it.se`, CI grönt.
+- [ ] Milstolpe 1: datamodell och autentisering (kundkonton, tvingat lösenordsbyte).
+- [ ] Milstolpe 2: automatiskt kundkonto + välkomstmejl vid nytt ärende.
+- [ ] Milstolpe 3: kunden ser sina egna ärenden.
+- [ ] Milstolpe 4: kundinitierat svar på ärende.
+- [ ] Milstolpe 5: säkerhets- och release-granskning.
+- [ ] Milstolpe 6: lansering (DNS-omläggning av `portal.nova-it.se`/`portal.novait.se`).
 
 ## Senare beslut som kräver ägarinput
 
@@ -33,4 +49,5 @@ Den här listan ska hålla fokus på hemsidan och undvika att projektet sprids �
 - Riktiga kontaktuppgifter, ort/område och eventuell juridisk bolagsinformation.
 - Om robotassistenten ska kopplas till backend, ärendesystem eller AI API.
 - Vilka kundcase, priser eller erbjudanden som faktiskt får visas.
-- När kundportalen ska få ett separat repo, Worker och databas.
+- Kundportalens B2/B3-beslut (autentiseringsmetod, glömt-lösenord-flöde) - se
+  öppna frågor i `docs/kundportal-planering.md` och DEC-0006.
