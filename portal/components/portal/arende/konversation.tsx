@@ -8,7 +8,7 @@ import {
   StickyNoteIcon,
   UserIcon,
 } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 
 import { useAuth } from '@/components/auth/auth-provider'
@@ -48,9 +48,33 @@ export function Konversation({
   const [lage, setLage] = useState<'svar' | 'anteckning'>('svar')
   const [text, setText] = useState('')
   const [skickar, setSkickar] = useState(false)
+  const [utkastSparat, setUtkastSparat] = useState(false)
+  const [utkastLaddatForNyckel, setUtkastLaddatForNyckel] = useState('')
 
   const kanSvara = kan('svara_kund')
   const internt = lage === 'anteckning'
+  const utkastNyckel = `nova-it.arende-utkast:${arendeId}:${lage}`
+
+  useEffect(() => {
+    const sparat = window.sessionStorage.getItem(utkastNyckel)
+    setText(sparat ?? '')
+    setUtkastSparat(Boolean(sparat))
+    setUtkastLaddatForNyckel(utkastNyckel)
+  }, [utkastNyckel])
+
+  useEffect(() => {
+    if (utkastLaddatForNyckel !== utkastNyckel) return
+    if (!text) {
+      window.sessionStorage.removeItem(utkastNyckel)
+      setUtkastSparat(false)
+      return
+    }
+    const timeout = window.setTimeout(() => {
+      window.sessionStorage.setItem(utkastNyckel, text)
+      setUtkastSparat(true)
+    }, 750)
+    return () => window.clearTimeout(timeout)
+  }, [text, utkastLaddatForNyckel, utkastNyckel])
 
   async function skicka() {
     const rensad = text.trim()
@@ -59,6 +83,8 @@ export function Konversation({
     try {
       await laggTillMeddelande(arendeId, rensad, internt, anvandare?.namn ?? 'Okänd')
       setText('')
+      window.sessionStorage.removeItem(utkastNyckel)
+      setUtkastSparat(false)
       toast.success(internt ? 'Intern anteckning sparad' : 'Svaret är skickat', {
         description: internt
           ? 'Anteckningen visas aldrig för kunden.'
@@ -148,6 +174,7 @@ export function Konversation({
               </SelectContent>
             </Select>
           )}
+          {utkastSparat && <span className="text-[11px] text-muted-foreground">Utkast autosparat</span>}
         </div>
 
         <Textarea

@@ -43,6 +43,10 @@ interface AuthContextVarde {
   /** Sätts när sessionen gått ut, så inloggningssidan kan förklara varför. */
   sessionUtgick: boolean
   rensaSessionUtgick: () => void
+  /** Millisekunder tills automatisk utloggning på grund av inaktivitet. */
+  inaktivitetKvarMs: number | null
+  /** Återställer inaktivitetstimern efter en uttrycklig användaråtgärd. */
+  fornyaAktivitet: () => void
   /**
    * Den inloggade användarens systemroll (`SystemRoll` – 'administrator' |
    * 'medarbetare'), hämtad från `profiles`-tabellen via `/api/roll` (aldrig
@@ -84,6 +88,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [initierar, setInitierar] = useState(true)
   const [loggarIn, setLoggarIn] = useState(false)
   const [sessionUtgick, setSessionUtgick] = useState(false)
+  const [inaktivitetKvarMs, setInaktivitetKvarMs] = useState<number | null>(null)
   const [roll, setRoll] = useState<SystemRoll | null>(null)
   const [laddarRoll, setLaddarRoll] = useState(false)
   // Höjs varje gång Supabase fyrar `MFA_CHALLENGE_VERIFIED` (dvs. när
@@ -141,6 +146,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       senasteAktivitetsSkrivning = tid
       senastAktiv = tid
       window.sessionStorage.setItem(SENAST_AKTIV_NYCKEL, String(tid))
+      setInaktivitetKvarMs(INAKTIVITETS_TIMEOUT_MS)
     }
 
     const loggaUtEfterInaktivitet = async () => {
@@ -160,6 +166,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (session.upphorVid !== null && Date.now() > session.upphorVid) {
         setSession(null)
         setAnvandare(null)
+        setInaktivitetKvarMs(null)
         window.sessionStorage.removeItem(SENAST_AKTIV_NYCKEL)
         setSessionUtgick(true)
         router.replace('/logga-in')
@@ -168,17 +175,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (Date.now() - senastAktiv >= INAKTIVITETS_TIMEOUT_MS) {
         void loggaUtEfterInaktivitet()
+        return
       }
+      setInaktivitetKvarMs(Math.max(0, INAKTIVITETS_TIMEOUT_MS - (Date.now() - senastAktiv)))
     }
 
     const aktivitetsHändelser = ['pointerdown', 'keydown', 'touchstart', 'scroll'] as const
     aktivitetsHändelser.forEach((händelse) => window.addEventListener(händelse, registreraAktivitet, { passive: true }))
     const intervall = setInterval(kontrolleraSession, SESSIONSKONTROLL_INTERVALL_MS)
+    setInaktivitetKvarMs(Math.max(0, INAKTIVITETS_TIMEOUT_MS - (nu - senastAktiv)))
     return () => {
       aktivitetsHändelser.forEach((händelse) => window.removeEventListener(händelse, registreraAktivitet))
       clearInterval(intervall)
+      setInaktivitetKvarMs(null)
     }
   }, [session, router])
+
+  const fornyaAktivitet = useCallback(() => {
+    if (typeof window === 'undefined' || !session) return
+    const tid = Date.now()
+    window.sessionStorage.setItem(SENAST_AKTIV_NYCKEL, String(tid))
+    setInaktivitetKvarMs(INAKTIVITETS_TIMEOUT_MS)
+  }, [session])
 
   // Hämta den inloggade användarens roll från databasen (via /api/roll).
   // Körs vid inloggning och vid sidladdning med befintlig session – aldrig
@@ -258,6 +276,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
     setSession(null)
     setAnvandare(null)
+    setInaktivitetKvarMs(null)
     if (typeof window !== 'undefined') {
       window.sessionStorage.removeItem(SENAST_AKTIV_NYCKEL)
     }
@@ -287,10 +306,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       kan,
       sessionUtgick,
       rensaSessionUtgick: () => setSessionUtgick(false),
+      inaktivitetKvarMs,
+      fornyaAktivitet,
       roll,
       laddarRoll,
     }),
-    [anvandare, session, initierar, loggarIn, loggaIn, loggaUt, kan, sessionUtgick, roll, laddarRoll],
+    [
+      anvandare,
+      session,
+      initierar,
+      loggarIn,
+      loggaIn,
+      loggaUt,
+      kan,
+      sessionUtgick,
+      inaktivitetKvarMs,
+      fornyaAktivitet,
+      roll,
+      laddarRoll,
+    ],
   )
 
   return <AuthContext.Provider value={varde}>{children}</AuthContext.Provider>

@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react'
 
 import { NovaMark } from '@/components/nova-mark'
 import { Sidomeny } from '@/components/portal/sidomeny'
+import { SessionStatus } from '@/components/portal/session-status'
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import { cn } from '@/lib/utils'
 
@@ -39,6 +40,7 @@ export function PortalSkal({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex min-h-svh bg-background">
+      <SessionStatus />
       {/* Sidomeny – dator */}
       <aside
         className={cn(
