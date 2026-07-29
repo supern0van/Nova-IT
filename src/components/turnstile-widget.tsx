@@ -1,7 +1,7 @@
 import { useEffect, useId, useRef } from "react";
+import { getTurnstileSiteKey } from "@/features/contact/contact-server";
 
 const TURNSTILE_SCRIPT_SRC = "https://challenges.cloudflare.com/turnstile/v0/api.js";
-const SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY as string | undefined;
 
 declare global {
   interface Window {
@@ -10,8 +10,11 @@ declare global {
         container: HTMLElement,
         options: {
           sitekey: string;
+          action?: string;
           callback: (token: string) => void;
-          "error-callback"?: () => void;
+          "error-callback"?: (errorCode?: string) => void;
+          "expired-callback"?: () => void;
+          "timeout-callback"?: () => void;
         },
       ) => string;
       reset: (widgetId?: string) => void;
@@ -42,13 +45,9 @@ function loadTurnstileScript(): Promise<void> {
 /**
  * Cloudflare Turnstile-widget för spamskydd på kontaktformuläret.
  *
- * Om `VITE_TURNSTILE_SITE_KEY` inte är satt (t.ex. innan Turnstile
- * konfigurerats i Cloudflare Dashboard) renderas ingenting och `onToken`
- * anropas aldrig - formuläret fortsätter fungera exakt som innan denna
- * funktion fanns, det skickas bara utan en token. Servern (`contact-server.ts`)
- * hoppar då över verifieringen på samma sätt (soft-fail, inte hard-fail) -
- * annars hade en deploy innan Turnstile är klart konfigurerat i Cloudflare
- * gjort att INGEN kunde skicka in kontaktformuläret.
+ * Site Key hämtas från den publika Workern vid runtime. Det gör att en
+ * Wrangler-konfigurerad Site Key fungerar även om den inte fanns vid Vite-
+ * builden. Saknas Site Key renderas inget widget för lokal utveckling.
  */
 export function TurnstileWidget({ onToken }: { onToken: (token: string | null) => void }) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -56,20 +55,29 @@ export function TurnstileWidget({ onToken }: { onToken: (token: string | null) =
   const callbackName = useId().replace(/[^a-zA-Z0-9]/g, "");
 
   useEffect(() => {
-    if (!SITE_KEY || !containerRef.current) {
-      onToken(null);
-      return;
-    }
-
     let cancelled = false;
 
-    loadTurnstileScript()
-      .then(() => {
-        if (cancelled || !containerRef.current || !window.turnstile) return;
+    getTurnstileSiteKey()
+      .then((siteKey) => {
+        if (!siteKey || cancelled || !containerRef.current) {
+          onToken(null);
+          return null;
+        }
+        return loadTurnstileScript().then(() => siteKey);
+      })
+      .then((siteKey) => {
+        if (!siteKey || cancelled || !containerRef.current || !window.turnstile) return;
+        const reset = () => {
+          onToken(null);
+          if (widgetIdRef.current) window.turnstile?.reset(widgetIdRef.current);
+        };
         widgetIdRef.current = window.turnstile.render(containerRef.current, {
-          sitekey: SITE_KEY,
+          sitekey: siteKey,
+          action: "contact",
           callback: (token: string) => onToken(token),
-          "error-callback": () => onToken(null),
+          "error-callback": reset,
+          "expired-callback": reset,
+          "timeout-callback": reset,
         });
       })
       .catch(() => onToken(null));
@@ -82,8 +90,6 @@ export function TurnstileWidget({ onToken }: { onToken: (token: string | null) =
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  if (!SITE_KEY) return null;
 
   return <div ref={containerRef} data-testid={`turnstile-${callbackName}`} className="mt-2" />;
 }

@@ -111,17 +111,17 @@ Kravs for att den publika sajtens kontaktformular ska kunna skapa arenden i admi
 
 1. Ga till Cloudflare Dashboard -> Turnstile -> Add site. Domain: `nova-it.se`. Widget mode: rekommenderas "Managed".
 2. Kopiera **Site Key** (publik) och **Secret Key** (hemlig).
-3. Satt Site Key som en vanlig miljovariabel pa den publika sajtens Worker (den ar avsedd att exponeras i webblasaren):
+3. Sätt Site Key som `TURNSTILE_SITE_KEY` på den publika sajtens Worker. Den är avsedd att exponeras i webbläsaren, men hämtas via en serverfunktion vid runtime så att den inte behöver byggas in i klientbunten:
    ```powershell
-   bunx wrangler secret put VITE_TURNSTILE_SITE_KEY --config .output/server/wrangler.json
+   bunx wrangler secret put TURNSTILE_SITE_KEY --config .output/server/wrangler.json
    ```
-   (Byggs in i klientkoden vid `bun run build` - kor darfor om build + deploy efter detta steg.)
+   Äldre installationer med secret-namnet `VITE_TURNSTILE_SITE_KEY` stöds tillfälligt av koden, men bör migreras till `TURNSTILE_SITE_KEY`.
 4. Satt Secret Key server-side, ENDAST pa den publika sajtens Worker (aldrig i adminportalen, aldrig i klientkod):
    ```powershell
    bunx wrangler secret put TURNSTILE_SECRET_KEY --config .output/server/wrangler.json
    ```
 5. Bygg och deploya om (`bun run deploy:production`).
-6. Verifiera: ladda `/kontakt?form=request` i en vanlig webblasare och bekrafta att Turnstile-widgeten syns ovanfor skicka-knappen. Skicka ett testarende och bekrafta att det fortfarande fungerar.
+6. Verifiera: ladda `/kontakt?form=request` i en vanlig webbläsare, gå igenom formuläret och bekräfta att Turnstile-widgeten visas precis före den slutliga knappen **Skicka ärendet**. Skicka ett testarende och bekräfta att det fortfarande fungerar.
 
 Tills bada nycklarna ar satta fungerar formularet exakt som idag (ingen Turnstile-kontroll genomfors) - se `verifieraTurnstile()` i `contact-server.ts`.
 

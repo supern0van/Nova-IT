@@ -226,7 +226,7 @@ test("rejects the submission when Cloudflare reports the Turnstile token as inva
   globalThis.fetch = (async (input: RequestInfo | URL) => {
     const url = String(input);
     if (url.includes("challenges.cloudflare.com")) {
-      return jsonResponse({ success: false });
+      return jsonResponse({ success: false, "error-codes": ["invalid-input-response"] });
     }
     if (url.endsWith("/api/public/intag")) intakeCalled = true;
     throw new Error("should not reach the intake with an invalid token");
@@ -243,7 +243,7 @@ test("proceeds when Turnstile is configured and Cloudflare confirms the token is
   globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input);
     if (url.includes("challenges.cloudflare.com")) {
-      return jsonResponse({ success: true });
+      return jsonResponse({ success: true, action: "contact", hostname: "nova-it.se" });
     }
     if (url.endsWith("/api/public/intag") && init?.method === "POST") {
       return jsonResponse({

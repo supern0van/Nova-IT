@@ -351,9 +351,12 @@ function ContactPage() {
           )}
           <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
             {!sent && (
-              <Button onClick={sendContactRequest} disabled={isSending}>
-                {isSending ? "Skickar..." : "Skicka ärendet"}
-              </Button>
+              <div className="flex flex-col items-center gap-3 sm:items-start">
+                <TurnstileWidget onToken={setTurnstileToken} />
+                <Button onClick={sendContactRequest} disabled={isSending}>
+                  {isSending ? "Skickar..." : "Skicka ärendet"}
+                </Button>
+              </div>
             )}
             <Button variant="outline" onClick={resetForm}>
               {sent ? "Skicka ett nytt ärende" : "Ändra uppgifter"}
@@ -698,8 +701,6 @@ function ContactPage() {
                         </p>
                       )}
                     </div>
-
-                    <TurnstileWidget onToken={setTurnstileToken} />
 
                     <Button type="submit" size="lg" className="mt-5 w-full sm:w-auto">
                       Visa ärendesammanfattning

@@ -24,7 +24,7 @@ const contactRequestSchema = z.object({
   // Spam-/missbruksskydd - se skickaKontaktforfragan().
   website: z.string().max(200).optional(), // honeypot, ska alltid vara tomt
   formRenderedAt: z.number(),
-  turnstileToken: z.string().nullable().optional(),
+  turnstileToken: z.string().max(2048).nullable().optional(),
 });
 
 const MIN_SUBMIT_DELAY_MS = 2500;
@@ -85,7 +85,7 @@ export async function skickaKontaktforfragan(
     );
   }
 
-  await verifieraTurnstile(data.turnstileToken ?? null);
+  await verifieraTurnstile(data.turnstileToken ?? null, data.idempotencyKey);
 
   const intakeUrl = process.env.ADMIN_INTAKE_URL;
   const intakeSecret = process.env.INTAG_SECRET;
@@ -170,17 +170,22 @@ export const submitContactRequest = createServerFn({ method: "POST" })
   .handler(({ data }) => skickaKontaktforfragan(data));
 
 /**
+ * Site Key är offentlig, men hämtas runtime från Workern så att en Wrangler
+ * secret inte felaktigt förväntas vara tillgänglig i Vite-buildens klientkod.
+ * Secret Key läses aldrig tillbaka till klienten.
+ */
+export const getTurnstileSiteKey = createServerFn({ method: "GET" }).handler(
+  () => process.env.TURNSTILE_SITE_KEY ?? process.env.VITE_TURNSTILE_SITE_KEY ?? null,
+);
+
+/**
  * Verifierar en Cloudflare Turnstile-token server-side.
  *
- * Soft-fail (hoppar över kontrollen, hindrar inget) om TURNSTILE_SECRET_KEY
- * inte är konfigurerad - ett medvetet val. Turnstile aktiveras i två steg
- * (Cloudflare Dashboard + denna kod), och om verifieringen var hard-fail
- * skulle en deploy av den här koden INNAN Turnstile faktiskt är konfigurerat
- * i Cloudflare göra att kontaktformuläret slutade fungera helt för alla
- * besökare. Once konfigurerad blir kontrollen skarp: en saknad eller
- * ogiltig token nekas då alltid.
+ * Om TURNSTILE_SECRET_KEY saknas är kontrollen avstängd för lokal utveckling.
+ * När den finns nekas en saknad, ogiltig, felaktig action eller felaktig
+ * hostname alltid.
  */
-async function verifieraTurnstile(token: string | null): Promise<void> {
+async function verifieraTurnstile(token: string | null, idempotencyKey: string): Promise<void> {
   const secretKey = process.env.TURNSTILE_SECRET_KEY;
   if (!secretKey) return;
 
@@ -192,11 +197,31 @@ async function verifieraTurnstile(token: string | null): Promise<void> {
     const response = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ secret: secretKey, response: token }),
+      body: JSON.stringify({
+        secret: secretKey,
+        response: token,
+        idempotency_key: idempotencyKey,
+      }),
     });
-    const result = (await response.json().catch(() => null)) as { success?: boolean } | null;
+    const result = (await response.json().catch(() => null)) as {
+      success?: boolean;
+      action?: string;
+      hostname?: string;
+    } | null;
+    const allowedHostnames = new Set([
+      "nova-it.se",
+      "www.nova-it.se",
+      "novait.se",
+      "www.novait.se",
+    ]);
 
-    if (!response.ok || !result?.success) {
+    if (
+      !response.ok ||
+      !result?.success ||
+      result.action !== "contact" ||
+      !result.hostname ||
+      !allowedHostnames.has(result.hostname)
+    ) {
       throw new Error("Verifieringen kunde inte genomföras. Ladda om sidan och försök igen.");
     }
   } catch (error) {
