@@ -34,8 +34,8 @@ select
 from (
   values
     ('20000000-0000-4000-8000-000000000001'::uuid, 'NIT-DEMO-001', '[DEMO] Ny kontaktförfrågan', '10000000-0000-4000-8000-000000000001'::uuid, 'datorer_vardags_it', 'Prestanda', 'ny', 'normal', 'kontaktformular', 'Detta är ett märkt demoärende för att kontrollera nyinkomna kontaktförfrågningar i dashboarden.', 'demo-seed-v1-001'),
-    ('20000000-0000-4000-8000-000000000002'::uuid, 'NIT-DEMO-002', '[DEMO] Nätverksproblem', '10000000-0000-4000-8000-000000000002'::uuid, 'natverk_wifi', 'Trådlöst nätverk', 'pagaande', 'hog', 'telefon', 'Detta är ett märkt demoärende för att kontrollera pågående supportarbete.', 'demo-seed-v1-002'),
-    ('20000000-0000-4000-8000-000000000003'::uuid, 'NIT-DEMO-003', '[DEMO] Planerad installation', '10000000-0000-4000-8000-000000000003'::uuid, 'installation', 'Programinstallation', 'vantar_pa_kund', 'lag', 'e-post', 'Detta är ett märkt demoärende för att kontrollera väntande kundsvar.', 'demo-seed-v1-003')
+    ('20000000-0000-4000-8000-000000000002'::uuid, 'NIT-DEMO-002', '[DEMO] Nätverksproblem', '10000000-0000-4000-8000-000000000002'::uuid, 'natverk_wifi', 'Trådlöst nätverk', 'ny', 'hog', 'telefon', 'Detta är ett märkt demoärende för att kontrollera supportarbete.', 'demo-seed-v1-002'),
+    ('20000000-0000-4000-8000-000000000003'::uuid, 'NIT-DEMO-003', '[DEMO] Planerad installation', '10000000-0000-4000-8000-000000000003'::uuid, 'installation', 'Programinstallation', 'ny', 'lag', 'e-post', 'Detta är ett märkt demoärende för att kontrollera väntande kundsvar.', 'demo-seed-v1-003')
 ) as v(id, arendenummer, rubrik, kund_id, kategori, underkategori, status, prioritet, kanal, beskrivning, idempotensnyckel)
 join public.admin_kunder k on k.id = v.kund_id
 where not exists (
