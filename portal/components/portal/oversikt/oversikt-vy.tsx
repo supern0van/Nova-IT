@@ -35,6 +35,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { useOperativAdminData } from '@/hooks/use-operativ-admin-data'
 import { personalNamn } from '@/lib/personal'
 import { bokningTypLabel, prioritetVikt, relativTid } from '@/lib/labels'
+import { arDemogastEpost } from '@/lib/auth/demo-guest'
 import type { Aktivitet, Anvandare, Arende, Bokning, BokningTyp } from '@/lib/types'
 
 const OPPNA: Arende['status'][] = ['ny', 'pagaende', 'vantar_pa_kund', 'bokad']
@@ -52,6 +53,7 @@ const bokningIkon: Record<BokningTyp, typeof PhoneIcon> = {
 export function OversiktVy() {
   const { db, laddar, fel, uppdatera } = useOperativAdminData()
   const { anvandare } = useAuth()
+  const demogast = arDemogastEpost(anvandare?.epost)
 
   const data = useMemo(() => {
     if (!db) return null
@@ -109,14 +111,23 @@ export function OversiktVy() {
             : `${data.nya + data.pagaende + data.vantarPaKund} öppna ärenden, ${data.dagensBokningar.length} bokningar idag och ${data.minaOppna} ärenden tilldelade dig.`
         }
       >
-        <Button variant="outline" size="sm" render={<Link href="/portal/bokningar?ny=1" />}>
-          <CalendarPlusIcon data-icon="inline-start" />
-          Ny bokning
-        </Button>
-        <Button size="sm" render={<Link href="/portal/arenden?status=ny" />}>
-          <InboxIcon data-icon="inline-start" />
-          Nya ärenden
-        </Button>
+        {demogast ? (
+          <Button size="sm" render={<a href="https://nova-it.se/kontakt?form=request&demo=1" target="_blank" rel="noreferrer" />}>
+            <InboxIcon data-icon="inline-start" />
+            Skicka demoärende
+          </Button>
+        ) : (
+          <>
+            <Button variant="outline" size="sm" render={<Link href="/portal/bokningar?ny=1" />}>
+              <CalendarPlusIcon data-icon="inline-start" />
+              Ny bokning
+            </Button>
+            <Button size="sm" render={<Link href="/portal/arenden?status=ny" />}>
+              <InboxIcon data-icon="inline-start" />
+              Nya ärenden
+            </Button>
+          </>
+        )}
       </Sidhuvud>
 
       {fel && <DriftFelBanner vidForsokIgen={uppdatera} />}

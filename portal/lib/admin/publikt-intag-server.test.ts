@@ -86,4 +86,16 @@ describe('skapaPubliktIntag – ansvarig routing', () => {
 
     expect(arendeInsert).toHaveBeenCalledWith(expect.objectContaining({ ansvarig_id: 'support-id' }))
   })
+
+  it('märker demoärenden så att de kan visas isolerat för gäster', async () => {
+    const { skapaPubliktIntag } = await import('@/lib/admin/publikt-intag-server')
+
+    await skapaPubliktIntag({
+      kalla: 'kontaktformular', namn: 'Demo Elev', epost: 'demo@example.com', telefon: '',
+      kundtyp: 'privatperson', tjanstSlug: 'it-support', angelagenhet: 'normal',
+      meddelande: 'Testförfrågan från klassrummet.', idempotensnyckel: 'demo-intag-1234567890', demo: true,
+    })
+
+    expect(arendeInsert).toHaveBeenCalledWith(expect.objectContaining({ rubrik: '[DEMO] Testförfrågan från klassrummet.' }))
+  })
 })

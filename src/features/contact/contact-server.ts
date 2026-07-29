@@ -25,6 +25,7 @@ const contactRequestSchema = z.object({
   website: z.string().max(200).optional(), // honeypot, ska alltid vara tomt
   formRenderedAt: z.number(),
   turnstileToken: z.string().max(2048).nullable().optional(),
+  demoMode: z.boolean().optional(),
 });
 
 const MIN_SUBMIT_DELAY_MS = 2500;
@@ -34,6 +35,7 @@ export type SubmitContactRequestResult = {
   arendenummer: string;
   mottagetVid: string;
   confirmationSent: boolean;
+  demo: boolean;
 };
 
 type ContactRequestData = ReturnType<typeof contactRequestSchema.parse>;
@@ -114,6 +116,7 @@ export async function skickaKontaktforfragan(
         angelagenhet: tillAdminAngelagenhet(data.urgency),
         meddelande: data.message,
         idempotensnyckel: data.idempotencyKey,
+        demo: data.demoMode,
       }),
     });
   } catch (error) {
@@ -140,6 +143,16 @@ export async function skickaKontaktforfragan(
   // Intern avisering till Nova IT, frikopplad från kundbekräftelsen
   // nedan - ärendet syns redan i adminportalen oavsett, så ett
   // misslyckat internt mejl loggas men stoppar aldrig svaret till kunden.
+  if (data.demoMode) {
+    return {
+      accepted: true,
+      arendenummer,
+      mottagetVid: mottagetVid ?? new Date().toISOString(),
+      confirmationSent: true,
+      demo: true,
+    };
+  }
+
   await forsokSkickaInternAvisering(data, arendenummer);
 
   const confirmationSent = await forsokSkickaKundbekraftelse({
@@ -162,6 +175,7 @@ export async function skickaKontaktforfragan(
     arendenummer,
     mottagetVid: mottagetVid ?? new Date().toISOString(),
     confirmationSent,
+    demo: false,
   };
 }
 
