@@ -187,7 +187,10 @@ function Home() {
               <h3 className="mt-4 font-semibold">Tydlig kontaktväg</h3>
               <p className="mt-2 text-sm leading-6 text-slate-300">
                 Alla förfrågningar går till{" "}
-                <a href={`mailto:${contactChannels.contact}`} className="text-sky-300 hover:text-sky-200">
+                <a
+                  href={`mailto:${contactChannels.contact}`}
+                  className="text-sky-300 underline decoration-sky-300/80 underline-offset-4 hover:text-sky-200"
+                >
                   {contactChannels.contact}
                 </a>
                 . Du svarar direkt på din bekräftelse.
