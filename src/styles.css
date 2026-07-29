@@ -177,28 +177,6 @@
     @apply text-xs font-semibold uppercase tracking-[0.18em] text-primary;
   }
 
-  .tech-grid {
-    background-image:
-      linear-gradient(
-        to right,
-        color-mix(in oklch, var(--border) 35%, transparent) 1px,
-        transparent 1px
-      ),
-      linear-gradient(
-        to bottom,
-        color-mix(in oklch, var(--border) 35%, transparent) 1px,
-        transparent 1px
-      );
-    background-size: 32px 32px;
-  }
-
-  .tech-grid-dark {
-    background-image:
-      linear-gradient(to right, rgb(255 255 255 / 6%) 1px, transparent 1px),
-      linear-gradient(to bottom, rgb(255 255 255 / 6%) 1px, transparent 1px);
-    background-size: 36px 36px;
-  }
-
   .operational-shadow {
     box-shadow:
       0 24px 70px -36px color-mix(in oklch, var(--primary) 80%, black),

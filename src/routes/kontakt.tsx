@@ -279,7 +279,7 @@ function ContactPage() {
 
   if (submitted) {
     return (
-      <section className="tech-grid border-b border-border bg-secondary/35">
+      <section className="border-b border-border bg-secondary/35">
         <Container className="max-w-2xl py-20 text-center">
           <span className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-emerald-300/15 text-emerald-200">
             <CheckCircle2 className="h-7 w-7" />
