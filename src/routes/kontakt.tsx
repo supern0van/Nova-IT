@@ -204,6 +204,14 @@ function ContactPage() {
     setHoneypot("");
   }
 
+  // Skiljer sig från resetForm(): tar bara tillbaka till redigeringsvyn utan
+  // att tömma det som redan fyllts i - "Ändra uppgifter" ska låta kunden
+  // justera sina svar, inte börja om från noll.
+  function goBackToEdit() {
+    setSubmitted(false);
+    setSendError(null);
+  }
+
   async function sendContactRequest() {
     setIsSending(true);
     setSendError(null);
@@ -358,7 +366,7 @@ function ContactPage() {
                 </Button>
               </div>
             )}
-            <Button variant="outline" onClick={resetForm}>
+            <Button variant="outline" onClick={sent ? resetForm : goBackToEdit}>
               {sent ? "Skicka ett nytt ärende" : "Ändra uppgifter"}
             </Button>
           </div>
@@ -645,6 +653,7 @@ function ContactPage() {
                           <Textarea
                             {...fieldProps}
                             rows={6}
+                            className="resize-none"
                             value={values.message}
                             onChange={(event) => update("message", event.target.value)}
                             placeholder={assistantContext?.guidance}
