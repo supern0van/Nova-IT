@@ -7,6 +7,7 @@ const ENV_KEYS = [
   "RESEND_API_KEY",
   "CONTACT_FORM_FROM",
   "TURNSTILE_SECRET_KEY",
+  "TURNSTILE_REQUIRED",
 ] as const;
 
 const originalEnv: Record<string, string | undefined> = {};
@@ -19,6 +20,7 @@ beforeEach(() => {
   process.env.RESEND_API_KEY = "test-resend-key";
   process.env.CONTACT_FORM_FROM = "no-reply@nova-it.se";
   delete process.env.TURNSTILE_SECRET_KEY; // default: ej konfigurerad (soft-fail)
+  delete process.env.TURNSTILE_REQUIRED;
   originalFetch = globalThis.fetch;
 });
 
@@ -253,7 +255,7 @@ test("rejects a submission that arrives implausibly fast after the form rendered
   expect(fetchCalled).toBe(false);
 });
 
-test("skips Turnstile verification entirely when TURNSTILE_SECRET_KEY is not configured", async () => {
+test("skips Turnstile verification locally when it is not configured", async () => {
   globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input);
     if (url.includes("challenges.cloudflare.com")) {
@@ -275,6 +277,18 @@ test("skips Turnstile verification entirely when TURNSTILE_SECRET_KEY is not con
 
   const result = await skickaKontaktforfragan(validPayload);
   expect(result.accepted).toBe(true);
+});
+
+test("fails closed when Turnstile is required but its secret is missing", async () => {
+  process.env.TURNSTILE_REQUIRED = "true";
+  let intakeCalled = false;
+  globalThis.fetch = (async (input: RequestInfo | URL) => {
+    if (String(input).endsWith("/api/public/intag")) intakeCalled = true;
+    throw new Error("should not reach the intake without Turnstile configuration");
+  }) as unknown as typeof fetch;
+
+  await expect(skickaKontaktforfragan(validPayload)).rejects.toThrow();
+  expect(intakeCalled).toBe(false);
 });
 
 test("rejects the submission when Turnstile is configured but no token was provided", async () => {

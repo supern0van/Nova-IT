@@ -191,12 +191,19 @@ export const getTurnstileSiteKey = createServerFn({ method: "GET" }).handler(
  * Verifierar en Cloudflare Turnstile-token server-side.
  *
  * Om TURNSTILE_SECRET_KEY saknas är kontrollen avstängd för lokal utveckling.
- * När den finns nekas en saknad, ogiltig, felaktig action eller felaktig
- * hostname alltid.
+ * I produktion (eller när TURNSTILE_REQUIRED=true) faller flödet stängt i
+ * stället för att tyst degradera till ett oskyddat formulär. När nyckeln finns
+ * nekas en saknad, ogiltig, felaktig action eller felaktig hostname alltid.
  */
 async function verifieraTurnstile(token: string | null, idempotencyKey: string): Promise<void> {
   const secretKey = process.env.TURNSTILE_SECRET_KEY;
-  if (!secretKey) return;
+  if (!secretKey) {
+    if (process.env.NODE_ENV === "production" || process.env.TURNSTILE_REQUIRED === "true") {
+      console.error("Turnstile-verifiering saknas i obligatorisk produktionskonfiguration.");
+      throw new Error("Verifieringen kunde inte genomföras. Försök igen om en stund.");
+    }
+    return;
+  }
 
   if (!token) {
     throw new Error("Verifieringen kunde inte genomföras. Ladda om sidan och försök igen.");

@@ -78,11 +78,11 @@ Cloudflare-kontots inloggningsadress paverkar inte formularets funktion. Bytet t
 
 Kontaktformularet bor fa Cloudflare Turnstile och en enkel begransning av upprepade skick innan det marknadsfors brett. Det minskar spam och onodiga kostnader utan att lagga en tung inloggning framfor kunden.
 
-Status (2026-07-29): honeypot- och tidskontrollen ar redan byggda och aktiva i koden (`src/features/contact/contact-server.ts`). Turnstile-koden (klient + server) ar ocksa byggd men soft-fail:ar tills nycklarna nedan ar satta - se korordern nedan for att aktivera den skarpt.
+Status (2026-07-29): honeypot- och tidskontrollen ar aktiva i koden (`src/features/contact/contact-server.ts`). Turnstile ar aktiverat i produktion med en Managed-widget for `nova-it.se`, och Worker:n har bade site key och secret key som hemligheter. Koden faller stangt i produktion om Turnstile-konfigurationen saknas; lokal utveckling kan fortfarande soft-faila utan nyckel. Rate limiting ar aktiverat pa zonniva i Cloudflare Dashboard.
 
 ## Kororder: aktivera ratebegransning, Turnstile och INTAG_SECRET
 
-Dessa steg kraver inloggning i Cloudflare Dashboard och kan darfor inte utforas av assistenten - de listas har som en konkret att-gora-lista, i rekommenderad ordning.
+Stegen ar genomforda i Cloudflare Dashboard och listas har som driftreferens.
 
 ### 1. INTAG_SECRET (delad hemlighet mellan de tva Workers)
 
@@ -123,14 +123,18 @@ Kravs for att den publika sajtens kontaktformular ska kunna skapa arenden i admi
 5. Bygg och deploya om (`bun run deploy:production`).
 6. Verifiera: ladda `/kontakt?form=request` i en vanlig webbläsare, gå igenom formuläret och bekräfta att Turnstile-widgeten visas precis före den slutliga knappen **Skicka ärendet**. Skicka ett testarende och bekräfta att det fortfarande fungerar.
 
-Tills bada nycklarna ar satta fungerar formularet exakt som idag (ingen Turnstile-kontroll genomfors) - se `verifieraTurnstile()` i `contact-server.ts`.
+I produktion ar bada nycklarna satta och Turnstile-kontrollen genomfors. Lokal utveckling utan nyckel soft-failar fortfarande enligt `verifieraTurnstile()` i `contact-server.ts`.
 
 ### 3. Ratebegransning (Cloudflare Dashboard, inte Workers-kod)
 
-Rekommenderat: en Rate Limiting Rule pa zonniva (Security -> WAF -> Rate limiting rules), inte ny kod i Workern.
+Aktiverat 2026-07-29 i Cloudflare Dashboard -> Security rules -> Rate limiting rules. Free-planen tillater en rate-limitregel per zon, sa kontaktsidan och intags-endpointen skyddas av samma aktiva regel:
 
-- **Regel 1** - kontaktformularets sidvisning/inskick: matcha `URI Path` `equals` `/kontakt`, trosklevarde t.ex. **20 forfragningar per minut per IP**, atgard **Managed Challenge** (inte "Block", eftersom aktiveringssidan besoks av legitima kunder aven vid hog trafik).
-- **Regel 2** - sjalva intags-endpointen: matcha `URI Path` `equals` `/api/public/intag`, trosklevarde t.ex. **10 forfragningar per minut per IP**, atgard **Block** (den anropas bara av den egna servern-till-server-koden och supportassistentens flode, aldrig direkt av en vanlig anvandares webblasare i normalt bruk).
+- **Matchning:** `(http.request.uri.path wildcard r"/kontakt*") or (http.request.uri.path eq "/api/public/intag")`
+- **Karakteristik:** per IP
+- **Troskel:** 4 forfragningar per 10 sekunder
+- **Atgard:** Block i 10 sekunder
+
+Regeln heter `Kontakt och publikt intag - 4 per 10 sekunder och IP`. Block valdes eftersom Free-planen inte erbjuder Managed Challenge for den har regeln; Turnstile ar fortsatt den primara kundkontrollen i kontaktformularet.
 
 Justera troskelvardena efter faktisk trafik nar de forsta veckorna har gett en baslinje.
 

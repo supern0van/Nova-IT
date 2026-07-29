@@ -26,6 +26,8 @@ import {
 import { consumeSupportHandoff } from "@/features/support/support-handoff";
 import { TurnstileWidget } from "@/components/turnstile-widget";
 
+const contactUrl = "https://nova-it.se/kontakt";
+
 export const Route = createFileRoute("/kontakt")({
   validateSearch: (search: Record<string, unknown>) => {
     const service = typeof search.service === "string" ? search.service : undefined;
@@ -43,7 +45,9 @@ export const Route = createFileRoute("/kontakt")({
         property: "og:description",
         content: "Berätta vad som krånglar med datorer, nätverk, installationer eller konton.",
       },
+      { property: "og:url", content: contactUrl },
     ],
+    links: [{ rel: "canonical", href: contactUrl }],
   }),
   component: ContactPage,
 });
