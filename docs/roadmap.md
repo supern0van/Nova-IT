@@ -33,13 +33,15 @@ Egen repo, Worker och databas - se `docs/kundportal-planering.md` (arkitektur,
 kärnbeslut, milstolpar) och `docs/kundportal-arbetsorder.md` (aktuell arbetsorder)
 samt `docs/DECISIONS.md` (DEC-0006) för det som redan är beslutat.
 
-- [x] Milstolpe 0 påbörjad: separat Supabase-projekt (`nova-it-kundportal`) och
-      separat GitHub-repo (`supern0van/Nova-IT-Kundportal`) skapade.
-- [ ] Milstolpe 0 klar: Worker deployad på `kundportal.nova-it.se`, CI grönt.
-- [ ] Milstolpe 1: datamodell och autentisering (kundkonton, tvingat lösenordsbyte).
-- [ ] Milstolpe 2: automatiskt kundkonto + välkomstmejl vid nytt ärende.
-- [ ] Milstolpe 3: kunden ser sina egna ärenden.
-- [ ] Milstolpe 4: kundinitierat svar på ärende.
+- [x] Milstolpe 0: separat Supabase-projekt (`nova-it-kundportal`), separat
+      GitHub-repo (`supern0van/Nova-IT-Kundportal`), Worker deployad på
+      `kundportal.nova-it.se`, CI grönt.
+- [x] Milstolpe 1: datamodell och autentisering (kundkonton, tvingat lösenordsbyte).
+- [x] Milstolpe 2: automatiskt kundkonto + välkomstmejl vid nytt ärende.
+- [x] Milstolpe 3: kunden ser sina egna ärenden.
+- [x] Milstolpe 4: kundinitierat svar på ärende.
+- [x] Milstolpe 4b: glömt-lösenord-flöde (Supabase Auth, implicit flow, egen
+      Nova IT-märkt e-postmall).
 - [ ] Milstolpe 5: säkerhets- och release-granskning.
 - [ ] Milstolpe 6: lansering (DNS-omläggning av `portal.nova-it.se`/`portal.novait.se`).
 
@@ -49,5 +51,3 @@ samt `docs/DECISIONS.md` (DEC-0006) för det som redan är beslutat.
 - Riktiga kontaktuppgifter, ort/område och eventuell juridisk bolagsinformation.
 - Om robotassistenten ska kopplas till backend, ärendesystem eller AI API.
 - Vilka kundcase, priser eller erbjudanden som faktiskt får visas.
-- Kundportalens B2/B3-beslut (autentiseringsmetod, glömt-lösenord-flöde) - se
-  öppna frågor i `docs/kundportal-planering.md` och DEC-0006.
