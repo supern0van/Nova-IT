@@ -30,11 +30,12 @@ kodning kunde börja (B1–B3), samt vilket val som gjordes.
   `kundportal.nova-it.se` (medvetet inte `portal.nova-it.se`/`portal.novait.se`,
   som fortsatt pekar mot `nova-it-admin` tills lansering, se Milstolpe 6 i
   planeringsdokumentet).
-- **B2 (autentisering) och B3 (glömt-lösenord-flöde i M2):** ännu INTE
-  slutgiltigt beslutade av ägaren - min rekommendation (lösenord med tvingat
-  byte vid första inloggning, samt ett glömt-lösenord-flöde redan i M2) gäller
-  som arbetshypotes tills vidare, se öppna frågor i
-  `docs/kundportal-planering.md`. Uppdatera denna post när de är bekräftade.
+- **B2 (autentisering) – slutgiltigt bekräftat av ägaren 2026-07-29:**
+  lösenord med tvingat byte vid första inloggning (redan byggt sedan
+  Milstolpe 1). Passwordless/magic link övervägdes men valdes bort.
+- **B3 (glömt lösenord) – slutgiltigt bekräftat av ägaren 2026-07-29:**
+  ska byggas nu (Milstolpe 4b), innan bredare kundanvändning, i stället för
+  att skjutas upp till Milstolpe 5.
 
 ### Konsekvens
 

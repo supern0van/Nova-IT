@@ -221,6 +221,39 @@ för den ursprungliga scope-beskrivningen.
   tredjepartsuppgift) roterades den bara om och sattes på nytt på båda
   Workers, i stället för att försöka återskapa/gissa det gamla värdet.
 
+## Milstolpe 4b — Glömt lösenord (KLAR, 2026-07-29)
+
+B2 och B3 (se DEC-0006) slutgiltigt bekräftade av ägaren: behåll lösenord +
+tvingat byte, och bygg ett glömt-lösenord-flöde nu i stället för att vänta
+till Milstolpe 5.
+
+### Vad som byggdes
+
+- `/glomt-losenord`: e-postformulär som anropar Supabase Auths
+  `resetPasswordForEmail`. Visar SAMMA bekräftelsetext oavsett om
+  e-postadressen faktiskt har ett konto - annars kan formuläret användas
+  för att gissa vilka e-postadresser som har kundportalskonton.
+- `/aterstall-losenord`: sidan länken i mejlet pekar mot. Lyssnar på
+  Supabases `PASSWORD_RECOVERY`-event (den tillfälliga sessionen som
+  upprättas av länken), visar sedan ett nytt-lösenord-formulär som anropar
+  `updateUser` och återanvänder `/api/kund/byt-losenord` för att nollställa
+  `maste_byta_losenord`. Visar ett tydligt "länken är ogiltig/har gått ut"-
+  läge om ingen återställningssession upprättas inom några sekunder.
+- `/logga-in` fick en "Glömt lösenord?"-länk.
+- Inga nya server-routes eller databasändringar - bygger helt på Supabase
+  Auths inbyggda flöde.
+
+### Kvarstående manuellt steg (kräver Supabase Dashboard, inte kod)
+
+Supabase Auth validerar `redirectTo`-värdet i `resetPasswordForEmail` mot en
+allowlist ("Redirect URLs") som ställs in i Dashboarden - det finns inget
+MCP-verktyg för att läsa/ändra den listan. **Ägaren behöver lägga till**
+`https://kundportal.nova-it.se/aterstall-losenord` under Authentication →
+URL Configuration → Redirect URLs för projektet `nova-it-kundportal`
+(`bueysepdmxsucmagijvo`), annars nekas eller ignoreras omdirigeringen och
+återställningslänken i mejlet fungerar inte. Inte verifierat live av
+assistenten av samma anledning.
+
 ## Milstolpe 5 — Härdning och release-granskning (nästa)
 
 Se `docs/kundportal-planering.md` för fullständig beskrivning (extern
