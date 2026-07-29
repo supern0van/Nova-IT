@@ -43,6 +43,9 @@ vi.mock('@/lib/admin/operativa-server', () => ({
   uppdateraOperativKundanteckning: vi.fn(),
   uppdateraOperativtArende: vi.fn(),
 }))
+vi.mock('@/lib/admin/sms-server', () => ({
+  skickaKlarForUpphamtningSms: vi.fn(),
+}))
 
 const hamtaAutentiseradAnvandarIdMock = vi.mocked(hamtaAutentiseradAnvandarId)
 const hamtaRollFranDatabasenMock = vi.mocked(hamtaRollFranDatabasen)

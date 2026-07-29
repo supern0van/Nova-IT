@@ -155,6 +155,30 @@ pnpm worker:secrets
 pnpm worker:deployments
 ```
 
+### Valfria Worker-secrets: SMS ("klart för upphämtning")
+
+Adminportalen har en knapp på ärendedetaljsidan för att skicka SMS till kunden om att
+ärendet är klart och produkten kan hämtas (`lib/admin/sms-server.ts`, via 46elks).
+Soft-fail-designad på samma sätt som Turnstile på den publika sajten: saknas nycklarna
+visas ett tydligt fel när knappen används, men resten av portalen fungerar oförändrat.
+
+1. Skapa ett konto på [46elks.se](https://46elks.se) och hämta API-användarnamn och
+   API-lösenord från dashboarden.
+2. Sätt dem som Worker-secrets (från `portal/`):
+   ```bash
+   bunx wrangler secret put ELKS_API_USERNAME
+   bunx wrangler secret put ELKS_API_PASSWORD
+   ```
+3. Valfritt: sätt ett eget avsändarnamn (max 11 tecken, inga mellanslag; standard är
+   `NovaIT` om detta inte sätts):
+   ```bash
+   bunx wrangler secret put SMS_AVSANDARE
+   ```
+4. Deploya (`pnpm deploy:production`) så att de nya secrets börjar användas.
+5. Verifiera: öppna ett ärende i adminportalen, klicka "SMS: klart för upphämtning" och
+   bekräfta att kunden (eller ett eget testnummer) får ett SMS, och att en aktivitet
+   loggas i ärendets tidslinje.
+
 ### Adminportal i GitHub Actions
 
 CI har ett separat jobb för `portal/`. Det kör `pnpm run ci`, portalens egna pnpm-baserade verifiering, och bygger den faktiska OpenNext Worker-bundlen i Linux. Kör samma kommando i WSL vid lokal felsökning, eftersom OpenNext-bundlingen kan falla på Windows symlink-begränsningar. Root-projektets Bun-baserade lint/build ska inte lint-köra `portal/`, eftersom adminportalen är en separat Next/pnpm-app med egen ESLint-konfiguration.
