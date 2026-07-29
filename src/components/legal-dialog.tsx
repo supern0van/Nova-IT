@@ -106,6 +106,28 @@ const documents: Record<
               nätverk kan innebära behandling utanför EU/EES med de skyddsåtgärder som krävs enligt
               tillämplig dataskyddslagstiftning.
             </p>
+            <p>
+              Om ett konto skapas åt dig i vår kundportal (se nästa avsnitt) lagras dina uppgifter
+              hos Supabase, som levererar databas och inloggning för den tjänsten.
+            </p>
+          </>
+        ),
+      },
+      {
+        heading: "Kundportalen",
+        body: (
+          <>
+            <p>
+              När ett ärende registreras kan ett konto i Nova IT:s kundportal skapas automatiskt åt
+              dig, så att du kan följa och svara på ditt ärende. Du får då ett separat mejl med
+              inloggningsuppgifter och ett tillfälligt lösenord, som du byter första gången du
+              loggar in. Det tillfälliga lösenordet lagras eller loggas aldrig i klartext utöver det
+              enda mejlet.
+            </p>
+            <p>
+              I kundportalen kan du se dina egna ärenden, deras status och den konversation som förs
+              kring dem, samt skriva svar. Du ser aldrig andra kunders ärenden eller uppgifter.
+            </p>
           </>
         ),
       },

@@ -1,6 +1,6 @@
 # Internt register över personuppgiftsbehandlingar
 
-Detta register är en första arbetsversion för Nova IT:s publika webbplats och kontaktflöde. Det ska hållas uppdaterat när leverantörer, ändamål, lagringstider eller tekniska flöden ändras. Dokumentet är internt och ska inte publiceras som kundinformation utan en separat bedömning.
+Detta register är en första arbetsversion för Nova IT:s publika webbplats, kontaktflöde och kundportal. Det ska hållas uppdaterat när leverantörer, ändamål, lagringstider eller tekniska flöden ändras. Dokumentet är internt och ska inte publiceras som kundinformation utan en separat bedömning.
 
 ## Ansvar och kontakt
 
@@ -17,6 +17,8 @@ Detta register är en första arbetsversion för Nova IT:s publika webbplats och
 | Direkt e-postkontakt              | Besvara och administrera inkommande e-post                       | Personer som kontaktar Nova IT  | Kontaktuppgifter och innehåll i meddelandet                                        | E-postleverantör; Cloudflare där trafiken skyddas av deras tjänst | Så länge det behövs för kontakt, uppdrag eller rättslig skyldighet                                                                      | Berättigat intresse; avtal eller rättslig skyldighet när relevant |
 | Drift- och säkerhetsloggar        | Tillgänglighet, felsökning, missbruksskydd och incidenthantering | Besökare och tekniska användare | IP-adress, tidpunkt, tekniska metadata och säkerhetshändelser                      | Cloudflare och driftleverantörer enligt aktuell konfiguration     | Enligt leverantörernas konfiguration och Nova IT:s säkerhetsbehov; gallring ska dokumenteras när konfigurationen är fastställd          | Berättigat intresse och rättslig skyldighet när relevant          |
 | Samtyckesval för valfria tekniker | Spara besökarens val och respektera återkallelse                 | Besökare                        | Val för statistik och marknadsföring, tidpunkt och teknisk kontext i lokal lagring | Ingen extern mottagare i nuvarande version                        | Tills besökaren ändrar eller raderar valet                                                                                              | Samtycke för valfria tekniker                                     |
+| Kundportalens konto och inloggning | Ge kunden inloggning för att se och svara på sina egna ärenden | Kunder med registrerat ärende | E-post, tillfälligt lösenord (endast i ett engångsmejl, aldrig loggat), inloggningshistorik | Supabase (databas och autentisering, kundportalens EGET, separata projekt); Cloudflare för drift och säkerhet | Kontot består så länge kundrelationen är aktiv; radering vid kundens begäran eller enligt Nova IT:s allmänna gallringsrutin (ännu ej fastställd för denna tjänst) | Berättigat intresse/avtal - fullgörande av support-/serviceavtalet |
+| Kundportalens ärenden och konversation | Visa kundens egna ärenden och ta emot kundens svar | Kunder med registrerat ärende | Ärenderubrik, status, prioritet, konversationstext kunden själv skrivit | Supabase (samma projekt som ovan); adminportalen (samma uppgifter som redan behandlas där för ärendet) | Följer ärendets egen livscykel/lagringstid i adminportalen - ingen separat kopia utöver kundportalens egen `kund_konton`-koppling | Berättigat intresse/avtal - fullgörande av support-/serviceavtalet |
 
 ## Biträdes- och säkerhetskontroll
 
