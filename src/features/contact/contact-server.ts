@@ -60,10 +60,10 @@ export async function skickaKontaktforfragan(
   data: ContactRequestData,
 ): Promise<SubmitContactRequestResult> {
   const intakeUrl = process.env.ADMIN_INTAKE_URL;
-  const intakeSecret = process.env.PUBLIC_INTAG_SECRET;
+  const intakeSecret = process.env.INTAG_SECRET;
 
   if (!intakeUrl || !intakeSecret) {
-    console.error("Public intake is missing ADMIN_INTAKE_URL or PUBLIC_INTAG_SECRET.");
+    console.error("Public intake is missing ADMIN_INTAKE_URL or INTAG_SECRET.");
     throw new Error("Ärendeintaget är inte konfigurerat just nu. Försök igen om en stund.");
   }
 

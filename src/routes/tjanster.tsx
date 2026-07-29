@@ -5,8 +5,6 @@ import { ServiceAreas } from "@/components/service-areas";
 import { ProjectProof } from "@/components/project-proof";
 import { Container, PageHeader } from "@/components/design-system";
 
-const catalogServices = services.filter((service) => service.slug !== "datorservice");
-
 export const Route = createFileRoute("/tjanster")({
   head: () => ({
     meta: [
@@ -52,7 +50,7 @@ function ServicesPage() {
               som ligger närmast, och valet går alltid att ändra.
             </p>
           </div>
-          <ServiceCatalog services={catalogServices} />
+          <ServiceCatalog services={services} />
           <ProjectProof />
         </Container>
       </section>

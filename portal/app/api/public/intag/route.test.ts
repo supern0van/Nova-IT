@@ -56,11 +56,11 @@ const giltigPayload = {
 describe('/api/public/intag', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    process.env.PUBLIC_INTAG_SECRET = GILTIG_HEMLIGHET
+    process.env.INTAG_SECRET = GILTIG_HEMLIGHET
   })
 
-  it('returnerar 500 utan att skapa något om PUBLIC_INTAG_SECRET saknas', async () => {
-    delete process.env.PUBLIC_INTAG_SECRET
+  it('returnerar 500 utan att skapa något om INTAG_SECRET saknas', async () => {
+    delete process.env.INTAG_SECRET
 
     const svar = await POST(request(giltigPayload, { 'x-intag-secret': GILTIG_HEMLIGHET }))
 
@@ -144,7 +144,7 @@ describe('/api/public/intag', () => {
 describe('PATCH /api/public/intag (bekräftelsestatus)', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    process.env.PUBLIC_INTAG_SECRET = GILTIG_HEMLIGHET
+    process.env.INTAG_SECRET = GILTIG_HEMLIGHET
   })
 
   it('returnerar 401 utan giltig hemlighet, uppdaterar inget', async () => {

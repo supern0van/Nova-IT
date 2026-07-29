@@ -3,7 +3,7 @@ import { skickaKontaktforfragan } from "./contact-server";
 
 const ENV_KEYS = [
   "ADMIN_INTAKE_URL",
-  "PUBLIC_INTAG_SECRET",
+  "INTAG_SECRET",
   "RESEND_API_KEY",
   "CONTACT_FORM_FROM",
 ] as const;
@@ -14,7 +14,7 @@ let originalFetch: typeof fetch;
 beforeEach(() => {
   for (const key of ENV_KEYS) originalEnv[key] = process.env[key];
   process.env.ADMIN_INTAKE_URL = "https://admin.nova-it.se";
-  process.env.PUBLIC_INTAG_SECRET = "test-hemlighet";
+  process.env.INTAG_SECRET = "test-hemlighet";
   process.env.RESEND_API_KEY = "test-resend-key";
   process.env.CONTACT_FORM_FROM = "no-reply@nova-it.se";
   originalFetch = globalThis.fetch;

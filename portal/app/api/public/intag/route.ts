@@ -17,10 +17,10 @@ import {
  * adminportalens skrivvägar (som alla kräver en giltig AAL2-session – se
  * den delade hjälparen i `lib/supabase/route-anvandare.ts`):
  *
- *   1. Kräver headern `x-intag-secret` som matchar `PUBLIC_INTAG_SECRET`
+ *   1. Kräver headern `x-intag-secret` som matchar `INTAG_SECRET`
  *      exakt (konstant-tids-jämförelse, se `timmingSaker`). Fel eller
  *      saknad hemlighet ger 401 utan att avslöja vilket steg som brast.
- *   2. `PUBLIC_INTAG_SECRET` är server-only, roterbar via en ny Worker-
+ *   2. `INTAG_SECRET` är server-only, roterbar via en ny Worker-
  *      secret, och delas ALDRIG med klientkod på någon av sajterna.
  *   3. All skrivning går genom `skapaPubliktIntag()`, som validerar varje
  *      fält på servern (klientvalidering på nova-it.se är bara UX) och
@@ -119,9 +119,9 @@ export async function PATCH(request: NextRequest) {
 }
 
 function verifieraHemlighet(request: NextRequest): 200 | 401 | 500 {
-  const konfigureradHemlighet = process.env.PUBLIC_INTAG_SECRET
+  const konfigureradHemlighet = process.env.INTAG_SECRET
   if (!konfigureradHemlighet) {
-    console.error('PUBLIC_INTAG_SECRET saknas – det publika intaget kan inte verifiera anrop.')
+    console.error('INTAG_SECRET saknas – det publika intaget kan inte verifiera anrop.')
     return 500
   }
 

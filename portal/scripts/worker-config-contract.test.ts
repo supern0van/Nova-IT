@@ -54,7 +54,7 @@ describe('admin Worker-konfiguration', () => {
       'NEXT_PUBLIC_SUPABASE_URL',
       'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY',
       'SUPABASE_SERVICE_ROLE_KEY',
-      'PUBLIC_INTAG_SECRET',
+      'INTAG_SECRET',
     ])
   })
 })

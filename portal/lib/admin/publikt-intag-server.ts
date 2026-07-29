@@ -5,7 +5,7 @@ import type { Kategori, Kundtyp, Prioritet } from '@/lib/types'
  * Serverlogik för det publika ärendeintaget från nova-it.se.
  *
  * Anropas ENDAST av `app/api/public/intag/route.ts`, som kräver en delad
- * server-till-server-hemlighet (se `PUBLIC_INTAG_SECRET` i den filen) –
+ * server-till-server-hemlighet (se `INTAG_SECRET` i den filen) –
  * ingen AAL2-session, ingen adminanvändare. Det är medvetet: en anonym
  * webbplatsbesökare har varken ett portalkonto eller en MFA-verifierad
  * session, så samma autentiseringsväg som adminportalens övriga skrivvägar

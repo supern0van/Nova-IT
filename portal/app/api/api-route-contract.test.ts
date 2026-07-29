@@ -72,7 +72,7 @@ describe('admin API route-kontrakt', () => {
   it('kräver en delad hemlighetskontroll för publika server-till-server-routes', () => {
     for (const relativ of publikaServerTillServerRoutes) {
       const innehall = readFileSync(path.join(apiRoot, relativ), 'utf8')
-      expect(innehall, relativ).toMatch(/PUBLIC_INTAG_SECRET/)
+      expect(innehall, relativ).toMatch(/INTAG_SECRET/)
       expect(innehall, relativ).not.toContain('hamtaAutentiseradAnvandarId')
     }
   })
