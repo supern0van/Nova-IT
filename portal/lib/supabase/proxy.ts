@@ -5,6 +5,7 @@ import { sakerOmdirigeringsSokvag } from '@/lib/auth/sakerOmdirigering'
 import { MFA_VAG, harUppnattAal2 } from '@/lib/auth/mfa'
 import { skapaSessionLease, SESSION_LEASE_COOKIE, verifieraSessionLease } from '@/lib/auth/session-lease'
 import { INAKTIVITETS_TIMEOUT_MS } from '@/lib/auth/session-timeouts'
+import { arDemogastEpost } from '@/lib/auth/demo-guest'
 
 const INLOGGNINGSVAG = '/logga-in'
 const STANDARDVAG_EFTER_INLOGGNING = '/portal'
@@ -104,12 +105,25 @@ export async function uppdateraSessionOchSkyddaPortal(request: NextRequest) {
   }
 
   const inloggad = Boolean(claims)
+  const demogast = inloggad && arDemogastEpost(claims?.email)
+  const demogastRoute =
+    demogast &&
+    (arInloggningssida ||
+      arMfaSida ||
+      (pathname === '/api/session/lease' ||
+        (request.method === 'GET' &&
+        ((!arApiPath &&
+          (pathname === '/portal' ||
+            pathname === '/portal/arenden' ||
+            (pathname.startsWith('/portal/arenden/') && pathname !== '/portal/arenden/ny'))) ||
+            pathname === '/api/roll' ||
+            pathname === '/api/admin/operativt'))))
   // `aal` saknas aldrig i praktiken när `claims` finns (obligatoriskt claim
   // enligt Supabase), men faller stängt (`aal1`) om det ändå skulle saknas.
   const mfaVerifierad = inloggad && harUppnattAal2(claims?.aal ?? 'aal1')
 
   async function hanteraServerSessionLease() {
-    if (!mfaVerifierad || typeof claims?.sub !== 'string' || typeof claims?.session_id !== 'string') {
+    if ((!mfaVerifierad && !demogastRoute) || typeof claims?.sub !== 'string' || typeof claims?.session_id !== 'string') {
       return null
     }
 
@@ -192,6 +206,7 @@ export async function uppdateraSessionOchSkyddaPortal(request: NextRequest) {
     // välja nytt lösenord innan ordinarie obligatorisk MFA tar vid igen.
     if (arLosenordsaterstallning) return svar
     if (!inloggad) return svar
+    if (demogast) return omdirigeraTillInloggadDestination()
     if (!mfaVerifierad) return omdirigeraTillMfa()
     return omdirigeraTillInloggadDestination()
   }
@@ -206,7 +221,7 @@ export async function uppdateraSessionOchSkyddaPortal(request: NextRequest) {
     // Redan MFA-verifierad (t.ex. bakåtknapp till /mfa, eller en flik som
     // stod öppen på /mfa i en annan flik medan verifiering skedde) – inget
     // skäl att visa MFA-vyn igen.
-    if (mfaVerifierad) return omdirigeraTillInloggadDestination()
+    if (mfaVerifierad || demogast) return omdirigeraTillInloggadDestination()
     return svar
   }
 
@@ -218,6 +233,12 @@ export async function uppdateraSessionOchSkyddaPortal(request: NextRequest) {
     malAdress.search = ''
     malAdress.searchParams.set('next', ursprungligDestination)
     return NextResponse.redirect(malAdress)
+  }
+
+  if (demogast && !demogastRoute) {
+    return arApiPath
+      ? NextResponse.json({ error: 'demo_guest_read_only' }, { status: 403 })
+      : omdirigeraTillInloggadDestination()
   }
 
   // Inloggad men inte MFA-verifierad: obligatorisk MFA innebär att INGEN

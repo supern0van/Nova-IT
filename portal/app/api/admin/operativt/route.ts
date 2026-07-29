@@ -21,21 +21,22 @@ import {
   uppdateraOperativKundanteckning,
   uppdateraOperativtArende,
 } from '@/lib/admin/operativa-server'
+import { skickaKlarForUpphamtningSms } from '@/lib/admin/sms-server'
 import { arAdministrator } from '@/lib/auth/roll'
 import { hamtaRollFranDatabasen } from '@/lib/auth/roll-server'
 import { harBehorighet, type Behorighet } from '@/lib/auth/supabase-auth'
-import { hamtaAutentiseradAnvandarId } from '@/lib/supabase/route-anvandare'
+import { hamtaAutentiseradAnvandare } from '@/lib/supabase/route-anvandare'
 import type { Roll } from '@/lib/types'
 
 export async function GET(request: NextRequest) {
-  const atkomst = await verifieraOperativAtkomst(request)
+  const atkomst = await verifieraOperativAtkomst(request, { tillatDemogast: true })
 
   if (atkomst.status !== 200) {
     return NextResponse.json(tomtOperativtSvar(), { status: atkomst.status })
   }
 
   try {
-    return NextResponse.json(await hamtaOperativAdminData())
+    return NextResponse.json(await hamtaOperativAdminData({ endastDemo: atkomst.demogast }))
   } catch {
     return NextResponse.json(tomtOperativtSvar(), { status: 500 })
   }
@@ -154,6 +155,12 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ ok: false }, { status: 403 })
   }
 
+  // Ett SMS till kunden är kommunikation med kunden - samma behörighet
+  // (`svara_kund`) som redan finns hos båda operativa nivåerna.
+  if (payload.typ === 'skicka_sms' && !atkomst.harBehorighet('svara_kund')) {
+    return NextResponse.json({ ok: false }, { status: 403 })
+  }
+
   try {
     switch (payload.typ) {
       case 'uppdatera_kund':
@@ -222,6 +229,17 @@ export async function PATCH(request: NextRequest) {
           ok: true,
           id: await taBortOperativKundanteckning(payload.data.id),
         })
+      case 'skicka_sms':
+        if (typeof payload.data.arendeId !== 'string') {
+          return NextResponse.json({ ok: false }, { status: 400 })
+        }
+        return NextResponse.json({
+          ok: true,
+          sms: await skickaKlarForUpphamtningSms(
+            payload.data.arendeId,
+            typeof payload.data.aktor === 'string' ? payload.data.aktor : 'Okänd',
+          ),
+        })
       default:
         return NextResponse.json({ ok: false }, { status: 400 })
     }
@@ -231,7 +249,7 @@ export async function PATCH(request: NextRequest) {
 }
 
 type OperativAtkomst =
-  | { status: 200; harBehorighet: (behorighet: Behorighet) => boolean }
+  | { status: 200; demogast: boolean; harBehorighet: (behorighet: Behorighet) => boolean }
   | { status: 401 | 500 }
 
 /**
@@ -248,13 +266,16 @@ type OperativAtkomst =
  * `administrator` → full operativ behörighet, `medarbetare` → `tekniker`.
  * Detta ska bytas ut den dagen en riktig personalmodell finns.
  */
-async function verifieraOperativAtkomst(request: NextRequest): Promise<OperativAtkomst> {
-  const anvandareId = await hamtaAutentiseradAnvandarId(request)
-  if (!anvandareId) return { status: 401 }
+async function verifieraOperativAtkomst(
+  request: NextRequest,
+  alternativ: { tillatDemogast?: boolean } = {},
+): Promise<OperativAtkomst> {
+  const anvandare = await hamtaAutentiseradAnvandare(request, alternativ)
+  if (!anvandare) return { status: 401 }
 
   let systemRoll: Awaited<ReturnType<typeof hamtaRollFranDatabasen>>
   try {
-    systemRoll = await hamtaRollFranDatabasen(anvandareId)
+    systemRoll = await hamtaRollFranDatabasen(anvandare.id)
   } catch {
     return { status: 500 }
   }
@@ -263,6 +284,7 @@ async function verifieraOperativAtkomst(request: NextRequest): Promise<OperativA
   const operativRoll: Roll = arAdministrator(systemRoll) ? 'administrator' : 'tekniker'
   return {
     status: 200,
+    demogast: anvandare.demogast,
     harBehorighet: (behorighet) => harBehorighet(operativRoll, behorighet),
   }
 }

@@ -91,7 +91,7 @@ export type OperativaArendeandringar = Partial<
   Pick<Arende, 'status' | 'prioritet' | 'ansvarigId'>
 >
 
-export async function hamtaOperativAdminData(): Promise<OperativAdminData> {
+export async function hamtaOperativAdminData(options: { endastDemo?: boolean } = {}): Promise<OperativAdminData> {
   const supabase = skapaSupabaseServiceklient()
 
   const [
@@ -124,36 +124,54 @@ export async function hamtaOperativAdminData(): Promise<OperativAdminData> {
     throw new Error('Kunde inte läsa operativ admin-data från Supabase.')
   }
 
-  return {
-    kunder: (kunderSvar.data ?? []).flatMap((rad) => {
+  const kunder = (kunderSvar.data ?? []).flatMap((rad) => {
       const kund = normaliseraKundRad(rad)
       return kund ? [kund] : []
-    }),
-    arenden: (arendenSvar.data ?? []).flatMap((rad) => {
+    })
+  const arenden = (arendenSvar.data ?? []).flatMap((rad) => {
       const arende = normaliseraArendeRad(rad)
       return arende ? [arende] : []
-    }),
-    bokningar: (bokningarSvar.data ?? []).flatMap((rad) => {
+    })
+  const bokningar = (bokningarSvar.data ?? []).flatMap((rad) => {
       const bokning = normaliseraBokningRad(rad)
       return bokning ? [bokning] : []
-    }),
-    meddelanden: (meddelandenSvar.data ?? []).flatMap((rad) => {
+    })
+  const meddelanden = (meddelandenSvar.data ?? []).flatMap((rad) => {
       const meddelande = normaliseraMeddelandeRad(rad)
       return meddelande ? [meddelande] : []
-    }),
-    aktiviteter: (aktiviteterSvar.data ?? []).flatMap((rad) => {
+    })
+  const aktiviteter = (aktiviteterSvar.data ?? []).flatMap((rad) => {
       const aktivitet = normaliseraAktivitetRad(rad)
       return aktivitet ? [aktivitet] : []
-    }),
-    kundanteckningar: (kundanteckningarSvar.data ?? []).flatMap((rad) => {
+    })
+  const kundanteckningar = (kundanteckningarSvar.data ?? []).flatMap((rad) => {
       const anteckning = normaliseraKundanteckningRad(rad)
       return anteckning ? [anteckning] : []
-    }),
-    personal: (personalSvar.data ?? []).flatMap((rad) => {
+    })
+  const personal = (personalSvar.data ?? []).flatMap((rad) => {
       const person = normaliseraPersonalRad(rad)
       return person ? [person] : []
-    }),
+    })
+
+  if (options.endastDemo) {
+    const demoArenden = arenden.filter((arende) => arende.rubrik.startsWith('[DEMO]'))
+    const demoArendeId = new Set(demoArenden.map((arende) => arende.id))
+    const demoKundId = new Set(demoArenden.map((arende) => arende.kundId))
+    const demoAnsvarigId = new Set(
+      demoArenden.flatMap((arende) => (arende.ansvarigId ? [arende.ansvarigId] : [])),
+    )
+    return {
+      kunder: kunder.filter((kund) => demoKundId.has(kund.id)),
+      arenden: demoArenden,
+      bokningar: bokningar.filter((bokning) => !bokning.arendeId || demoArendeId.has(bokning.arendeId)),
+      meddelanden: meddelanden.filter((meddelande) => demoArendeId.has(meddelande.arendeId)),
+      aktiviteter: aktiviteter.filter((aktivitet) => demoArendeId.has(aktivitet.arendeId)),
+      kundanteckningar: kundanteckningar.filter((anteckning) => demoKundId.has(anteckning.kundId)),
+      personal: personal.filter((person) => demoAnsvarigId.has(person.id)),
+    }
   }
+
+  return { kunder, arenden, bokningar, meddelanden, aktiviteter, kundanteckningar, personal }
 }
 
 export async function skapaOperativKund(uppgifter: NyOperativKund): Promise<Kund> {

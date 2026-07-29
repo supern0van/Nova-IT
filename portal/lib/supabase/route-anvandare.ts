@@ -2,6 +2,13 @@ import { createServerClient } from '@supabase/ssr'
 import type { NextRequest } from 'next/server'
 
 import { harUppnattAal2 } from '@/lib/auth/mfa'
+import { arDemogastEpost } from '@/lib/auth/demo-guest'
+
+export interface AutentiseradAnvandare {
+  id: string
+  epost: string | null
+  demogast: boolean
+}
 
 /**
  * Läser ut den verifierade användarens id (`sub`) för ett anrop, OM en
@@ -27,7 +34,10 @@ import { harUppnattAal2 } from '@/lib/auth/mfa'
  * proxyn: `getClaims()` verifierar JWT:t (inklusive `aal`-claimet), medan
  * `getSession()` litar bara på kakans innehåll.
  */
-export async function hamtaAutentiseradAnvandarId(request: NextRequest): Promise<string | null> {
+export async function hamtaAutentiseradAnvandare(
+  request: NextRequest,
+  alternativ: { tillatDemogast?: boolean } = {},
+): Promise<AutentiseradAnvandare | null> {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const publishableKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
   if (!supabaseUrl || !publishableKey) return null
@@ -52,7 +62,16 @@ export async function hamtaAutentiseradAnvandarId(request: NextRequest): Promise
   }
 
   if (!claims) return null
-  if (!harUppnattAal2(claims.aal)) return null
 
-  return typeof claims.sub === 'string' && claims.sub.trim() ? claims.sub : null
+  const epost = typeof claims.email === 'string' ? claims.email.trim().toLowerCase() : null
+  const demogast = arDemogastEpost(epost)
+  if (!harUppnattAal2(claims.aal) && !(alternativ.tillatDemogast && demogast)) return null
+
+  return typeof claims.sub === 'string' && claims.sub.trim()
+    ? { id: claims.sub, epost, demogast }
+    : null
+}
+
+export async function hamtaAutentiseradAnvandarId(request: NextRequest): Promise<string | null> {
+  return (await hamtaAutentiseradAnvandare(request))?.id ?? null
 }

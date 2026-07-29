@@ -12,6 +12,7 @@ import {
 } from '@/lib/auth/supabase-auth'
 import { hamtaRollFranApiSvar } from '@/lib/auth/roll-api-svar'
 import { arAdministrator, type SystemRoll } from '@/lib/auth/roll'
+import { arDemogastEpost } from '@/lib/auth/demo-guest'
 import {
   INAKTIVITETS_TIMEOUT_MS,
   SENAST_AKTIV_NYCKEL,
@@ -295,6 +296,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const kan = useCallback(
     (behorighet: Behorighet) => {
       if (!anvandare) return false
+      if (arDemogastEpost(anvandare.epost)) return behorighet === 'se_alla_arenden'
       if (SYSTEM_ADMIN_BEHORIGHETER.includes(behorighet) && !arAdministrator(roll)) return false
       return harBehorighet(anvandare.roll, behorighet)
     },

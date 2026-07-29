@@ -10,6 +10,7 @@ import { AnvandarMeny } from '@/components/portal/anvandar-meny'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { arAktiv, navigation } from '@/lib/navigation'
 import { cn } from '@/lib/utils'
+import { arDemogastEpost } from '@/lib/auth/demo-guest'
 
 /**
  * Kompakt sidomeny som kan minimeras till enbart ikoner.
@@ -27,9 +28,14 @@ export function Sidomeny({
   iPanel?: boolean
 }) {
   const pathname = usePathname()
-  const { kan } = useAuth()
+  const { kan, anvandare } = useAuth()
 
-  const poster = navigation.filter((post) => !post.kraver || kan(post.kraver))
+  const demogast = arDemogastEpost(anvandare?.epost)
+  const poster = navigation.filter(
+    (post) =>
+      (!demogast || post.href === '/portal' || post.href === '/portal/arenden') &&
+      (!post.kraver || kan(post.kraver)),
+  )
 
   return (
     <div className="flex h-full flex-col bg-sidebar text-sidebar-foreground">

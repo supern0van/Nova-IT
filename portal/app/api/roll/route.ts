@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 
 import { hamtaEgenProfilFranDatabasen, hamtaRollFranDatabasen } from '@/lib/auth/roll-server'
-import { hamtaAutentiseradAnvandarId } from '@/lib/supabase/route-anvandare'
+import { hamtaAutentiseradAnvandare } from '@/lib/supabase/route-anvandare'
 
 /**
  * Returnerar den inloggade användarens systemroll (`SystemRoll`, se
@@ -21,16 +21,16 @@ import { hamtaAutentiseradAnvandarId } from '@/lib/supabase/route-anvandare'
  * (ska normalt inte hända).
  */
 export async function GET(request: NextRequest) {
-  const anvandareId = await hamtaAutentiseradAnvandarId(request)
+  const anvandare = await hamtaAutentiseradAnvandare(request, { tillatDemogast: true })
 
-  if (!anvandareId) {
+  if (!anvandare) {
     return NextResponse.json({ roll: null }, { status: 401 })
   }
 
   try {
     const [roll, profil] = await Promise.all([
-      hamtaRollFranDatabasen(anvandareId),
-      hamtaEgenProfilFranDatabasen(anvandareId),
+      hamtaRollFranDatabasen(anvandare.id),
+      hamtaEgenProfilFranDatabasen(anvandare.id),
     ])
 
     return NextResponse.json({ roll, profil })

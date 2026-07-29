@@ -25,6 +25,7 @@ import type {
 } from '@supabase/supabase-js'
 
 import { skapaSupabaseWebblasarklient } from '@/lib/supabase/client'
+import { arDemogastEpost } from '@/lib/auth/demo-guest'
 import type { Anvandare, Roll } from '@/lib/types'
 
 const IHAGKOMMEN_NYCKEL = 'nova-it.ihagkommen-epost'
@@ -174,7 +175,7 @@ function tillPortalAnvandare(user: SupabaseUser): Anvandare {
     id: user.id,
     namn,
     epost,
-    roll: 'administrator',
+    roll: arDemogastEpost(epost) ? 'tekniker' : 'administrator',
     initialer: initialerFranNamn(namn),
     titel,
     aktiv: true,
