@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    return NextResponse.json(await hamtaOperativAdminData({ endastDemo: atkomst.demogast }))
+    return NextResponse.json(await hamtaOperativAdminData({ endastPublikaKontaktintag: atkomst.demogast }))
   } catch {
     return NextResponse.json(tomtOperativtSvar(), { status: 500 })
   }

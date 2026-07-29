@@ -131,31 +131,6 @@ test("still returns the ticket number when only the confirmation email fails", a
   expect(result.confirmationSent).toBe(false);
 });
 
-test("demo mode creates a marked ticket without sending email", async () => {
-  const calls: { url: string; init?: RequestInit }[] = [];
-  globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
-    const url = String(input);
-    calls.push({ url, init });
-    if (url.endsWith("/api/public/intag") && init?.method === "POST") {
-      expect(JSON.parse(String(init.body)).demo).toBe(true);
-      return jsonResponse({
-        accepted: true,
-        arendenummer: "NIT-DEMO-001",
-        mottagetVid: "2026-07-29T10:10:00.000Z",
-        internt: { arendeId: "demo-arende-1" },
-      });
-    }
-    throw new Error(`Unexpected fetch to ${url}`);
-  }) as unknown as typeof fetch;
-
-  const result = await skickaKontaktforfragan({ ...validPayload, demoMode: true });
-
-  expect(result.demo).toBe(true);
-  expect(result.confirmationSent).toBe(true);
-  expect(calls.some((call) => call.url.includes("api.resend.com"))).toBe(false);
-  expect(calls.some((call) => call.init?.method === "PATCH")).toBe(false);
-});
-
 test("fails closed without calling the intake when configuration is missing", async () => {
   delete process.env.ADMIN_INTAKE_URL;
   let fetchCalled = false;

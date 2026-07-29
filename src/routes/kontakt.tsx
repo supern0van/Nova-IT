@@ -29,10 +29,7 @@ import { TurnstileWidget } from "@/components/turnstile-widget";
 export const Route = createFileRoute("/kontakt")({
   validateSearch: (search: Record<string, unknown>) => {
     const service = typeof search.service === "string" ? search.service : undefined;
-    const demo = search.demo === "1" || search.demo === true;
-    return search.form === "request"
-      ? { service, form: "request" as const, ...(demo ? { demo: true } : {}) }
-      : { service, ...(demo ? { demo: true } : {}) };
+    return search.form === "request" ? { service, form: "request" as const } : { service };
   },
   head: () => ({
     meta: [
@@ -130,14 +127,12 @@ function ContactPage() {
   const search = Route.useSearch();
   const selectedService = getServiceBySlug(search.service);
   const selectedServiceTitle = selectedService?.title ?? "";
-  const demoMode = search.demo === true;
   const [submitted, setSubmitted] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [sent, setSent] = useState(false);
   const [sendError, setSendError] = useState<string | null>(null);
   const [arendenummer, setArendenummer] = useState<string | null>(null);
   const [confirmationSent, setConfirmationSent] = useState(true);
-  const [demoSubmitted, setDemoSubmitted] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
   const [assistantHandoffApplied, setAssistantHandoffApplied] = useState(false);
   const [assistantContext, setAssistantContext] = useState<AssistantContext | null>(null);
@@ -204,7 +199,6 @@ function ContactPage() {
     setValues(createInitialValues(selectedServiceTitle));
     setArendenummer(null);
     setConfirmationSent(true);
-    setDemoSubmitted(false);
     idempotencyKeyRef.current = crypto.randomUUID();
     formRenderedAtRef.current = Date.now();
     setHoneypot("");
@@ -241,12 +235,10 @@ function ContactPage() {
           website: honeypot,
           formRenderedAt: formRenderedAtRef.current,
           turnstileToken,
-          demoMode,
         },
       });
       setArendenummer(resultat.arendenummer);
       setConfirmationSent(resultat.confirmationSent);
-      setDemoSubmitted(resultat.demo);
       setSent(true);
     } catch (error) {
       console.error("Contact request submission failed.", error);
@@ -294,9 +286,7 @@ function ContactPage() {
           </span>
           <p className="eyebrow mt-6">Kontaktförfrågan</p>
           <h1 className="mt-3 text-4xl font-semibold tracking-[-0.04em]">
-            {sent && demoSubmitted
-              ? "Demoärendet är registrerat"
-              : sent
+            {sent
               ? confirmationSent
                 ? "Tack, din förfrågan är mottagen"
                 : "Din förfrågan är registrerad"
@@ -308,9 +298,7 @@ function ContactPage() {
             </p>
           )}
           <p className="mt-3 text-muted-foreground">
-            {sent && demoSubmitted
-              ? "Det här är ett testärende som visas i gästportalen. Inga riktiga kund- eller supportutskick har gjorts."
-              : sent
+            {sent
               ? confirmationSent
                 ? `En bekräftelse har skickats till ${values.email}.`
                 : "Vi kunde inte skicka bekräftelsen just nu, men ärendet finns registrerat."
@@ -404,12 +392,6 @@ function ContactPage() {
 
       <section className="nova-section">
         <Container className="py-14 lg:py-18">
-          {demoMode && (
-            <div role="note" className="mb-8 rounded-lg border border-sky-300/30 bg-sky-300/10 p-4 text-sm text-sky-100">
-              <strong>Demoläge:</strong> inskickningen blir ett märkt testärende som visas i
-              gästportalen. Inga riktiga kund- eller supportutskick görs.
-            </div>
-          )}
           <div className="grid min-w-0 gap-10 lg:grid-cols-[0.72fr_1.28fr] lg:items-start">
             <div className="min-w-0 lg:sticky lg:top-28">
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-sky-300">

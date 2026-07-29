@@ -91,7 +91,7 @@ export type OperativaArendeandringar = Partial<
   Pick<Arende, 'status' | 'prioritet' | 'ansvarigId'>
 >
 
-export async function hamtaOperativAdminData(options: { endastDemo?: boolean } = {}): Promise<OperativAdminData> {
+export async function hamtaOperativAdminData(options: { endastPublikaKontaktintag?: boolean } = {}): Promise<OperativAdminData> {
   const supabase = skapaSupabaseServiceklient()
 
   const [
@@ -153,21 +153,26 @@ export async function hamtaOperativAdminData(options: { endastDemo?: boolean } =
       return person ? [person] : []
     })
 
-  if (options.endastDemo) {
-    const demoArenden = arenden.filter((arende) => arende.rubrik.startsWith('[DEMO]'))
-    const demoArendeId = new Set(demoArenden.map((arende) => arende.id))
-    const demoKundId = new Set(demoArenden.map((arende) => arende.kundId))
-    const demoAnsvarigId = new Set(
-      demoArenden.flatMap((arende) => (arende.ansvarigId ? [arende.ansvarigId] : [])),
+  if (options.endastPublikaKontaktintag) {
+    const publikaKontaktintag = arenden.filter(
+      (arende) =>
+        arende.kanal === 'kontaktformular' &&
+        arende.status === 'ny' &&
+        !arende.rubrik.startsWith('[DEMO]'),
+    )
+    const publikaArendeId = new Set(publikaKontaktintag.map((arende) => arende.id))
+    const publikaKundId = new Set(publikaKontaktintag.map((arende) => arende.kundId))
+    const publikaAnsvarigId = new Set(
+      publikaKontaktintag.flatMap((arende) => (arende.ansvarigId ? [arende.ansvarigId] : [])),
     )
     return {
-      kunder: kunder.filter((kund) => demoKundId.has(kund.id)),
-      arenden: demoArenden,
-      bokningar: bokningar.filter((bokning) => !bokning.arendeId || demoArendeId.has(bokning.arendeId)),
-      meddelanden: meddelanden.filter((meddelande) => demoArendeId.has(meddelande.arendeId)),
-      aktiviteter: aktiviteter.filter((aktivitet) => demoArendeId.has(aktivitet.arendeId)),
-      kundanteckningar: kundanteckningar.filter((anteckning) => demoKundId.has(anteckning.kundId)),
-      personal: personal.filter((person) => demoAnsvarigId.has(person.id)),
+      kunder: kunder.filter((kund) => publikaKundId.has(kund.id)),
+      arenden: publikaKontaktintag,
+      bokningar: bokningar.filter((bokning) => publikaArendeId.has(bokning.arendeId ?? '')),
+      meddelanden: meddelanden.filter((meddelande) => publikaArendeId.has(meddelande.arendeId)),
+      aktiviteter: aktiviteter.filter((aktivitet) => publikaArendeId.has(aktivitet.arendeId)),
+      kundanteckningar: kundanteckningar.filter((anteckning) => publikaKundId.has(anteckning.kundId)),
+      personal: personal.filter((person) => publikaAnsvarigId.has(person.id)),
     }
   }
 

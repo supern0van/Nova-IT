@@ -58,7 +58,6 @@ export async function POST(request: NextRequest) {
       angelagenhet: payload.angelagenhet as 'planerad' | 'normal' | 'akut',
       meddelande: String(payload.meddelande ?? ''),
       idempotensnyckel: String(payload.idempotensnyckel ?? ''),
-      demo: payload.demo === true,
     })
 
     return NextResponse.json({

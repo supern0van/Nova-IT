@@ -34,7 +34,6 @@ export interface PubliktIntagUppgifter {
   angelagenhet: 'planerad' | 'normal' | 'akut'
   meddelande: string
   idempotensnyckel: string
-  demo?: boolean
 }
 
 export interface PubliktIntagResultat {
@@ -135,13 +134,11 @@ export async function skapaPubliktIntag(
   const intagsansvarig = await hittaIntagsansvarig(supabase)
 
   const arendenummer = await nastaArendenummerForPubliktIntag(supabase)
-  const grundrubrik = rubrikFranMeddelande(meddelande)
-  const rubrik = uppgifter.demo ? `[DEMO] ${grundrubrik}`.slice(0, 180) : grundrubrik
   const { data: arendeRad, error: arendeFel } = await supabase
     .from('admin_arenden')
     .insert({
       arendenummer,
-      rubrik,
+      rubrik: rubrikFranMeddelande(meddelande),
       kund_id: kund.id,
       kund_namn: kund.namn,
       kundtyp: kund.kundtyp,
@@ -197,7 +194,7 @@ export async function skapaPubliktIntag(
     supabase.from('admin_aktiviteter').insert({
       arende_id: arendeId,
       typ: 'skapat',
-      beskrivning: `${uppgifter.demo ? '[DEMO] ' : ''}Ärende inkom via ${uppgifter.kalla === 'kontaktformular' ? 'kontaktformuläret' : 'supportassistenten'} på nova-it.se`,
+      beskrivning: `Ärende inkom via ${uppgifter.kalla === 'kontaktformular' ? 'kontaktformuläret' : 'supportassistenten'} på nova-it.se`,
       aktor: kund.namn,
     }),
     supabase.from('admin_aktiviteter').insert({

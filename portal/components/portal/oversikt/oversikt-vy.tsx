@@ -112,9 +112,9 @@ export function OversiktVy() {
         }
       >
         {demogast ? (
-          <Button size="sm" render={<a href="https://nova-it.se/kontakt?form=request&demo=1" target="_blank" rel="noreferrer" />}>
+          <Button size="sm" render={<a href="https://nova-it.se/kontakt?form=request" target="_blank" rel="noreferrer" />}>
             <InboxIcon data-icon="inline-start" />
-            Skicka demoärende
+            Skicka ärendeförfrågan
           </Button>
         ) : (
           <>
