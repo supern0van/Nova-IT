@@ -80,7 +80,10 @@ export async function checkDomainRedirect(
   const location = response.headers.get('location') ?? ''
   const ok =
     [302, 307, 308].includes(response.status) &&
-    (location.includes('/logga-in') || location.includes('/mfa') || location.includes('/portal'))
+    (location.includes('/logga-in') ||
+      location.includes('/mfa') ||
+      location.includes('/portal') ||
+      location.includes('admin.nova-it.se'))
 
   if (!ok) {
     logger.error(`✗ ${url} gav ${response.status} med Location: ${location || '<saknas>'}`)

@@ -49,6 +49,7 @@ const STANDARDVAG_EFTER_INLOGGNING = '/portal'
  */
 export async function uppdateraSessionOchSkyddaPortal(request: NextRequest) {
   const { pathname } = request.nextUrl
+  const arApiPath = pathname.startsWith('/api/')
   const arInloggningssida = pathname === INLOGGNINGSVAG || pathname.startsWith(`${INLOGGNINGSVAG}/`)
   const arMfaSida = pathname === MFA_VAG || pathname.startsWith(`${MFA_VAG}/`)
   const arLosenordsaterstallning = arInloggningssida && request.nextUrl.searchParams.get('aterstall') === '1'
@@ -118,10 +119,14 @@ export async function uppdateraSessionOchSkyddaPortal(request: NextRequest) {
       claims.sub,
     )
     if (!lease.giltig && lease.orsak !== 'saknas') {
-      const malAdress = request.nextUrl.clone()
-      malAdress.pathname = INLOGGNINGSVAG
-      malAdress.search = '?session=expired'
-      const timeoutSvar = NextResponse.redirect(malAdress, 307)
+      const timeoutSvar = arApiPath
+        ? NextResponse.json({ error: 'session_expired' }, { status: 401 })
+        : (() => {
+            const malAdress = request.nextUrl.clone()
+            malAdress.pathname = INLOGGNINGSVAG
+            malAdress.search = '?session=expired'
+            return NextResponse.redirect(malAdress, 307)
+          })()
       timeoutSvar.cookies.set(SESSION_LEASE_COOKIE, '', { maxAge: 0, path: '/' })
       request.cookies.getAll().forEach(({ name }) => {
         if (name.startsWith('sb-')) timeoutSvar.cookies.set(name, '', { maxAge: 0, path: '/' })
@@ -206,6 +211,7 @@ export async function uppdateraSessionOchSkyddaPortal(request: NextRequest) {
   }
 
   if (!inloggad) {
+    if (arApiPath) return svar
     const ursprungligDestination = `${pathname}${request.nextUrl.search}`
     const malAdress = request.nextUrl.clone()
     malAdress.pathname = INLOGGNINGSVAG
@@ -217,7 +223,7 @@ export async function uppdateraSessionOchSkyddaPortal(request: NextRequest) {
   // Inloggad men inte MFA-verifierad: obligatorisk MFA innebär att INGEN
   // skyddad portalroute (`/portal/*`) får renderas eller returnera skyddat
   // innehåll förrän `aal2` är uppnått – oavsett vad klienten själv tror.
-  if (!mfaVerifierad) return omdirigeraTillMfa()
+  if (!mfaVerifierad) return arApiPath ? svar : omdirigeraTillMfa()
 
   // VIKTIGT: `svar` måste returneras precis som den är (med kakorna som
   // Supabase-klienten satte ovan) – annars kan webbläsaren och servern
