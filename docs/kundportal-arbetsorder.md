@@ -47,17 +47,13 @@ Se `docs/DECISIONS.md` (DEC-0006) för de beslut som fattades. Sammanfattning:
       i webbläsare mot det riktiga Supabase-projektet).
 - [x] Middleware nekar oautentiserade anrop till `/mina-arenden`/`/byt-losenord`
       (verifierat: 401 utan sessionskaka).
-- [~] Inloggningen tvingar lösenordsbyte första gången - koden är skriven och
-      enhetstestad (6 tester, `/api/kund/konto` + `/api/kund/byt-losenord`),
-      men **inte verifierad live lokalt**: `/api/kund/konto` kräver
-      `SUPABASE_SERVICE_ROLE_KEY`, som jag varken har eller hämtar själv
-      (Supabase-MCP:t exponerar den inte, och jag skriver aldrig in såna
-      nycklar). Felet är bekräftat fail-closed (500 med tydligt
-      felmeddelande, aldrig en tyst felaktig inloggning). Kvarstår som ett
-      manuellt steg: sätt `SUPABASE_SERVICE_ROLE_KEY` lokalt (`.env.local`,
-      gitignorad) eller i en teständtligt miljö, logga in med testkontot
-      (`milstolpe1-test@example.com`) och bekräfta att `/byt-losenord` visas
-      och att bytet faktiskt nollställer flaggan.
+- [x] Inloggningen tvingar lösenordsbyte första gången. Fullt
+      end-to-end-verifierat live i webbläsare (2026-07-29) sedan ägaren satte
+      `SUPABASE_SERVICE_ROLE_KEY` lokalt: testkontot loggade in med det
+      tillfälliga lösenordet → tvingades till `/byt-losenord` → nytt lösenord
+      satt, `maste_byta_losenord` bekräftat `false` i databasen → utloggning
+      → ny inloggning med det NYA lösenordet gick direkt till `/mina-arenden`
+      utan omväg.
 - [x] CI grönt (test/lint/typecheck/build).
 - [x] Huvudrepot och adminportalen opåverkade (verifierat: CI fortsatt grönt
       där, `kundportal.nova-it.se` fortsatt M0-placeholdern - M1-koden är
