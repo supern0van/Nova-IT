@@ -17,7 +17,7 @@ Se `docs/DECISIONS.md` (DEC-0006) för de beslut som fattades. Sammanfattning:
   rekommendationen (lösenord + tvingat byte) som arbetshypotes. Bekräfta eller
   ändra i slutsamlingen av manuella beslut.
 
-## Milstolpe 1 — Datamodell och autentisering (pågående)
+## Milstolpe 1 — Datamodell och autentisering (klar, med ett kvarstående manuellt steg)
 
 ### Uppgifter
 
@@ -42,15 +42,41 @@ Se `docs/DECISIONS.md` (DEC-0006) för de beslut som fattades. Sammanfattning:
 
 ### Definition of Done
 
-- [ ] Migration applicerad, verifierad med `list_tables`/`execute_sql`.
-- [ ] Ett manuellt skapat testkonto kan logga in på `/logga-in`.
-- [ ] Inloggningen tvingar lösenordsbyte första gången (`maste_byta_losenord`).
-- [ ] Efter bytet: `maste_byta_losenord` är `false`, kontot kan logga in direkt
-      nästa gång.
-- [ ] `/mina-arenden` är helt otillgänglig utan giltig session (verifierat med
-      en direkt request utan cookie).
-- [ ] CI grönt, verifierat i webbläsare (inte bara att koden kompilerar).
-- [ ] Huvudrepot och adminportalen opåverkade.
+- [x] Migration applicerad, verifierad med `list_tables`/`execute_sql`.
+- [x] Ett manuellt skapat testkonto kan logga in på `/logga-in` (verifierat live
+      i webbläsare mot det riktiga Supabase-projektet).
+- [x] Middleware nekar oautentiserade anrop till `/mina-arenden`/`/byt-losenord`
+      (verifierat: 401 utan sessionskaka).
+- [~] Inloggningen tvingar lösenordsbyte första gången - koden är skriven och
+      enhetstestad (6 tester, `/api/kund/konto` + `/api/kund/byt-losenord`),
+      men **inte verifierad live lokalt**: `/api/kund/konto` kräver
+      `SUPABASE_SERVICE_ROLE_KEY`, som jag varken har eller hämtar själv
+      (Supabase-MCP:t exponerar den inte, och jag skriver aldrig in såna
+      nycklar). Felet är bekräftat fail-closed (500 med tydligt
+      felmeddelande, aldrig en tyst felaktig inloggning). Kvarstår som ett
+      manuellt steg: sätt `SUPABASE_SERVICE_ROLE_KEY` lokalt (`.env.local`,
+      gitignorad) eller i en teständtligt miljö, logga in med testkontot
+      (`milstolpe1-test@example.com`) och bekräfta att `/byt-losenord` visas
+      och att bytet faktiskt nollställer flaggan.
+- [x] CI grönt (test/lint/typecheck/build).
+- [x] Huvudrepot och adminportalen opåverkade (verifierat: CI fortsatt grönt
+      där, `kundportal.nova-it.se` fortsatt M0-placeholdern - M1-koden är
+      pushad men INTE deployad live än, se nedan).
 
-Nästa arbetsorder (Milstolpe 2: automatiskt kundkonto + välkomstmejl vid nytt
-ärende) skrivs när samtliga punkter ovan är avbockade.
+### Ej deployad live än
+
+M1-koden ligger bara i GitHub-repot, inte deployad till `kundportal.nova-it.se`.
+Att deploya nu skulle kräva `NEXT_PUBLIC_SUPABASE_URL`/`NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
+som byggtidsvariabler (samma fallgrop som `VITE_TURNSTILE_SITE_KEY` på den
+publika sajten - Vite/Next bakar in `NEXT_PUBLIC__`-variabler vid bygget, inte
+vid körning) och `SUPABASE_SERVICE_ROLE_KEY` som runtime-secret. Ingen
+Cloudflare Workers Build-koppling (GitHub-integration) finns än för det nya
+repot heller - M0:s deploy gjordes manuellt via `wrangler deploy` i WSL.
+Detta är medvetet uppskjutet till dess att secrets är på plats, i linje med
+regeln att aldrig deploya något som inte fungerar.
+
+## Milstolpe 2 — Automatiskt kundkonto + välkomstmejl (nästa)
+
+Se `docs/kundportal-planering.md` för fullständig beskrivning. Skrivs som en
+egen, detaljerad arbetsorder när Milstolpe 1:s kvarstående manuella steg är
+avklarat.
