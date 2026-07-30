@@ -18,7 +18,7 @@ vi.mock('next/navigation', () => ({
 }))
 
 vi.mock('sonner', () => ({
-  toast: { success: vi.fn(), error: vi.fn() },
+  toast: { success: vi.fn(), error: vi.fn(), warning: vi.fn() },
 }))
 
 vi.mock('@/lib/store', () => ({
@@ -149,7 +149,7 @@ describe('KundProfil – ta bort kund', () => {
         uppdaterad: new Date().toISOString(),
       },
     ] as unknown as never[]
-    taBortKund.mockResolvedValue(undefined)
+    taBortKund.mockResolvedValue({ kundportalKontoSparratMisslyckades: false })
     const user = userEvent.setup()
 
     render(<KundProfil kundId="kund-1" />)
@@ -161,5 +161,22 @@ describe('KundProfil – ta bort kund', () => {
 
     expect(taBortKund).toHaveBeenCalledWith('kund-1')
     expect(push).toHaveBeenCalledWith('/portal/kunder')
+  })
+
+  it('varnar separat om kundportalskontot inte kunde spärras', async () => {
+    taBortKund.mockResolvedValue({ kundportalKontoSparratMisslyckades: true })
+    const user = userEvent.setup()
+    const { toast } = await import('sonner')
+
+    render(<KundProfil kundId="kund-1" />)
+
+    await user.click(screen.getByRole('button', { name: /Ta bort kund/ }))
+    await user.click(screen.getByRole('button', { name: 'Ta bort permanent' }))
+
+    expect(taBortKund).toHaveBeenCalledWith('kund-1')
+    expect(toast.warning).toHaveBeenCalledWith(
+      'Kundportalskontot kunde inte spärras',
+      expect.objectContaining({ description: expect.any(String) }),
+    )
   })
 })

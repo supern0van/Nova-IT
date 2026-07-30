@@ -538,6 +538,38 @@ function NyaArendenKo({ arenden, personal }: { arenden: Arende[]; personal: Anva
   )
 }
 
+function Rubrik({
+  falt,
+  children,
+  sortering,
+  sorteringsRiktning,
+  vidSortera,
+}: {
+  falt: Sortering
+  children: React.ReactNode
+  sortering?: Sortering
+  sorteringsRiktning?: SorteringsRiktning
+  vidSortera?: (sortering: Sortering) => void
+}) {
+  if (!vidSortera) return <>{children}</>
+  const aktiv = sortering === falt
+  return (
+    <button
+      type="button"
+      onClick={() => vidSortera(falt)}
+      className="inline-flex items-center gap-1 transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+    >
+      {children}
+      {aktiv &&
+        (sorteringsRiktning === 'asc' ? (
+          <ArrowUpIcon className="size-3" aria-hidden />
+        ) : (
+          <ArrowDownIcon className="size-3" aria-hidden />
+        ))}
+    </button>
+  )
+}
+
 function ArendeTabell({
   arenden,
   personal,
@@ -557,26 +589,6 @@ function ArendeTabell({
 }) {
   const router = useRouter()
   const visaKryssrutor = valda !== undefined && vidVaxlaVald !== undefined
-
-  function Rubrik({ falt, children }: { falt: Sortering; children: React.ReactNode }) {
-    if (!vidSortera) return <>{children}</>
-    const aktiv = sortering === falt
-    return (
-      <button
-        type="button"
-        onClick={() => vidSortera(falt)}
-        className="inline-flex items-center gap-1 transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-      >
-        {children}
-        {aktiv &&
-          (sorteringsRiktning === 'asc' ? (
-            <ArrowUpIcon className="size-3" aria-hidden />
-          ) : (
-            <ArrowDownIcon className="size-3" aria-hidden />
-          ))}
-      </button>
-    )
-  }
 
   return (
     <Table className="text-[13px]">
@@ -601,26 +613,26 @@ function ArendeTabell({
             </TableHead>
           )}
           <TableHead className="h-9 pl-4 text-[11px] font-medium uppercase tracking-[0.05em] text-muted-foreground">
-            <Rubrik falt="nummer">Ärende</Rubrik>
+            <Rubrik falt="nummer" sortering={sortering} sorteringsRiktning={sorteringsRiktning} vidSortera={vidSortera}>Ärende</Rubrik>
           </TableHead>
           <TableHead className="h-9 text-[11px] font-medium uppercase tracking-[0.05em] text-muted-foreground">
-            <Rubrik falt="kund">Kund</Rubrik>
+            <Rubrik falt="kund" sortering={sortering} sorteringsRiktning={sorteringsRiktning} vidSortera={vidSortera}>Kund</Rubrik>
           </TableHead>
           <TableHead className="hidden h-9 text-[11px] font-medium uppercase tracking-[0.05em] text-muted-foreground xl:table-cell">
-            <Rubrik falt="kategori">Kategori</Rubrik>
+            <Rubrik falt="kategori" sortering={sortering} sorteringsRiktning={sorteringsRiktning} vidSortera={vidSortera}>Kategori</Rubrik>
           </TableHead>
           <TableHead className="h-9 text-[11px] font-medium uppercase tracking-[0.05em] text-muted-foreground">
-            <Rubrik falt="status">Status</Rubrik>
+            <Rubrik falt="status" sortering={sortering} sorteringsRiktning={sorteringsRiktning} vidSortera={vidSortera}>Status</Rubrik>
           </TableHead>
           <TableHead className="h-9 text-[11px] font-medium uppercase tracking-[0.05em] text-muted-foreground">
-            <Rubrik falt="prioritet">Prioritet</Rubrik>
+            <Rubrik falt="prioritet" sortering={sortering} sorteringsRiktning={sorteringsRiktning} vidSortera={vidSortera}>Prioritet</Rubrik>
           </TableHead>
           <TableHead className="hidden h-9 text-[11px] font-medium uppercase tracking-[0.05em] text-muted-foreground lg:table-cell">
-            <Rubrik falt="ansvarig">Ansvarig</Rubrik>
+            <Rubrik falt="ansvarig" sortering={sortering} sorteringsRiktning={sorteringsRiktning} vidSortera={vidSortera}>Ansvarig</Rubrik>
           </TableHead>
           <TableHead className="h-9 pr-4 text-right text-[11px] font-medium uppercase tracking-[0.05em] text-muted-foreground">
             <span className="inline-flex items-center justify-end gap-1 [&>button]:flex-row-reverse">
-              <Rubrik falt="uppdaterad">
+              <Rubrik falt="uppdaterad" sortering={sortering} sorteringsRiktning={sorteringsRiktning} vidSortera={vidSortera}>
                 <ArrowUpDownIcon className="size-3" aria-hidden />
                 Uppdaterad
               </Rubrik>

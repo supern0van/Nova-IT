@@ -835,10 +835,33 @@ export async function taBortKundanteckning(anteckningId: string) {
  * låtsas att en kund raderades vore vilseledande och oåterkalleligt om det
  * visar sig fel, så ett null-svar (API ej nåbart) kastas som ett tydligt
  * fel i stället för att tyst "lyckas" bara i den lokala cachen.
+ *
+ * Returnerar `kundportalKontoSparratMisslyckades` så att UI:t kan varna
+ * personalen om kunden togs bort lokalt men ändå kan ha kvar sin inloggning
+ * i kundportalen (se taBortOperativKund).
  */
-export async function taBortKund(kundId: string) {
-  const apiId = await andraViaOperativApi<string>('ta_bort_kund', { id: kundId }, 'id')
-  if (!apiId) throw new Error('Kunden kunde inte tas bort just nu.')
+export async function taBortKund(kundId: string): Promise<{ kundportalKontoSparratMisslyckades: boolean }> {
+  if (!isBrowser()) throw new Error('Kunden kunde inte tas bort just nu.')
+
+  let svar: Response
+  try {
+    svar = await fetch('/api/admin/operativt', {
+      method: 'PATCH',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ typ: 'ta_bort_kund', data: { id: kundId } }),
+    })
+  } catch {
+    throw new Error('Kunden kunde inte tas bort just nu.')
+  }
+
+  if (!svar.ok) throw new Error('Kunden kunde inte tas bort just nu.')
+
+  const json = (await svar.json()) as {
+    ok?: boolean
+    id?: string
+    kundportalKontoSparratMisslyckades?: boolean
+  }
+  if (json.ok !== true || !json.id) throw new Error('Kunden kunde inte tas bort just nu.')
 
   const db = las()
   db.kunder = db.kunder.filter((k) => k.id !== kundId)
@@ -846,6 +869,8 @@ export async function taBortKund(kundId: string) {
   db.bokningar = db.bokningar.filter((b) => b.kundId !== kundId)
   db.kundanteckningar = db.kundanteckningar.filter((a) => a.kundId !== kundId)
   skriv(db)
+
+  return { kundportalKontoSparratMisslyckades: json.kundportalKontoSparratMisslyckades === true }
 }
 
 /**

@@ -761,11 +761,19 @@ export async function taBortOperativArenden(arendeIds: string[]): Promise<string
  * borttagningen: om något går fel mellan de två stegen är "portalåtkomst
  * spärrad men adminraden finns kvar" ett ofarligare feltillstånd än
  * motsatsen (adminraden borta men kunden kan fortfarande logga in).
+ *
+ * Om spärrningen misslyckas fortsätter den lokala borttagningen ändå (samma
+ * avvägning som ovan), men resultatet flaggar det via
+ * kundportalKontoSparratMisslyckades i stället för att tyst svälja felet -
+ * annars kan en kund behålla sin portalinloggning efter att ha "tagits bort"
+ * utan att någon i personalen märker det.
  */
-export async function taBortOperativKund(kundId: string): Promise<string> {
+export async function taBortOperativKund(
+  kundId: string,
+): Promise<{ id: string; kundportalKontoSparratMisslyckades: boolean }> {
   if (!text(kundId)) throw new Error('Ogiltigt kund-id.')
 
-  await forsokTaBortKundportalKonto(kundId)
+  const kundportalSparratOk = await forsokTaBortKundportalKonto(kundId)
 
   const supabase = skapaSupabaseServiceklient()
   const { error } = await supabase.rpc('ta_bort_kund_kaskad', { p_kund_id: kundId })
@@ -775,7 +783,7 @@ export async function taBortOperativKund(kundId: string): Promise<string> {
     throw new Error('Kunde inte ta bort kund.')
   }
 
-  return kundId
+  return { id: kundId, kundportalKontoSparratMisslyckades: !kundportalSparratOk }
 }
 
 /**

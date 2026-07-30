@@ -14,7 +14,7 @@ import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 const arendeDeleteEq = vi.fn().mockResolvedValue({ error: null })
 const arendeDeleteIn = vi.fn(() => arendeDeleteEq())
 const rpc = vi.fn().mockResolvedValue({ error: null })
-const forsokTaBortKundportalKonto = vi.fn().mockResolvedValue(undefined)
+const forsokTaBortKundportalKonto = vi.fn().mockResolvedValue(true)
 
 const from = vi.fn((table: string) => {
   if (table === 'admin_arenden') {
@@ -46,7 +46,7 @@ beforeEach(() => {
   rpc.mockClear()
   rpc.mockResolvedValue({ error: null })
   forsokTaBortKundportalKonto.mockClear()
-  forsokTaBortKundportalKonto.mockResolvedValue(undefined)
+  forsokTaBortKundportalKonto.mockResolvedValue(true)
 })
 
 describe('taBortOperativArenden', () => {
@@ -67,7 +67,7 @@ describe('taBortOperativKund', () => {
   it('anropar den atomära ta_bort_kund_kaskad-RPC:n med kund-id', async () => {
     const resultat = await taBortOperativKund('kund-1')
 
-    expect(resultat).toBe('kund-1')
+    expect(resultat).toEqual({ id: 'kund-1', kundportalKontoSparratMisslyckades: false })
     expect(rpc).toHaveBeenCalledWith('ta_bort_kund_kaskad', { p_kund_id: 'kund-1' })
   })
 
@@ -87,14 +87,15 @@ describe('taBortOperativKund', () => {
     expect(ordning).toEqual(['kundportal', 'rpc'])
   })
 
-  it('fortsätter ändå med den lokala raderingen om kundportalen inte kan nås (soft-fail)', async () => {
+  it('fortsätter ändå med den lokala raderingen om kundportalen inte kan nås (soft-fail), men flaggar det i resultatet', async () => {
     // Samma resonemang som kontoSKAPANDET (forsokSkapaKundportalKonto): en
-    // oåtkomlig kundportal ska aldrig blockera adminportalens egen åtgärd.
-    forsokTaBortKundportalKonto.mockResolvedValue(undefined)
+    // oåtkomlig kundportal ska aldrig blockera adminportalens egen åtgärd -
+    // men till skillnad från tidigare ska felet inte tystas helt.
+    forsokTaBortKundportalKonto.mockResolvedValue(false)
 
     const resultat = await taBortOperativKund('kund-1')
 
-    expect(resultat).toBe('kund-1')
+    expect(resultat).toEqual({ id: 'kund-1', kundportalKontoSparratMisslyckades: true })
     expect(rpc).toHaveBeenCalled()
   })
 

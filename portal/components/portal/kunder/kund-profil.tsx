@@ -264,8 +264,14 @@ export function KundProfil({ kundId }: { kundId: string }) {
                       onClick={async () => {
                         setTarBort(true)
                         try {
-                          await taBortKund(kund.id)
+                          const resultat = await taBortKund(kund.id)
                           toast.success(`${kund.namn} har tagits bort`)
+                          if (resultat.kundportalKontoSparratMisslyckades) {
+                            toast.warning('Kundportalskontot kunde inte spärras', {
+                              description:
+                                'Kunden är borttagen här, men portalinloggningen kunde inte nås. Kontrollera manuellt.',
+                            })
+                          }
                           router.push('/portal/kunder')
                         } catch (error) {
                           toast.error('Kunde inte ta bort kunden', {

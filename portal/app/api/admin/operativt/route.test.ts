@@ -602,12 +602,12 @@ describe('/api/admin/operativt', () => {
   it('tar bort kund och ärenden för administratör', async () => {
     hamtaAutentiseradAnvandarIdMock.mockResolvedValue('user-1')
     hamtaRollFranDatabasenMock.mockResolvedValue('administrator')
-    taBortOperativKundMock.mockResolvedValue('kund-1')
+    taBortOperativKundMock.mockResolvedValue({ id: 'kund-1', kundportalKontoSparratMisslyckades: false })
     taBortOperativArendenMock.mockResolvedValue(['arende-1', 'arende-2'])
 
     await expect(
       (await PATCH(patchRequest({ typ: 'ta_bort_kund', data: { id: 'kund-1' } }))).json(),
-    ).resolves.toEqual({ ok: true, id: 'kund-1' })
+    ).resolves.toEqual({ ok: true, id: 'kund-1', kundportalKontoSparratMisslyckades: false })
 
     await expect(
       (

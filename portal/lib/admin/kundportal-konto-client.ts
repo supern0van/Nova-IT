@@ -70,16 +70,18 @@ export async function forsokSkapaKundportalKonto(
  * Tar bort kundens kundportalskonto när kunden raderas i adminportalen (se
  * taBortOperativKund). Soft-fail av samma skäl som ovan: en oåtkomlig
  * kundportal ska aldrig blockera personal från att radera en kund här -
- * felet loggas i stället, så det syns och kan åtgärdas manuellt om
- * kundportalskontot behöver spärras separat.
+ * felet loggas, OCH returneras som `false` så att taBortOperativKund kan
+ * föra vidare en varning till personalen (i stället för att bara tyst
+ * svälja felet - annars kan en kund behålla portalinloggningen efter att
+ * ha "tagits bort" utan att någon märker det).
  */
-export async function forsokTaBortKundportalKonto(adminKundId: string): Promise<void> {
+export async function forsokTaBortKundportalKonto(adminKundId: string): Promise<boolean> {
   const kundportalUrl = process.env.KUNDPORTAL_URL
   const hemlighet = process.env.KUNDPORTAL_INTAG_SECRET
 
   if (!kundportalUrl || !hemlighet) {
     console.error('Kundportalskonto kunde inte tas bort - KUNDPORTAL_URL eller KUNDPORTAL_INTAG_SECRET saknas.')
-    return
+    return false
   }
 
   try {
@@ -95,8 +97,12 @@ export async function forsokTaBortKundportalKonto(adminKundId: string): Promise<
 
     if (!svar.ok) {
       console.error('Kundportalen avvisade kontoborttagningen.', svar.status)
+      return false
     }
+
+    return true
   } catch (fel) {
     console.error('Kunde inte nå kundportalen för kontoborttagning.', fel)
+    return false
   }
 }

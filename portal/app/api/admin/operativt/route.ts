@@ -252,12 +252,11 @@ export async function PATCH(request: NextRequest) {
             typeof payload.data.aktor === 'string' ? payload.data.aktor : 'Okänd',
           ),
         })
-      case 'ta_bort_kund':
+      case 'ta_bort_kund': {
         if (typeof payload.data.id !== 'string') return NextResponse.json({ ok: false }, { status: 400 })
-        return NextResponse.json({
-          ok: true,
-          id: await taBortOperativKund(payload.data.id),
-        })
+        const resultat = await taBortOperativKund(payload.data.id)
+        return NextResponse.json({ ok: true, ...resultat })
+      }
       case 'ta_bort_arenden':
         if (
           !Array.isArray(payload.data.ids) ||
