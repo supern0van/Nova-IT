@@ -14,6 +14,8 @@ import { Container } from "@/components/design-system";
 import { ServiceAreas } from "@/components/service-areas";
 import { contactChannels, faqs, processSteps } from "@/lib/nova-data";
 import { serviceRegion } from "@/lib/service-region";
+import { buildLocalBusinessJsonLd } from "@/lib/structured-data";
+import { JsonLd } from "@/components/json-ld";
 
 const homeUrl = "https://nova-it.se/";
 const socialImageUrl = "https://nova-it.se/nova-it-workspace.png";
@@ -47,6 +49,7 @@ export const Route = createFileRoute("/")({
 function Home() {
   return (
     <>
+      <JsonLd data={buildLocalBusinessJsonLd()} />
       <section className="relative isolate min-h-[690px] overflow-hidden bg-[#090f15] text-white sm:min-h-[760px]">
         <picture>
           <source srcSet="/nova-it-workspace.webp" type="image/webp" />

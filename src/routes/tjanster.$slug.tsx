@@ -3,6 +3,8 @@ import { ArrowRight, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Container, PageHeader } from "@/components/design-system";
 import { getServiceBySlug } from "@/lib/nova-data";
+import { buildServiceJsonLd } from "@/lib/structured-data";
+import { JsonLd } from "@/components/json-ld";
 
 export const Route = createFileRoute("/tjanster/$slug")({
   head: ({ params }) => {
@@ -41,8 +43,11 @@ function ServiceLandingPage() {
     );
   }
 
+  const serviceJsonLd = buildServiceJsonLd(service.slug);
+
   return (
     <>
+      {serviceJsonLd && <JsonLd data={serviceJsonLd} />}
       <PageHeader eyebrow={service.category} title={service.title} intro={service.description} />
 
       <section className="nova-section">

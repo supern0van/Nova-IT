@@ -8,6 +8,8 @@ import {
 } from "@/components/ui/accordion";
 import { faqs } from "@/lib/nova-data";
 import { Container, TrustNotice, PageHeader } from "@/components/design-system";
+import { buildFaqPageJsonLd } from "@/lib/structured-data";
+import { JsonLd } from "@/components/json-ld";
 
 const faqUrl = "https://nova-it.se/faq";
 
@@ -34,6 +36,7 @@ export const Route = createFileRoute("/faq")({
 function FaqPage() {
   return (
     <>
+      <JsonLd data={buildFaqPageJsonLd(faqs)} />
       <PageHeader
         eyebrow="Vanliga frågor"
         title="Vanliga frågor, utan teknikspråk."
