@@ -721,6 +721,50 @@ export async function taBortOperativKundanteckning(anteckningId: string): Promis
 }
 
 /**
+ * Tar bort en eller flera ärenden permanent. admin_meddelanden och
+ * admin_aktiviteter för dessa ärenden cascadar automatiskt (se
+ * databasens FK-constraints). Eventuella bokningar kopplade till ärendet
+ * får `arende_id = null` (SET NULL) - bokningen själv består, bara
+ * kopplingen till det raderade ärendet försvinner.
+ */
+export async function taBortOperativArenden(arendeIds: string[]): Promise<string[]> {
+  const giltigaIder = arendeIds.filter((id) => text(id))
+  if (giltigaIder.length === 0) throw new OperativtAdminFel('Inga ärenden valda.')
+
+  const supabase = skapaSupabaseServiceklient()
+  const { error } = await supabase.from('admin_arenden').delete().in('id', giltigaIder)
+  if (error) throw new Error('Kunde inte ta bort ärenden.')
+  return giltigaIder
+}
+
+/**
+ * Tar bort en kund permanent, inklusive ALLA dennes ärenden och bokningar.
+ * Ordningen är avgörande: admin_arenden.kund_id och admin_bokningar.kund_id
+ * har RESTRICT (inte CASCADE) mot admin_kunder, så bägge måste tömmas
+ * innan kundraden själv kan tas bort. admin_kundanteckningar cascadar och
+ * behöver inte hanteras explicit.
+ */
+export async function taBortOperativKund(kundId: string): Promise<string> {
+  if (!text(kundId)) throw new Error('Ogiltigt kund-id.')
+
+  const supabase = skapaSupabaseServiceklient()
+
+  const { error: bokningFel } = await supabase.from('admin_bokningar').delete().eq('kund_id', kundId)
+  if (bokningFel) throw new Error('Kunde inte ta bort kundens bokningar.')
+
+  const { error: arendeFel } = await supabase.from('admin_arenden').delete().eq('kund_id', kundId)
+  if (arendeFel) throw new Error('Kunde inte ta bort kundens ärenden.')
+
+  const { error: kundFel } = await supabase.from('admin_kunder').delete().eq('id', kundId)
+  if (kundFel) {
+    if (arPostgresFelkod(kundFel, 'PGRST116')) throw new OperativtAdminFel('Kunden kunde inte hittas.', 404)
+    throw new Error('Kunde inte ta bort kund.')
+  }
+
+  return kundId
+}
+
+/**
  * Ärendenummer genereras atomärt av en Postgres-sekvens via RPC
  * (`nasta_admin_arendenummer`, se migrationen
  * 20260728165341_admin_arendenummer_sekvens.sql), inte längre app-side

@@ -1,17 +1,24 @@
 // @vitest-environment jsdom
 import { cleanup, render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
 import type { Kund } from '@/lib/types'
 
 const kan = vi.fn().mockReturnValue(true)
+const push = vi.fn()
+const taBortKund = vi.fn()
 
 vi.mock('@/components/auth/auth-provider', () => ({
   useAuth: () => ({ anvandare: { id: 'user-1', namn: 'Admin Nova' }, kan }),
 }))
 
 vi.mock('next/navigation', () => ({
-  useRouter: () => ({ push: vi.fn() }),
+  useRouter: () => ({ push }),
+}))
+
+vi.mock('sonner', () => ({
+  toast: { success: vi.fn(), error: vi.fn() },
 }))
 
 vi.mock('@/lib/store', () => ({
@@ -25,6 +32,7 @@ vi.mock('@/lib/store', () => ({
   taBortKundanteckning: vi.fn(),
   skapaKund: vi.fn(),
   uppdateraKund: vi.fn(),
+  taBortKund,
 }))
 
 const kund: Kund = {
@@ -98,5 +106,60 @@ describe('KundProfil – skiljer "hittades inte" från "kunde inte hämtas"', ()
     render(<KundProfil kundId="kund-1" />)
 
     expect(screen.getAllByText('Birgitta Sandell').length).toBeGreaterThan(0)
+  })
+})
+
+describe('KundProfil – ta bort kund', () => {
+  afterEach(() => {
+    mockState.db.kunder = [kund]
+    mockState.db.arenden = []
+    kan.mockReturnValue(true)
+    taBortKund.mockReset()
+    push.mockReset()
+    cleanup()
+  })
+
+  it('döljer knappen för roller utan ta_bort_kund', () => {
+    kan.mockImplementation((behorighet: string) => behorighet !== 'ta_bort_kund')
+    render(<KundProfil kundId="kund-1" />)
+
+    expect(screen.queryByRole('button', { name: /Ta bort kund/ })).toBeNull()
+  })
+
+  it('varnar om kunden har öppna ärenden, tar bort och navigerar vid bekräftelse', async () => {
+    mockState.db.arenden = [
+      {
+        id: 'arende-1',
+        arendenummer: 'NIT-1',
+        rubrik: 'Test',
+        kundId: 'kund-1',
+        kundNamn: kund.namn,
+        kundtyp: 'privatperson',
+        epost: kund.epost,
+        telefon: kund.telefon,
+        kategori: 'installation',
+        underkategori: '',
+        status: 'ny',
+        prioritet: 'normal',
+        ansvarigId: null,
+        kanal: 'telefon',
+        beskrivning: 'Test',
+        bilagor: [],
+        skapad: new Date().toISOString(),
+        uppdaterad: new Date().toISOString(),
+      },
+    ] as unknown as never[]
+    taBortKund.mockResolvedValue(undefined)
+    const user = userEvent.setup()
+
+    render(<KundProfil kundId="kund-1" />)
+
+    await user.click(screen.getByRole('button', { name: /Ta bort kund/ }))
+    expect(screen.getByText(/1 öppna ärenden/)).toBeTruthy()
+
+    await user.click(screen.getByRole('button', { name: 'Ta bort permanent' }))
+
+    expect(taBortKund).toHaveBeenCalledWith('kund-1')
+    expect(push).toHaveBeenCalledWith('/portal/kunder')
   })
 })

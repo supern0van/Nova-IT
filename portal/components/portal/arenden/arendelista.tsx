@@ -1,7 +1,9 @@
 'use client'
 
 import {
+  ArrowDownIcon,
   ArrowUpDownIcon,
+  ArrowUpIcon,
   CheckCircle2Icon,
   FilterXIcon,
   InboxIcon,
@@ -9,14 +11,28 @@ import {
   SearchIcon,
   SearchXIcon,
   TicketIcon,
+  Trash2Icon,
   TriangleAlertIcon,
   XIcon,
 } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useMemo, useState } from 'react'
+import { toast } from 'sonner'
 
 import { useAuth } from '@/components/auth/auth-provider'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogMedia,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
 import { ArendeDialog } from '@/components/portal/arenden/arende-dialog'
 import { FilterVal } from '@/components/portal/filter-val'
 import {
@@ -29,6 +45,7 @@ import {
   Yta,
 } from '@/components/portal/ui-delar'
 import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
 import {
   InputGroup,
@@ -39,6 +56,7 @@ import {
 import { Skeleton } from '@/components/ui/skeleton'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { useOperativAdminData } from '@/hooks/use-operativ-admin-data'
+import { taBortArenden } from '@/lib/store'
 import { personalNamn } from '@/lib/personal'
 import {
   kanalLabel,
@@ -53,13 +71,51 @@ import {
 } from '@/lib/labels'
 import type { Anvandare, Arende } from '@/lib/types'
 
-type Sortering = 'uppdaterad' | 'skapad' | 'prioritet' | 'nummer'
+type Sortering = 'uppdaterad' | 'skapad' | 'prioritet' | 'nummer' | 'kund' | 'kategori' | 'status' | 'ansvarig'
+type SorteringsRiktning = 'asc' | 'desc'
 
 const sorteringLabel: Record<Sortering, string> = {
   uppdaterad: 'Senast uppdaterad',
   skapad: 'Nyast inkommen',
   prioritet: 'Högsta prioritet',
   nummer: 'Ärendenummer',
+  kund: 'Kund (A–Ö)',
+  kategori: 'Kategori (A–Ö)',
+  status: 'Status',
+  ansvarig: 'Ansvarig (A–Ö)',
+}
+
+/** Standardriktning per kolumn när man klickar den för första gången. */
+const standardRiktning: Record<Sortering, SorteringsRiktning> = {
+  uppdaterad: 'desc',
+  skapad: 'desc',
+  prioritet: 'desc',
+  nummer: 'desc',
+  kund: 'asc',
+  kategori: 'asc',
+  status: 'asc',
+  ansvarig: 'asc',
+}
+
+function sorteringsVarde(arende: Arende, sortering: Sortering, personal: Anvandare[]): string | number {
+  switch (sortering) {
+    case 'skapad':
+      return +new Date(arende.skapad)
+    case 'prioritet':
+      return prioritetVikt[arende.prioritet]
+    case 'nummer':
+      return arende.arendenummer
+    case 'kund':
+      return arende.kundNamn.toLowerCase()
+    case 'kategori':
+      return kategoriLabel[arende.kategori].toLowerCase()
+    case 'status':
+      return statusOrdning.indexOf(arende.status)
+    case 'ansvarig':
+      return personalNamn(personal, arende.ansvarigId).toLowerCase()
+    default:
+      return +new Date(arende.uppdaterad)
+  }
 }
 
 const STANDARD = {
@@ -92,7 +148,23 @@ export function Arendelista() {
     params.get('mina') === '1' ? (anvandare?.id ?? STANDARD.ansvarig) : STANDARD.ansvarig,
   )
   const [sortering, setSortering] = useState<Sortering>(STANDARD.sortering)
+  const [sorteringsRiktning, setSorteringsRiktning] = useState<SorteringsRiktning>(
+    standardRiktning[STANDARD.sortering],
+  )
   const [nyttArendeOppen, setNyttArendeOppen] = useState(false)
+  const [valda, setValda] = useState<Set<string>>(new Set())
+  const [tarBortValda, setTarBortValda] = useState(false)
+
+  /** Klick på en kolumnrubrik: byt kolumn (med dess standardriktning), eller
+   * växla riktning om samma kolumn klickas igen. */
+  function sorteraPa(ny: Sortering) {
+    if (ny === sortering) {
+      setSorteringsRiktning((r) => (r === 'asc' ? 'desc' : 'asc'))
+    } else {
+      setSortering(ny)
+      setSorteringsRiktning(standardRiktning[ny])
+    }
+  }
 
   useEffect(() => {
     if (params.get('ny') === '1' && kan('skapa_arende')) setNyttArendeOppen(true)
@@ -129,22 +201,14 @@ export function Arendelista() {
         .includes(fras)
     })
 
+    const riktning = sorteringsRiktning === 'asc' ? 1 : -1
     return urval.sort((a, b) => {
-      switch (sortering) {
-        case 'skapad':
-          return +new Date(b.skapad) - +new Date(a.skapad)
-        case 'prioritet':
-          return (
-            prioritetVikt[b.prioritet] - prioritetVikt[a.prioritet] ||
-            +new Date(b.uppdaterad) - +new Date(a.uppdaterad)
-          )
-        case 'nummer':
-          return b.arendenummer.localeCompare(a.arendenummer)
-        default:
-          return +new Date(b.uppdaterad) - +new Date(a.uppdaterad)
-      }
+      const va = sorteringsVarde(a, sortering, personal)
+      const vb = sorteringsVarde(b, sortering, personal)
+      if (va === vb) return +new Date(b.uppdaterad) - +new Date(a.uppdaterad)
+      return va < vb ? -riktning : riktning
     })
-  }, [db, sok, status, prioritet, kundtyp, kategori, ansvarig, sortering])
+  }, [db, sok, status, prioritet, kundtyp, kategori, ansvarig, sortering, sorteringsRiktning, personal])
 
   const antalAktivaFilter = [
     status !== STANDARD.status,
@@ -163,6 +227,7 @@ export function Arendelista() {
     setKategori(STANDARD.kategori)
     setAnsvarig(STANDARD.ansvarig)
     setSortering(STANDARD.sortering)
+    setSorteringsRiktning(standardRiktning[STANDARD.sortering])
     router.replace('/portal/arenden')
   }
 
@@ -178,6 +243,51 @@ export function Arendelista() {
               <FilterXIcon data-icon="inline-start" />
               Återställ filter ({antalAktivaFilter})
             </Button>
+          )}
+          {kan('ta_bort_arende') && valda.size > 0 && (
+            <AlertDialog>
+              <AlertDialogTrigger
+                render={
+                  <Button variant="destructive" size="sm" disabled={tarBortValda}>
+                    <Trash2Icon data-icon="inline-start" />
+                    Ta bort valda ({valda.size})
+                  </Button>
+                }
+              />
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogMedia className="bg-destructive/10 text-destructive">
+                    <Trash2Icon />
+                  </AlertDialogMedia>
+                  <AlertDialogTitle>Ta bort {valda.size} ärenden permanent?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Ärendena och all deras konversation raderas permanent och kan inte återställas.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Avbryt</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={async () => {
+                      setTarBortValda(true)
+                      try {
+                        await taBortArenden([...valda])
+                        toast.success(`${valda.size} ärenden borttagna`)
+                        setValda(new Set())
+                        uppdatera()
+                      } catch (error) {
+                        toast.error('Kunde inte ta bort ärendena', {
+                          description: error instanceof Error ? error.message : undefined,
+                        })
+                      } finally {
+                        setTarBortValda(false)
+                      }
+                    }}
+                  >
+                    Ta bort permanent
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           )}
           <Button
             size="sm"
@@ -301,7 +411,10 @@ export function Arendelista() {
             <FilterVal
               etikett="Sortera"
               varde={sortering}
-              vidAndring={(v) => setSortering(v as Sortering)}
+              vidAndring={(v) => {
+                setSortering(v as Sortering)
+                setSorteringsRiktning(standardRiktning[v as Sortering])
+              }}
               bredd="w-[212px]"
               alternativ={(Object.keys(sorteringLabel) as Sortering[]).map((s) => ({
                 varde: s,
@@ -352,7 +465,25 @@ export function Arendelista() {
             </Empty>
           </div>
         ) : (
-          <ArendeTabell arenden={filtreradeArenden} personal={personal} />
+          <ArendeTabell
+            arenden={filtreradeArenden}
+            personal={personal}
+            sortering={sortering}
+            sorteringsRiktning={sorteringsRiktning}
+            vidSortera={sorteraPa}
+            valda={kan('ta_bort_arende') ? valda : undefined}
+            vidVaxlaVald={
+              kan('ta_bort_arende')
+                ? (id) =>
+                    setValda((tidigare) => {
+                      const nya = new Set(tidigare)
+                      if (nya.has(id)) nya.delete(id)
+                      else nya.add(id)
+                      return nya
+                    })
+                : undefined
+            }
+          />
         )}
       </Yta>
 
@@ -393,35 +524,92 @@ function NyaArendenKo({ arenden, personal }: { arenden: Arende[]; personal: Anva
   )
 }
 
-function ArendeTabell({ arenden, personal }: { arenden: Arende[]; personal: Anvandare[] }) {
+function ArendeTabell({
+  arenden,
+  personal,
+  sortering,
+  sorteringsRiktning,
+  vidSortera,
+  valda,
+  vidVaxlaVald,
+}: {
+  arenden: Arende[]
+  personal: Anvandare[]
+  sortering?: Sortering
+  sorteringsRiktning?: SorteringsRiktning
+  vidSortera?: (sortering: Sortering) => void
+  valda?: Set<string>
+  vidVaxlaVald?: (id: string) => void
+}) {
   const router = useRouter()
+  const visaKryssrutor = valda !== undefined && vidVaxlaVald !== undefined
+
+  function Rubrik({ falt, children }: { falt: Sortering; children: React.ReactNode }) {
+    if (!vidSortera) return <>{children}</>
+    const aktiv = sortering === falt
+    return (
+      <button
+        type="button"
+        onClick={() => vidSortera(falt)}
+        className="inline-flex items-center gap-1 transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      >
+        {children}
+        {aktiv &&
+          (sorteringsRiktning === 'asc' ? (
+            <ArrowUpIcon className="size-3" aria-hidden />
+          ) : (
+            <ArrowDownIcon className="size-3" aria-hidden />
+          ))}
+      </button>
+    )
+  }
 
   return (
     <Table className="text-[13px]">
       <TableHeader>
         <TableRow className="border-border/70 hover:bg-transparent">
+          {visaKryssrutor && (
+            <TableHead className="h-9 w-9 pl-4">
+              <Checkbox
+                aria-label="Välj alla synliga ärenden"
+                checked={arenden.length > 0 && arenden.every((a) => valda.has(a.id))}
+                indeterminate={
+                  arenden.some((a) => valda.has(a.id)) && !arenden.every((a) => valda.has(a.id))
+                }
+                onCheckedChange={(checked) => {
+                  arenden.forEach((a) => {
+                    const redanVald = valda.has(a.id)
+                    if (checked && !redanVald) vidVaxlaVald(a.id)
+                    if (!checked && redanVald) vidVaxlaVald(a.id)
+                  })
+                }}
+              />
+            </TableHead>
+          )}
           <TableHead className="h-9 pl-4 text-[11px] font-medium uppercase tracking-[0.05em] text-muted-foreground">
-            Ärende
+            <Rubrik falt="nummer">Ärende</Rubrik>
           </TableHead>
           <TableHead className="h-9 text-[11px] font-medium uppercase tracking-[0.05em] text-muted-foreground">
-            Kund
+            <Rubrik falt="kund">Kund</Rubrik>
           </TableHead>
           <TableHead className="hidden h-9 text-[11px] font-medium uppercase tracking-[0.05em] text-muted-foreground xl:table-cell">
-            Kategori
+            <Rubrik falt="kategori">Kategori</Rubrik>
           </TableHead>
           <TableHead className="h-9 text-[11px] font-medium uppercase tracking-[0.05em] text-muted-foreground">
-            Status
+            <Rubrik falt="status">Status</Rubrik>
           </TableHead>
           <TableHead className="h-9 text-[11px] font-medium uppercase tracking-[0.05em] text-muted-foreground">
-            Prioritet
+            <Rubrik falt="prioritet">Prioritet</Rubrik>
           </TableHead>
           <TableHead className="hidden h-9 text-[11px] font-medium uppercase tracking-[0.05em] text-muted-foreground lg:table-cell">
-            Ansvarig
+            <Rubrik falt="ansvarig">Ansvarig</Rubrik>
           </TableHead>
           <TableHead className="h-9 pr-4 text-right text-[11px] font-medium uppercase tracking-[0.05em] text-muted-foreground">
-            <span className="inline-flex items-center gap-1">
-              <ArrowUpDownIcon className="size-3" aria-hidden />
-              Uppdaterad
+            <span className="inline-flex items-center justify-end gap-1 [&>button]:flex-row-reverse">
+              <Rubrik falt="uppdaterad">
+                <ArrowUpDownIcon className="size-3" aria-hidden />
+                Uppdaterad
+              </Rubrik>
             </span>
           </TableHead>
         </TableRow>
@@ -433,6 +621,15 @@ function ArendeTabell({ arenden, personal }: { arenden: Arende[]; personal: Anva
             onClick={() => router.push(`/portal/arenden/${arende.id}`)}
             className="cursor-pointer border-border/40 hover:bg-surface-emphasis"
           >
+            {visaKryssrutor && (
+              <TableCell className="w-9 pl-4" onClick={(e) => e.stopPropagation()}>
+                <Checkbox
+                  aria-label={`Välj ärende ${arende.arendenummer}`}
+                  checked={valda.has(arende.id)}
+                  onCheckedChange={() => vidVaxlaVald(arende.id)}
+                />
+              </TableCell>
+            )}
             <TableCell className="max-w-[420px] py-2.5 pl-4">
               <div className="flex flex-col gap-0.5">
                 <Link

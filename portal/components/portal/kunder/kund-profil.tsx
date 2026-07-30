@@ -11,12 +11,15 @@ import {
   PhoneIcon,
   PlusIcon,
   SearchXIcon,
+  Trash2Icon,
   TicketIcon,
   TriangleAlertIcon,
   UserRoundIcon,
 } from 'lucide-react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useMemo, useState } from 'react'
+import { toast } from 'sonner'
 
 import { useAuth } from '@/components/auth/auth-provider'
 import { ArendeDialog } from '@/components/portal/arenden/arende-dialog'
@@ -35,10 +38,23 @@ import {
   StatusChip,
   Yta,
 } from '@/components/portal/ui-delar'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogMedia,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useOperativAdminData } from '@/hooks/use-operativ-admin-data'
+import { taBortKund } from '@/lib/store'
 import { personalNamn } from '@/lib/personal'
 import {
   bokningTypLabel,
@@ -59,9 +75,11 @@ const OPPNA: Arende['status'][] = ['ny', 'pagaende', 'vantar_pa_kund', 'bokad']
 export function KundProfil({ kundId }: { kundId: string }) {
   const { db, laddar, fel, uppdatera } = useOperativAdminData()
   const { kan } = useAuth()
+  const router = useRouter()
   const [bokningOppen, setBokningOppen] = useState(false)
   const [redigeraOppen, setRedigeraOppen] = useState(false)
   const [nyttArendeOppen, setNyttArendeOppen] = useState(false)
+  const [tarBort, setTarBort] = useState(false)
 
   const kund = db?.kunder.find((k) => k.id === kundId)
 
@@ -218,6 +236,51 @@ export function KundProfil({ kundId }: { kundId: string }) {
               <CalendarPlusIcon data-icon="inline-start" />
               Boka tid
             </Button>
+            {kan('ta_bort_kund') && (
+              <AlertDialog>
+                <AlertDialogTrigger
+                  render={
+                    <Button variant="destructive" size="sm" disabled={tarBort}>
+                      <Trash2Icon data-icon="inline-start" />
+                      Ta bort kund
+                    </Button>
+                  }
+                />
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogMedia className="bg-destructive/10 text-destructive">
+                      <Trash2Icon />
+                    </AlertDialogMedia>
+                    <AlertDialogTitle>Ta bort {kund.namn} permanent?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      {arenden.oppna.length > 0
+                        ? `Kunden har ${arenden.oppna.length} öppna ärenden som INTE är markerade som lösta. Alla kundens ärenden, bokningar och anteckningar raderas permanent och kan inte återställas.`
+                        : 'Alla kundens ärenden, bokningar och anteckningar raderas permanent och kan inte återställas.'}
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Avbryt</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={async () => {
+                        setTarBort(true)
+                        try {
+                          await taBortKund(kund.id)
+                          toast.success(`${kund.namn} har tagits bort`)
+                          router.push('/portal/kunder')
+                        } catch (error) {
+                          toast.error('Kunde inte ta bort kunden', {
+                            description: error instanceof Error ? error.message : undefined,
+                          })
+                          setTarBort(false)
+                        }
+                      }}
+                    >
+                      Ta bort permanent
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
           </div>
         </div>
       </div>

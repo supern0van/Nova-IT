@@ -367,6 +367,8 @@ export const behorigheter = {
     'hantera_bokningar',
     'se_kunder',
     'redigera_kund',
+    'ta_bort_kund',
+    'ta_bort_arende',
     'se_installningar',
     'hantera_anvandare',
     'hantera_systeminstallningar',

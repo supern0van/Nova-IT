@@ -12,6 +12,8 @@ import {
   skapaOperativBokning,
   skapaOperativKund,
   skapaOperativtArende,
+  taBortOperativArenden,
+  taBortOperativKund,
   taBortOperativKundanteckning,
   uppdateraOperativBokning,
   uppdateraOperativKund,
@@ -43,6 +45,8 @@ vi.mock('@/lib/admin/operativa-server', () => ({
   skapaOperativBokning: vi.fn(),
   skapaOperativKund: vi.fn(),
   skapaOperativtArende: vi.fn(),
+  taBortOperativArenden: vi.fn(),
+  taBortOperativKund: vi.fn(),
   taBortOperativKundanteckning: vi.fn(),
   uppdateraOperativBokning: vi.fn(),
   uppdateraOperativKund: vi.fn(),
@@ -62,6 +66,8 @@ const laggTillOperativtMeddelandeMock = vi.mocked(laggTillOperativtMeddelande)
 const skapaOperativBokningMock = vi.mocked(skapaOperativBokning)
 const skapaOperativKundMock = vi.mocked(skapaOperativKund)
 const skapaOperativtArendeMock = vi.mocked(skapaOperativtArende)
+const taBortOperativArendenMock = vi.mocked(taBortOperativArenden)
+const taBortOperativKundMock = vi.mocked(taBortOperativKund)
 const taBortOperativKundanteckningMock = vi.mocked(taBortOperativKundanteckning)
 const uppdateraOperativBokningMock = vi.mocked(uppdateraOperativBokning)
 const uppdateraOperativKundMock = vi.mocked(uppdateraOperativKund)
@@ -578,5 +584,44 @@ describe('/api/admin/operativt', () => {
     await expect(
       (await PATCH(patchRequest({ typ: 'ta_bort_kundanteckning', data: { id: 'anteckning-1' } }))).json(),
     ).resolves.toEqual({ ok: true, id: 'anteckning-1' })
+  })
+
+  it('nekar ta_bort_kund och ta_bort_arenden för medarbetare (saknar administratörsbehörighet)', async () => {
+    hamtaAutentiseradAnvandarIdMock.mockResolvedValue('user-1')
+    hamtaRollFranDatabasenMock.mockResolvedValue('medarbetare')
+
+    const kundSvar = await PATCH(patchRequest({ typ: 'ta_bort_kund', data: { id: 'kund-1' } }))
+    expect(kundSvar.status).toBe(403)
+    expect(taBortOperativKundMock).not.toHaveBeenCalled()
+
+    const arendenSvar = await PATCH(patchRequest({ typ: 'ta_bort_arenden', data: { ids: ['arende-1'] } }))
+    expect(arendenSvar.status).toBe(403)
+    expect(taBortOperativArendenMock).not.toHaveBeenCalled()
+  })
+
+  it('tar bort kund och ärenden för administratör', async () => {
+    hamtaAutentiseradAnvandarIdMock.mockResolvedValue('user-1')
+    hamtaRollFranDatabasenMock.mockResolvedValue('administrator')
+    taBortOperativKundMock.mockResolvedValue('kund-1')
+    taBortOperativArendenMock.mockResolvedValue(['arende-1', 'arende-2'])
+
+    await expect(
+      (await PATCH(patchRequest({ typ: 'ta_bort_kund', data: { id: 'kund-1' } }))).json(),
+    ).resolves.toEqual({ ok: true, id: 'kund-1' })
+
+    await expect(
+      (
+        await PATCH(patchRequest({ typ: 'ta_bort_arenden', data: { ids: ['arende-1', 'arende-2'] } }))
+      ).json(),
+    ).resolves.toEqual({ ok: true, ids: ['arende-1', 'arende-2'] })
+  })
+
+  it('returnerar 400 för ta_bort_arenden med ogiltig payload', async () => {
+    hamtaAutentiseradAnvandarIdMock.mockResolvedValue('user-1')
+    hamtaRollFranDatabasenMock.mockResolvedValue('administrator')
+
+    const svar = await PATCH(patchRequest({ typ: 'ta_bort_arenden', data: { ids: 'inte-en-array' } }))
+    expect(svar.status).toBe(400)
+    expect(taBortOperativArendenMock).not.toHaveBeenCalled()
   })
 })

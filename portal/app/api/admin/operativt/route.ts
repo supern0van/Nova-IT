@@ -15,6 +15,8 @@ import {
   skapaOperativBokning,
   skapaOperativKund,
   skapaOperativtArende,
+  taBortOperativArenden,
+  taBortOperativKund,
   taBortOperativKundanteckning,
   uppdateraOperativBokning,
   uppdateraOperativKund,
@@ -161,6 +163,16 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ ok: false }, { status: 403 })
   }
 
+  // Permanent borttagning är administratörsbehörigheter, medvetet
+  // strängare än redigera_kund/tilldela_arende - en tekniker ska aldrig
+  // kunna radera data permanent.
+  if (payload.typ === 'ta_bort_kund' && !atkomst.harBehorighet('ta_bort_kund')) {
+    return NextResponse.json({ ok: false }, { status: 403 })
+  }
+  if (payload.typ === 'ta_bort_arenden' && !atkomst.harBehorighet('ta_bort_arende')) {
+    return NextResponse.json({ ok: false }, { status: 403 })
+  }
+
   try {
     switch (payload.typ) {
       case 'uppdatera_kund':
@@ -239,6 +251,23 @@ export async function PATCH(request: NextRequest) {
             payload.data.arendeId,
             typeof payload.data.aktor === 'string' ? payload.data.aktor : 'Okänd',
           ),
+        })
+      case 'ta_bort_kund':
+        if (typeof payload.data.id !== 'string') return NextResponse.json({ ok: false }, { status: 400 })
+        return NextResponse.json({
+          ok: true,
+          id: await taBortOperativKund(payload.data.id),
+        })
+      case 'ta_bort_arenden':
+        if (
+          !Array.isArray(payload.data.ids) ||
+          !payload.data.ids.every((id): id is string => typeof id === 'string')
+        ) {
+          return NextResponse.json({ ok: false }, { status: 400 })
+        }
+        return NextResponse.json({
+          ok: true,
+          ids: await taBortOperativArenden(payload.data.ids),
         })
       default:
         return NextResponse.json({ ok: false }, { status: 400 })

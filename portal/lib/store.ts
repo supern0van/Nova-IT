@@ -189,7 +189,9 @@ async function andraViaOperativApi<T>(
     | 'uppdatera_arende'
     | 'uppdatera_kundanteckning'
     | 'ta_bort_kundanteckning'
-    | 'skicka_sms',
+    | 'skicka_sms'
+    | 'ta_bort_kund'
+    | 'ta_bort_arenden',
   data: Record<string, unknown>,
   svarsNyckel: string,
 ): Promise<T | null> {
@@ -822,6 +824,38 @@ export async function taBortKundanteckning(anteckningId: string) {
   await latens(220)
   const db = las()
   db.kundanteckningar = db.kundanteckningar.filter((a) => a.id !== anteckningId)
+  skriv(db)
+}
+
+/**
+ * Tar bort en kund permanent, inklusive alla dennes ärenden och bokningar
+ * (servern gör motsvarande borttagning, se taBortOperativKund i
+ * operativa-server.ts). Rensar samma poster ur den lokala cachen.
+ */
+export async function taBortKund(kundId: string) {
+  await andraViaOperativApi<string>('ta_bort_kund', { id: kundId }, 'id')
+
+  const db = las()
+  db.kunder = db.kunder.filter((k) => k.id !== kundId)
+  db.arenden = db.arenden.filter((a) => a.kundId !== kundId)
+  db.bokningar = db.bokningar.filter((b) => b.kundId !== kundId)
+  db.kundanteckningar = db.kundanteckningar.filter((a) => a.kundId !== kundId)
+  skriv(db)
+}
+
+/**
+ * Tar bort en eller flera ärenden permanent (servern cascadar meddelanden
+ * och aktiviteter, se taBortOperativArenden). Rensar samma poster ur den
+ * lokala cachen.
+ */
+export async function taBortArenden(arendeIds: string[]) {
+  await andraViaOperativApi<string[]>('ta_bort_arenden', { ids: arendeIds }, 'ids')
+
+  const idSet = new Set(arendeIds)
+  const db = las()
+  db.arenden = db.arenden.filter((a) => !idSet.has(a.id))
+  db.meddelanden = db.meddelanden.filter((m) => !idSet.has(m.arendeId))
+  db.aktiviteter = db.aktiviteter.filter((a) => !idSet.has(a.arendeId))
   skriv(db)
 }
 

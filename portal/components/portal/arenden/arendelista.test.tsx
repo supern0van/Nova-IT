@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 import { cleanup, render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
 import type { Arende } from '@/lib/types'
@@ -25,9 +26,16 @@ vi.mock('next/navigation', () => ({
   useSearchParams: () => new URLSearchParams(),
 }))
 
+const taBortArenden = vi.fn()
+
 vi.mock('@/lib/store', () => ({
   manuellaKanaler: ['telefon', 'e-post'],
   skapaArende: vi.fn(),
+  taBortArenden,
+}))
+
+vi.mock('sonner', () => ({
+  toast: { success: vi.fn(), error: vi.fn() },
 }))
 
 const arende: Arende = {
@@ -132,5 +140,66 @@ describe('Arendelista – alltid synlig kö för nya ärenden', () => {
     expect(screen.getAllByText('NIT-2402').length).toBe(2)
     // Huvudlistan visar fortfarande det icke-nya ärendet också.
     expect(screen.getByText('NIT-2401')).toBeTruthy()
+  })
+})
+
+describe('Arendelista – klickbara kolumnrubriker', () => {
+  afterEach(() => {
+    mockState.db.arenden = [arende]
+    cleanup()
+  })
+
+  it('sorterar om när man klickar en kolumnrubrik, och byter riktning vid nästa klick', async () => {
+    const annanKund: Arende = { ...arende, id: 'arende-2', arendenummer: 'NIT-2402', kundNamn: 'Anna Andersson' }
+    mockState.db.arenden = [arende, annanKund]
+    const user = userEvent.setup()
+
+    render(<Arendelista />)
+
+    const rader = () => screen.getAllByRole('row').slice(1) // hoppa över rubrikraden
+    // Standard (uppdaterad, desc): båda har samma uppdaterad-tid i fixturerna,
+    // så ordningen är stabil från listan som skickas in.
+
+    await user.click(screen.getByRole('button', { name: /Kund/ }))
+    expect(rader()[0].textContent).toContain('Anna Andersson')
+
+    await user.click(screen.getByRole('button', { name: /Kund/ }))
+    expect(rader()[0].textContent).toContain('Birgitta Sandell')
+  })
+})
+
+describe('Arendelista – bulk-borttagning', () => {
+  afterEach(() => {
+    mockState.db.arenden = [arende]
+    kan.mockReturnValue(true)
+    taBortArenden.mockReset()
+    cleanup()
+  })
+
+  it('döljer kryssrutor och borttagningsknapp för roller utan ta_bort_arende', () => {
+    kan.mockImplementation((behorighet: string) => behorighet !== 'ta_bort_arende')
+    render(<Arendelista />)
+
+    expect(screen.queryAllByRole('checkbox').length).toBe(0)
+  })
+
+  it('markerar ärenden och tar bort de valda', async () => {
+    const arende2: Arende = { ...arende, id: 'arende-2', arendenummer: 'NIT-2402' }
+    mockState.db.arenden = [arende, arende2]
+    taBortArenden.mockResolvedValue(['arende-1'])
+    const user = userEvent.setup()
+
+    render(<Arendelista />)
+
+    const kryssrutor = screen.getAllByRole('checkbox')
+    // Första kryssrutan är "välj alla" i rubriken, resten är radkryssrutor.
+    await user.click(kryssrutor[1])
+
+    expect(screen.getByRole('button', { name: /Ta bort valda \(1\)/ })).toBeTruthy()
+
+    await user.click(screen.getByRole('button', { name: /Ta bort valda/ }))
+    await user.click(screen.getByRole('button', { name: 'Ta bort permanent' }))
+
+    expect(taBortArenden).toHaveBeenCalledWith(['arende-1'])
   })
 })
