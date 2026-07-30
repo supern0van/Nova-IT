@@ -54,7 +54,10 @@ describe('forsokSkickaValkomstmejl', () => {
     const body = JSON.parse(String(anrop[0]?.init?.body))
     expect(body.to).toEqual(['anna@example.se'])
     expect(body.text).toContain('ett-tillfalligt-losenord')
-    expect(body.text).toContain('https://kundportal.nova-it.se/logga-in')
+    // Inga inloggningsinstruktioner än - kunden loggar in med ärendenummer,
+    // och det finns inget ärende kopplat till kontoskapandet här.
+    expect(body.text).not.toContain('/logga-in')
+    expect(body.text).not.toContain('E-post:')
   })
 
   it('soft-failar (kastar aldrig) om Resend svarar med fel eller inte kan nås', async () => {

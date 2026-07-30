@@ -1,12 +1,17 @@
 /**
- * Skickar ett välkomstmejl med inloggningsuppgifter när en NY kund skapas
- * manuellt av personal (skapaOperativKund i operativa-server.ts) och ett
- * kundportalskonto lyckades skapas åt hen (se kundportal-konto-client.ts).
- * Speglar exakt samma mönster som det publika kontaktformulärets egen
- * kundbekräftelse (formatCustomerConfirmationEmail i huvudrepots
- * src/features/contact/contact-submission.ts) - samma text/ton, men utan
- * ett ärendenummer eftersom en manuellt skapad kund inte nödvändigtvis har
- * ett ärende kopplat till just kontoskapandet.
+ * Skickar ett välkomstmejl när en NY kund skapas manuellt av personal
+ * (skapaOperativKund i operativa-server.ts) och ett kundportalskonto
+ * lyckades skapas åt hen (se kundportal-konto-client.ts). Speglar samma
+ * mönster som det publika kontaktformulärets egen kundbekräftelse
+ * (formatCustomerConfirmationEmail i huvudrepots
+ * src/features/contact/contact-submission.ts), men UTAN inloggnings-
+ * instruktioner: kundportalen loggar in med ärendenummer (se
+ * lib/supabase/kund-konto-grindar.ts i kundportalrepot), och en manuellt
+ * skapad kund har inte nödvändigtvis något ärende kopplat till just
+ * kontoskapandet - det tillfälliga lösenordet finns redan (satt här), men
+ * kunden kan inte logga in förrän ett ärende finns och gett dem ett
+ * ärendenummer att logga in med. Det mejlet (formatCustomerConfirmationEmail)
+ * innehåller de faktiska inloggningsuppgifterna.
  *
  * Soft-fail (samma princip som forsokAviseraKundOmSvar): kontot är redan
  * skapat oavsett om mejlet går fram - att inte nå Resend ska aldrig
@@ -25,19 +30,18 @@ export async function forsokSkickaValkomstmejl(uppgifter: {
     return
   }
 
-  const kundportalUrl = process.env.KUNDPORTAL_URL ?? 'https://kundportal.nova-it.se'
   const fornamn = uppgifter.kundNamn.split(' ')[0] || uppgifter.kundNamn
 
   const subject = 'Ditt konto hos Nova IT:s kundportal'
   const text = [
     `Hej ${fornamn},`,
     '',
-    'Ett konto har skapats åt dig i Nova IT:s kundportal, där du kan följa dina ärenden.',
+    'Ett konto har förberetts åt dig i Nova IT:s kundportal, där du kan följa dina ärenden.',
     '',
-    `${kundportalUrl}/logga-in`,
-    `E-post: ${uppgifter.epost}`,
-    `Tillfälligt lösenord: ${uppgifter.tillfalligtLosenord}`,
-    'Du blir ombedd att välja ett eget lösenord första gången du loggar in.',
+    'Så snart ditt första ärende registreras hos oss får du ett ärendenummer att logga in med,',
+    'tillsammans med lösenordet nedan.',
+    '',
+    `Lösenord: ${uppgifter.tillfalligtLosenord}`,
     '',
     'Hälsningar,',
     'Nova IT',

@@ -30,6 +30,7 @@ const publikaServerTillServerRoutes = new Set([
   'public/intag/route.ts',
   'internal/kundarenden/route.ts',
   'internal/kundarenden/[id]/route.ts',
+  'internal/kundidforarendenummer/route.ts',
   'internal/kundmeddelande/route.ts',
   'internal/kundpreferenser/route.ts',
 ])
@@ -46,6 +47,7 @@ describe('admin API route-kontrakt', () => {
       'admin/systemstatus/route.ts',
       'internal/kundarenden/[id]/route.ts',
       'internal/kundarenden/route.ts',
+      'internal/kundidforarendenummer/route.ts',
       'internal/kundmeddelande/route.ts',
       'internal/kundpreferenser/route.ts',
       'mfa/aterstall/route.ts',
