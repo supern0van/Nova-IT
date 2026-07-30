@@ -306,9 +306,16 @@ async function hittaEllerSkapaKund(
       await supabase.from('admin_kunder').update({ telefon: uppgifter.telefon }).eq('id', befintlig.id)
     }
 
+    // Namnet på just DET HÄR ärendet ska spegla vad som faktiskt skrevs i
+    // formuläret (kan skilja sig om t.ex. en anhörig fyller i åt kunden) -
+    // till skillnad från telefonnumret ovan uppdaterar vi INTE kundens egen
+    // profil (admin_kunder.namn) här, eftersom ett annat namn i en enskild
+    // inskickning inte nödvändigtvis betyder att kunden bytt namn.
+    const arendenamn = uppgifter.namn || String(befintlig.namn)
+
     return {
       id: String(befintlig.id),
-      namn: String(befintlig.namn),
+      namn: arendenamn,
       epost: String(befintlig.epost),
       telefon: nyttTelefonnummer ? uppgifter.telefon : String(befintlig.telefon),
       kundtyp: befintlig.kundtyp as Kundtyp,

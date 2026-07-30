@@ -128,4 +128,25 @@ describe('skapaPubliktIntag – telefonnummer vid känd kund', () => {
       expect.objectContaining({ telefon: GAMMAL_KUND.telefon }),
     )
   })
+
+  it('använder det NYA namnet på ärendet, men uppdaterar INTE kundens sparade namn', async () => {
+    const { skapaPubliktIntag } = await import('@/lib/admin/publikt-intag-server')
+
+    await skapaPubliktIntag({
+      kalla: 'kontaktformular',
+      namn: 'Annat Namn',
+      epost: 'test@example.com',
+      telefon: GAMMAL_KUND.telefon,
+      kundtyp: 'privatperson',
+      tjanstSlug: 'it-support',
+      angelagenhet: 'normal',
+      meddelande: 'Detta är en tillräckligt lång testförfrågan.',
+      idempotensnyckel: 'test-intag-namn-1234567890',
+    })
+
+    expect(arendeInsert).toHaveBeenCalledWith(
+      expect.objectContaining({ kund_namn: 'Annat Namn', kund_id: 'kund-1' }),
+    )
+    expect(kundUpdate).not.toHaveBeenCalledWith(expect.objectContaining({ namn: expect.anything() }))
+  })
 })
