@@ -24,6 +24,7 @@ import { toast } from 'sonner'
 
 import { useAuth } from '@/components/auth/auth-provider'
 import { ArendeAtgarder } from '@/components/portal/arende/arende-atgarder'
+import { Framstegssparning } from '@/components/portal/arende/framstegssparning'
 import { Konversation } from '@/components/portal/arende/konversation'
 import { Tidslinje } from '@/components/portal/arende/tidslinje'
 import { BokningDialog } from '@/components/portal/bokningar/bokning-dialog'
@@ -225,6 +226,13 @@ export function ArendeDetalj({ arendeId }: { arendeId: string }) {
             setBokningOppen(true)
           }}
         />
+      </Yta>
+
+      {/* Speglar exakt vad kunden ser i kundportalen - se
+          Nova-IT-Kundportal, components/ui/framstegssparning.tsx. Rent
+          visuellt, styrs av statusdropdownen ovan i ArendeAtgarder. */}
+      <Yta className="p-4">
+        <Framstegssparning status={arende.status} />
       </Yta>
 
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
