@@ -104,3 +104,33 @@ describe('Arendelista – skiljer "inga ärenden" från "kunde inte hämtas"', (
     expect(screen.getByText('NIT-2401')).toBeTruthy()
   })
 })
+
+describe('Arendelista – alltid synlig kö för nya ärenden', () => {
+  afterEach(() => {
+    mockState.db.arenden = [arende]
+    mockState.fel = false
+    cleanup()
+  })
+
+  it('visar "inga nya ärenden"-läget när inget ärende har status "ny"', () => {
+    mockState.db.arenden = [arende]
+
+    render(<Arendelista />)
+
+    expect(screen.getByText('Inga nya, obehandlade ärenden just nu.')).toBeTruthy()
+  })
+
+  it('listar nya ärenden i kön oavsett vad statusfiltret på huvudlistan står på', () => {
+    const nyttArende: Arende = { ...arende, id: 'arende-2', arendenummer: 'NIT-2402', status: 'ny' }
+    mockState.db.arenden = [arende, nyttArende]
+
+    render(<Arendelista />)
+
+    expect(screen.getByText('Nya ärenden')).toBeTruthy()
+    // NIT-2402 syns både i kön och i huvudlistan (standardfiltret "Alla
+    // statusar" döljer ingenting) - därför getAllByText, inte getByText.
+    expect(screen.getAllByText('NIT-2402').length).toBe(2)
+    // Huvudlistan visar fortfarande det icke-nya ärendet också.
+    expect(screen.getByText('NIT-2401')).toBeTruthy()
+  })
+})

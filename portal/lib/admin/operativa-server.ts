@@ -1,4 +1,6 @@
 import { forsokAviseraKundOmSvar } from '@/lib/admin/arende-avisering-server'
+import { forsokSkapaKundportalKonto } from '@/lib/admin/kundportal-konto-client'
+import { forsokSkickaValkomstmejl } from '@/lib/admin/kundportal-valkomst-server'
 import { arAdministrator, arSystemRoll } from '@/lib/auth/roll'
 import { initialerFranNamn } from '@/lib/personal'
 import { skapaSupabaseServiceklient } from '@/lib/supabase/service'
@@ -227,6 +229,19 @@ export async function skapaOperativKund(uppgifter: NyOperativKund): Promise<Kund
       kund_id: kund.id,
       text: anteckning,
       forfattare: text(uppgifter.forfattare) || 'Okänd',
+    })
+  }
+
+  // Alla nya kunder ska ha kundportalåtkomst, oavsett om de kom in via det
+  // publika kontaktformuläret eller skapades manuellt av personal här (t.ex.
+  // vid ett telefonsamtal) - se docs/kundportal-planering.md. Soft-fail
+  // genomgående: kunden är redan skapad ovan oavsett vad som händer nedan.
+  const kundportalKonto = await forsokSkapaKundportalKonto(kund.id, kund.epost)
+  if (kundportalKonto?.tillfalligtLosenord) {
+    await forsokSkickaValkomstmejl({
+      epost: kund.epost,
+      kundNamn: kund.namn,
+      tillfalligtLosenord: kundportalKonto.tillfalligtLosenord,
     })
   }
 

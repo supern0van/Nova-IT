@@ -2,7 +2,9 @@
 
 import {
   ArrowUpDownIcon,
+  CheckCircle2Icon,
   FilterXIcon,
+  InboxIcon,
   PlusIcon,
   SearchIcon,
   SearchXIcon,
@@ -98,6 +100,17 @@ export function Arendelista() {
 
   const personal = db?.personal ?? []
 
+  // Alltid synlig kö, oberoende av filtren ovan - staben ska aldrig behöva
+  // veta att statusfiltret finns för att hitta obehandlade ärenden. Äldst
+  // (mest eftersatt) visas först, FIFO, till skillnad från huvudlistans
+  // "senast uppdaterad"-standard.
+  const nyaArenden = useMemo(() => {
+    if (!db) return []
+    return db.arenden
+      .filter((a) => a.status === 'ny')
+      .sort((a, b) => +new Date(a.skapad) - +new Date(b.skapad))
+  }, [db])
+
   const filtreradeArenden = useMemo(() => {
     if (!db) return []
     const fras = sok.trim().toLowerCase()
@@ -178,6 +191,8 @@ export function Arendelista() {
       </Sidhuvud>
 
       {fel && <DriftFelBanner vidForsokIgen={uppdatera} />}
+
+      {!laddar && <NyaArendenKo arenden={nyaArenden} personal={personal} />}
 
       <Yta className="flex flex-col">
         {/* Filterrad */}
@@ -348,6 +363,33 @@ export function Arendelista() {
         kategorier={db?.kategorier.filter((k) => k.aktiv) ?? []}
       />
     </Sida>
+  )
+}
+
+/**
+ * Alltid synlig kö över obehandlade nya ärenden, oberoende av statusfiltret
+ * i huvudlistan nedanför - staben ska aldrig missa ett nytt ärende bara för
+ * att statusfiltret råkar stå på något annat än "Ny".
+ */
+function NyaArendenKo({ arenden, personal }: { arenden: Arende[]; personal: Anvandare[] }) {
+  return (
+    <Yta className="flex flex-col border-warning/40">
+      <div className="flex items-center gap-2 border-b border-border/60 px-3.5 py-2.5">
+        <InboxIcon className="size-4 text-warning" aria-hidden />
+        <h2 className="text-sm font-semibold">Nya ärenden</h2>
+        <span className="rounded-full bg-warning/15 px-2 py-0.5 text-[11px] font-medium text-warning">
+          {arenden.length}
+        </span>
+      </div>
+      {arenden.length === 0 ? (
+        <div className="flex items-center gap-2 px-3.5 py-4 text-[13px] text-muted-foreground">
+          <CheckCircle2Icon className="size-4" aria-hidden />
+          Inga nya, obehandlade ärenden just nu.
+        </div>
+      ) : (
+        <ArendeTabell arenden={arenden} personal={personal} />
+      )}
+    </Yta>
   )
 }
 

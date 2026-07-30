@@ -268,8 +268,12 @@ export function ArendeDetalj({ arendeId }: { arendeId: string }) {
                 </KopieraKnapp>
               }
             >
-              Kund
+              Kontaktuppgifter för detta ärende
             </Sektionsrubrik>
+            <p className="-mt-2 text-[11px] text-muted-foreground">
+              Det som gällde när ärendet kom in - kan skilja sig från kundens profil om något
+              ändrats sedan dess.
+            </p>
 
             <div className="flex items-start gap-2.5">
               <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary/12 text-primary">
@@ -317,18 +321,25 @@ export function ArendeDetalj({ arendeId }: { arendeId: string }) {
                   <KopieraKnapp varde={arende.telefon} etikett="Telefonnummer" />
                 </span>
               </Faltrad>
-              {kund && (
-                <Faltrad etikett="Adress">
-                  <span className="flex items-start gap-1.5">
-                    <MapPinIcon
-                      className="mt-0.5 size-3.5 shrink-0 text-muted-foreground"
-                      aria-hidden
-                    />
-                    {kund.adress}, {kund.ort}
-                  </span>
-                </Faltrad>
-              )}
             </dl>
+
+            {kund && (
+              <>
+                <div className="my-1 border-t border-border/60" />
+                <Sektionsrubrik>Kundprofil (nuvarande uppgifter)</Sektionsrubrik>
+                <dl className="flex flex-col gap-3">
+                  <Faltrad etikett="Adress">
+                    <span className="flex items-start gap-1.5">
+                      <MapPinIcon
+                        className="mt-0.5 size-3.5 shrink-0 text-muted-foreground"
+                        aria-hidden
+                      />
+                      {kund.adress}, {kund.ort}
+                    </span>
+                  </Faltrad>
+                </dl>
+              </>
+            )}
 
             {kan('se_kunder') && kund && (
               <Button
