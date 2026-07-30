@@ -38,6 +38,7 @@ export async function forsokSkapaKundportalKonto(
         'x-kundportal-intag-secret': hemlighet,
       },
       body: JSON.stringify({ adminKundId, epost }),
+      signal: AbortSignal.timeout(8000),
     })
 
     const kropp = (await svar.json().catch(() => null)) as {
@@ -47,7 +48,10 @@ export async function forsokSkapaKundportalKonto(
     } | null
 
     if (!svar.ok || !kropp?.ok) {
-      console.error('Kundportalen avvisade kontoskapandet.', svar.status, kropp)
+      // Logga ALDRIG hela kropp-objektet - det kan i vissa svarsformer
+      // innehålla tillfalligtLosenord i klartext. Bara statuskod och
+      // ok-fältet är säkra att skriva till serverloggarna.
+      console.error('Kundportalen avvisade kontoskapandet.', svar.status, { ok: kropp?.ok })
       return undefined
     }
 
@@ -59,5 +63,40 @@ export async function forsokSkapaKundportalKonto(
   } catch (fel) {
     console.error('Kunde inte nå kundportalen för kontoskapande.', fel)
     return undefined
+  }
+}
+
+/**
+ * Tar bort kundens kundportalskonto när kunden raderas i adminportalen (se
+ * taBortOperativKund). Soft-fail av samma skäl som ovan: en oåtkomlig
+ * kundportal ska aldrig blockera personal från att radera en kund här -
+ * felet loggas i stället, så det syns och kan åtgärdas manuellt om
+ * kundportalskontot behöver spärras separat.
+ */
+export async function forsokTaBortKundportalKonto(adminKundId: string): Promise<void> {
+  const kundportalUrl = process.env.KUNDPORTAL_URL
+  const hemlighet = process.env.KUNDPORTAL_INTAG_SECRET
+
+  if (!kundportalUrl || !hemlighet) {
+    console.error('Kundportalskonto kunde inte tas bort - KUNDPORTAL_URL eller KUNDPORTAL_INTAG_SECRET saknas.')
+    return
+  }
+
+  try {
+    const svar = await fetch(`${kundportalUrl}/api/internal/kundkonto`, {
+      method: 'DELETE',
+      headers: {
+        'content-type': 'application/json',
+        'x-kundportal-intag-secret': hemlighet,
+      },
+      body: JSON.stringify({ adminKundId }),
+      signal: AbortSignal.timeout(8000),
+    })
+
+    if (!svar.ok) {
+      console.error('Kundportalen avvisade kontoborttagningen.', svar.status)
+    }
+  } catch (fel) {
+    console.error('Kunde inte nå kundportalen för kontoborttagning.', fel)
   }
 }

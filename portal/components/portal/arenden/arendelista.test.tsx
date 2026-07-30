@@ -202,4 +202,40 @@ describe('Arendelista – bulk-borttagning', () => {
 
     expect(taBortArenden).toHaveBeenCalledWith(['arende-1'])
   })
+
+  it('rensar markeringen av ärenden som filtreras bort av sökningen, så de inte kan raderas av misstag', async () => {
+    const arende2: Arende = { ...arende, id: 'arende-2', arendenummer: 'NIT-2402', rubrik: 'Annat ärende' }
+    mockState.db.arenden = [arende, arende2]
+    const user = userEvent.setup()
+
+    render(<Arendelista />)
+
+    const kryssrutor = screen.getAllByRole('checkbox')
+    await user.click(kryssrutor[1])
+    expect(screen.getByRole('button', { name: /Ta bort valda \(1\)/ })).toBeTruthy()
+
+    // Sök på något som bara matchar det ANDRA ärendet - det markerade
+    // ärendet (arende-1) blir osynligt i tabellen.
+    await user.type(screen.getByPlaceholderText('Sök ärendenummer, kund eller text'), 'NIT-2402')
+
+    expect(screen.queryByRole('button', { name: /Ta bort valda/ })).toBeNull()
+  })
+
+  it('behåller markeringen av ärenden som fortfarande är synliga efter en sökning', async () => {
+    const arende2: Arende = { ...arende, id: 'arende-2', arendenummer: 'NIT-2402', rubrik: 'Annat ärende' }
+    mockState.db.arenden = [arende, arende2]
+    const user = userEvent.setup()
+
+    render(<Arendelista />)
+
+    const kryssrutor = screen.getAllByRole('checkbox')
+    await user.click(kryssrutor[1])
+    expect(screen.getByRole('button', { name: /Ta bort valda \(1\)/ })).toBeTruthy()
+
+    // Sök på något som matchar BÅDA ärendena - det markerade ärendet
+    // (arende-1) är fortfarande synligt och ska förbli markerat.
+    await user.type(screen.getByPlaceholderText('Sök ärendenummer, kund eller text'), 'Test')
+
+    expect(screen.getByRole('button', { name: /Ta bort valda \(1\)/ })).toBeTruthy()
+  })
 })

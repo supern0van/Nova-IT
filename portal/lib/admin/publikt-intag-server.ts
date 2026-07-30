@@ -1,4 +1,11 @@
 import { forsokSkapaKundportalKonto } from '@/lib/admin/kundportal-konto-client'
+import {
+  arGiltigEpost,
+  arGiltigtNamn,
+  arGiltigTelefon,
+  arPostgresFelkod,
+  text,
+} from '@/lib/admin/validering'
 import { skapaSupabaseServiceklient } from '@/lib/supabase/service'
 import type { Kategori, Kundtyp, Prioritet } from '@/lib/types'
 
@@ -365,34 +372,12 @@ function rubrikFranMeddelande(meddelande: string): string {
   return rubrik.length > 180 ? `${rubrik.slice(0, 177)}...` : rubrik
 }
 
-function text(varde: unknown): string {
-  return typeof varde === 'string' ? varde.trim() : ''
-}
-
 function normaliseraEpost(varde: unknown): string {
   return text(varde).toLowerCase()
-}
-
-function arGiltigtNamn(varde: string): boolean {
-  return varde.length >= 2 && varde.length <= 160
-}
-
-function arGiltigEpost(varde: string): boolean {
-  return (
-    varde.length >= 3 && varde.length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(varde)
-  )
-}
-
-function arGiltigTelefon(varde: string): boolean {
-  return varde.length >= 3 && varde.length <= 40 && varde.replace(/\D/g, '').length >= 7
 }
 
 function arGiltigMeddelande(varde: string): boolean {
   if (varde.length < 10 || varde.length > 2000) return false
   if (/[\x00-\x08\x0b\x0c\x0e-\x1f]/.test(varde)) return false
   return true
-}
-
-function arPostgresFelkod(fel: unknown, kod: string): boolean {
-  return typeof fel === 'object' && fel !== null && 'code' in fel && fel.code === kod
 }

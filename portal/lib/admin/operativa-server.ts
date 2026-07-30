@@ -1,5 +1,14 @@
 import { forsokAviseraKundOmSvar } from '@/lib/admin/arende-avisering-server'
-import { forsokSkapaKundportalKonto } from '@/lib/admin/kundportal-konto-client'
+import { forsokSkapaKundportalKonto, forsokTaBortKundportalKonto } from '@/lib/admin/kundportal-konto-client'
+import {
+  arGiltigEpost,
+  arGiltigTelefon,
+  arGiltigtNamn as arGiltigtKundnamn,
+  arPostgresFelkod,
+  nullableText,
+  optionalText,
+  text,
+} from '@/lib/admin/validering'
 import { forsokSkickaValkomstmejl } from '@/lib/admin/kundportal-valkomst-server'
 import { arAdministrator, arSystemRoll } from '@/lib/auth/roll'
 import { initialerFranNamn } from '@/lib/personal'
@@ -276,14 +285,15 @@ export async function skapaOperativtArende(uppgifter: NyttOperativtArende): Prom
   const kund = normaliseraKundRad(kundRad)
   if (!kund) throw new Error('Kunden kunde inte läsas.')
 
-  // `arendenummer` beräknas app-side (högsta befintliga + 1), inte via en
-  // DB-sekvens. Vid parallella skapanden kan två anrop räkna ut samma nästa
-  // nummer och kollidera mot den unika constrainten (23505). Vi försöker
-  // därför om upp till ARENDENUMMER_MAX_FORSOK gånger och räknar ut ett nytt
-  // arendenummer varje gång – den rad som orsakade konflikten är då synlig i
-  // nästa SELECT, så nästa försök får ett genuint ledigt nummer. Detta är en
-  // säker mildring utan schemaändring, inte en fullständig lösning – se
-  // rekommendationen om DB-sekvens/RPC i rapporten.
+  // `arendenummer` hämtas atomärt från en Postgres-sekvens via RPC
+  // (nastaArendenummer() nedan) - den eliminerar själva racet mellan
+  // parallella skapanden. Retry-loopen här är INTE ett skydd mot det racet
+  // (det är redan omöjligt), utan ett skyddsnät för en annan, sällsynt
+  // situation: en rad som seedats eller migrerats in manuellt med ett
+  // arendenummer som råkar sammanfalla med ett tal sekvensen senare
+  // genererar. Om det händer krockar insert mot den unika constrainten
+  // (23505) trots att numret KOM från sekvensen - ett nytt anrop till
+  // nastaArendenummer() ger då ett genuint ledigt nummer nästa försök.
   for (let forsok = 0; forsok < ARENDENUMMER_MAX_FORSOK; forsok++) {
     const arendenummer = await nastaArendenummer()
     const { data, error } = await supabase
@@ -739,25 +749,29 @@ export async function taBortOperativArenden(arendeIds: string[]): Promise<string
 
 /**
  * Tar bort en kund permanent, inklusive ALLA dennes ärenden och bokningar.
- * Ordningen är avgörande: admin_arenden.kund_id och admin_bokningar.kund_id
- * har RESTRICT (inte CASCADE) mot admin_kunder, så bägge måste tömmas
- * innan kundraden själv kan tas bort. admin_kundanteckningar cascadar och
- * behöver inte hanteras explicit.
+ * Görs via en Postgres-funktion (ta_bort_kund_kaskad, se migrationen
+ * 20260730_ta_bort_kund_kaskad_rpc) i stället för tre sekventiella DELETE
+ * härifrån, så att hela borttagningen sker i EN atomär transaktion - en
+ * krasch mitt i lämnar aldrig kunden i ett delvis raderat tillstånd (t.ex.
+ * bokningar borttagna men ärenden kvar). admin_kundanteckningar cascadar
+ * via FK och behöver inte hanteras explicit, varken här eller i RPC:n.
+ *
+ * Spärrar ÄVEN kundens kundportalskonto (separat Supabase-projekt, kaskadar
+ * inte av sig själv - se forsokTaBortKundportalKonto). Görs FÖRE den lokala
+ * borttagningen: om något går fel mellan de två stegen är "portalåtkomst
+ * spärrad men adminraden finns kvar" ett ofarligare feltillstånd än
+ * motsatsen (adminraden borta men kunden kan fortfarande logga in).
  */
 export async function taBortOperativKund(kundId: string): Promise<string> {
   if (!text(kundId)) throw new Error('Ogiltigt kund-id.')
 
+  await forsokTaBortKundportalKonto(kundId)
+
   const supabase = skapaSupabaseServiceklient()
+  const { error } = await supabase.rpc('ta_bort_kund_kaskad', { p_kund_id: kundId })
 
-  const { error: bokningFel } = await supabase.from('admin_bokningar').delete().eq('kund_id', kundId)
-  if (bokningFel) throw new Error('Kunde inte ta bort kundens bokningar.')
-
-  const { error: arendeFel } = await supabase.from('admin_arenden').delete().eq('kund_id', kundId)
-  if (arendeFel) throw new Error('Kunde inte ta bort kundens ärenden.')
-
-  const { error: kundFel } = await supabase.from('admin_kunder').delete().eq('id', kundId)
-  if (kundFel) {
-    if (arPostgresFelkod(kundFel, 'PGRST116')) throw new OperativtAdminFel('Kunden kunde inte hittas.', 404)
+  if (error) {
+    if (arPostgresFelkod(error, 'P0002')) throw new OperativtAdminFel('Kunden kunde inte hittas.', 404)
     throw new Error('Kunde inte ta bort kund.')
   }
 
@@ -1060,47 +1074,12 @@ function arObjekt(data: unknown): data is Record<string, unknown> {
   return typeof data === 'object' && data !== null
 }
 
-function text(varde: unknown) {
-  return typeof varde === 'string' ? varde.trim() : ''
-}
-
-function optionalText(varde: unknown) {
-  const normaliserat = text(varde)
-  return normaliserat || undefined
-}
-
-function nullableText(varde: unknown) {
-  const normaliserat = text(varde)
-  return normaliserat || null
-}
-
-function arGiltigtKundnamn(varde: string) {
-  return varde.length >= 2 && varde.length <= 160
-}
-
-function arGiltigEpost(varde: string) {
-  return varde.length >= 3 && varde.length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(varde)
-}
-
-function arGiltigTelefon(varde: string) {
-  return (
-    varde.length >= 3 &&
-    varde.length <= 40 &&
-    /^[+]?[\d\s\-()]+$/.test(varde) &&
-    varde.replace(/\D/g, '').length >= 7
-  )
-}
-
 function arGiltigRubrik(varde: string) {
   return varde.length >= 3 && varde.length <= 180
 }
 
 function arGiltigBeskrivning(varde: string) {
   return varde.length >= 5
-}
-
-function arPostgresFelkod(error: unknown, kod: string) {
-  return arObjekt(error) && error.code === kod
 }
 
 function arKundtyp(varde: unknown): varde is Kund['kundtyp'] {

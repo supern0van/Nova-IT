@@ -830,10 +830,15 @@ export async function taBortKundanteckning(anteckningId: string) {
 /**
  * Tar bort en kund permanent, inklusive alla dennes ärenden och bokningar
  * (servern gör motsvarande borttagning, se taBortOperativKund i
- * operativa-server.ts). Rensar samma poster ur den lokala cachen.
+ * operativa-server.ts). Till skillnad från övriga skrivåtgärder ovan finns
+ * inget meningsfullt lokalt demolägesfall att falla tillbaka på - att
+ * låtsas att en kund raderades vore vilseledande och oåterkalleligt om det
+ * visar sig fel, så ett null-svar (API ej nåbart) kastas som ett tydligt
+ * fel i stället för att tyst "lyckas" bara i den lokala cachen.
  */
 export async function taBortKund(kundId: string) {
-  await andraViaOperativApi<string>('ta_bort_kund', { id: kundId }, 'id')
+  const apiId = await andraViaOperativApi<string>('ta_bort_kund', { id: kundId }, 'id')
+  if (!apiId) throw new Error('Kunden kunde inte tas bort just nu.')
 
   const db = las()
   db.kunder = db.kunder.filter((k) => k.id !== kundId)
@@ -845,11 +850,13 @@ export async function taBortKund(kundId: string) {
 
 /**
  * Tar bort en eller flera ärenden permanent (servern cascadar meddelanden
- * och aktiviteter, se taBortOperativArenden). Rensar samma poster ur den
- * lokala cachen.
+ * och aktiviteter, se taBortOperativArenden). Samma resonemang som
+ * taBortKund ovan - kastar hellre ett tydligt fel än att låtsas lyckas
+ * lokalt när servern inte gick att nå.
  */
 export async function taBortArenden(arendeIds: string[]) {
-  await andraViaOperativApi<string[]>('ta_bort_arenden', { ids: arendeIds }, 'ids')
+  const apiIds = await andraViaOperativApi<string[]>('ta_bort_arenden', { ids: arendeIds }, 'ids')
+  if (!apiIds) throw new Error('Ärendena kunde inte tas bort just nu.')
 
   const idSet = new Set(arendeIds)
   const db = las()

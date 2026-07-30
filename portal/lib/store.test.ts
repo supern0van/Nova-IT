@@ -158,3 +158,44 @@ describe('store – lokal utveckling behåller demoflödet', () => {
     )
   })
 })
+
+describe('store – borttagning är aldrig ett tyst lokalt "lyckande"', () => {
+  it('taBortKund kastar och rör INTE den lokala cachen om API:t inte går att nå, även i utveckling', async () => {
+    // Till skillnad från skapaKund m.fl. finns inget meningsfullt demoläge
+    // för radering - att låtsas att en kund togs bort vore vilseledande.
+    vi.stubEnv('NODE_ENV', 'development')
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('network down')))
+    const { taBortKund, hamtaDatabas } = await laddaStore()
+    const kundId = hamtaDatabas().kunder[0].id
+    const antalInnan = hamtaDatabas().kunder.length
+
+    await expect(taBortKund(kundId)).rejects.toThrow('Kunden kunde inte tas bort just nu.')
+
+    expect(hamtaDatabas().kunder.length).toBe(antalInnan)
+    expect(hamtaDatabas().kunder.some((k) => k.id === kundId)).toBe(true)
+  })
+
+  it('taBortArenden kastar och rör INTE den lokala cachen om API:t inte går att nå, även i utveckling', async () => {
+    vi.stubEnv('NODE_ENV', 'development')
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('network down')))
+    const { taBortArenden, hamtaDatabas } = await laddaStore()
+    const arendeId = hamtaDatabas().arenden[0].id
+    const antalInnan = hamtaDatabas().arenden.length
+
+    await expect(taBortArenden([arendeId])).rejects.toThrow('Ärendena kunde inte tas bort just nu.')
+
+    expect(hamtaDatabas().arenden.length).toBe(antalInnan)
+    expect(hamtaDatabas().arenden.some((a) => a.id === arendeId)).toBe(true)
+  })
+
+  it('taBortKund tar faktiskt bort kunden ur cachen vid ett lyckat serversvar', async () => {
+    vi.stubEnv('NODE_ENV', 'production')
+    const { taBortKund, hamtaDatabas } = await laddaStore()
+    const kundId = hamtaDatabas().kunder[0].id
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(svaraMed({ ok: true, id: kundId })))
+
+    await taBortKund(kundId)
+
+    expect(hamtaDatabas().kunder.some((k) => k.id === kundId)).toBe(false)
+  })
+})

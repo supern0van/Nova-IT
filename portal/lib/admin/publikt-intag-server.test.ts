@@ -87,6 +87,29 @@ describe('skapaPubliktIntag – ansvarig routing', () => {
     expect(arendeInsert).toHaveBeenCalledWith(expect.objectContaining({ ansvarig_id: 'support-id' }))
   })
 
+  it('avvisar telefonnummer med otillåtna tecken (regression: matchar nu adminportalens egna dialoger)', async () => {
+    // Innan validering.ts konsoliderade valideringen saknade det publika
+    // formulärets egen kopia av arGiltigTelefon teckenbegränsningen som
+    // adminportalens "Ny kund"-dialog hade - det här ska inte kunna hända
+    // igen nu när båda delar samma funktion.
+    const { skapaPubliktIntag, PubliktIntagFel } = await import('@/lib/admin/publikt-intag-server')
+
+    await expect(
+      skapaPubliktIntag({
+        kalla: 'kontaktformular',
+        namn: 'Test Kund',
+        epost: 'test@example.com',
+        telefon: 'abc-070-1234567-xyz',
+        kundtyp: 'privatperson',
+        tjanstSlug: 'it-support',
+        angelagenhet: 'normal',
+        meddelande: 'Detta är en tillräckligt lång testförfrågan.',
+        idempotensnyckel: 'test-intag-telefon-validering-1234567890',
+      }),
+    ).rejects.toBeInstanceOf(PubliktIntagFel)
+    expect(arendeInsert).not.toHaveBeenCalled()
+  })
+
 })
 
 describe('skapaPubliktIntag – kundportalskonto (Milstolpe 2)', () => {

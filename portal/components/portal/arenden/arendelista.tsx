@@ -210,6 +210,20 @@ export function Arendelista() {
     })
   }, [db, sok, status, prioritet, kundtyp, kategori, ansvarig, sortering, sorteringsRiktning, personal])
 
+  // Ett filter-/sökbyte kan dölja rader som redan är markerade för
+  // borttagning. Utan denna rensning skulle "Ta bort valda (N)" fortfarande
+  // syfta på ärenden som inte längre syns i tabellen - risk att fel,
+  // osynliga ärenden raderas av misstag. Behåller (inte nollställer) de
+  // markeringar som fortfarande är synliga, så en snäv sökning inte tappar
+  // en påbörjad markering i onödan.
+  useEffect(() => {
+    const synligaIder = new Set(filtreradeArenden.map((a) => a.id))
+    setValda((tidigare) => {
+      const kvarvarande = new Set([...tidigare].filter((id) => synligaIder.has(id)))
+      return kvarvarande.size === tidigare.size ? tidigare : kvarvarande
+    })
+  }, [filtreradeArenden])
+
   const antalAktivaFilter = [
     status !== STANDARD.status,
     prioritet !== STANDARD.prioritet,
