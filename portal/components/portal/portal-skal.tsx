@@ -78,7 +78,11 @@ export function PortalSkal({ children }: { children: React.ReactNode }) {
           </div>
         </header>
 
-        <main className="min-w-0 flex-1">{children}</main>
+        {/* lg:pt-14 speglar mobilhuvudets höjd - reserverar plats så att
+            SessionStatus (fixed top-4 right-4) aldrig hamnar ovanpå en
+            sidas egna åtgärdsknappar i Sidhuvud, t.ex. Översiktens
+            "Skicka ärendeförfrågan". */}
+        <main className="min-w-0 flex-1 lg:pt-14">{children}</main>
       </div>
     </div>
   )

@@ -24,7 +24,7 @@ const footerServiceColumns = [
 ];
 
 const linkClass =
-  "rounded-md px-3 py-2 text-sm font-medium text-slate-300 transition-colors hover:bg-white/8 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300";
+  "whitespace-nowrap rounded-md px-2.5 py-2 text-sm font-medium text-slate-300 transition-colors hover:bg-white/8 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 xl:px-3";
 
 const KUNDPORTAL_URL = "https://kundportal.nova-it.se/logga-in";
 
@@ -77,7 +77,7 @@ export function SiteHeader() {
                 {item.label}
               </Link>
             ))}
-            <Button asChild size="sm" className="ml-2">
+            <Button asChild size="sm" className="ml-1.5 whitespace-nowrap">
               <Link to="/kontakt" search={{ form: "request", service: undefined }}>
                 Kontakta oss <ArrowUpRight className="h-4 w-4" />
               </Link>
@@ -86,7 +86,7 @@ export function SiteHeader() {
               asChild
               variant="outline"
               size="sm"
-              className="ml-2 border-white/20 bg-transparent text-white hover:bg-white/10 hover:text-white"
+              className="ml-1.5 whitespace-nowrap border-white/20 bg-transparent text-white hover:bg-white/10 hover:text-white"
             >
               <a href={KUNDPORTAL_URL} target="_blank" rel="noopener noreferrer">
                 Kundportal <LogIn className="h-4 w-4" />

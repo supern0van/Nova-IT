@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event'
 import { toast } from 'sonner'
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
-import type { Arende } from '@/lib/types'
+import type { Arende, Kund } from '@/lib/types'
 
 const anvandare = {
   id: 'user-1',
@@ -63,6 +63,62 @@ const arende: Arende = {
   skapad: '2026-07-28T00:00:00.000Z',
   uppdaterad: '2026-07-28T00:00:00.000Z',
 }
+
+const kund: Kund = {
+  id: 'kund-1',
+  namn: 'Nova Test',
+  kundtyp: 'privatperson',
+  epost: 'test@example.com',
+  telefon: '0700000000',
+  adress: 'Testgatan 1',
+  ort: 'Stockholm',
+  senasteKontakt: '2026-07-28T00:00:00.000Z',
+  skapad: '2026-07-28T00:00:00.000Z',
+  kontaktUppdateringEpost: true,
+  kontaktUppdateringSms: true,
+  kontaktKlartEpost: true,
+  kontaktKlartSms: true,
+}
+
+describe('ArendeAtgarder – SMS-knapp och kontaktpreferenser', () => {
+  afterEach(() => {
+    vi.clearAllMocks()
+    kan.mockReturnValue(true)
+    cleanup()
+  })
+
+  it('visar en låst, inaktiv knapp med förklarande tooltip om kunden opt:at ut ur SMS', async () => {
+    const user = userEvent.setup()
+    render(
+      <ArendeAtgarder
+        arende={arende}
+        personal={[]}
+        kund={{ ...kund, kontaktKlartSms: false }}
+        vidBoka={vi.fn()}
+      />,
+    )
+
+    const knapp = screen.getByRole('button', { name: /SMS: klart för upphämtning/ })
+    expect((knapp as HTMLButtonElement).disabled).toBe(true)
+
+    await user.hover(knapp)
+    expect(await screen.findByText('Kunden har valt att inte ta emot SMS')).toBeTruthy()
+  })
+
+  it('tillåter SMS som vanligt när kunden inte opt:at ut', async () => {
+    render(<ArendeAtgarder arende={arende} personal={[]} kund={kund} vidBoka={vi.fn()} />)
+
+    const knapp = screen.getByRole('button', { name: /SMS: klart för upphämtning/ })
+    expect((knapp as HTMLButtonElement).disabled).toBe(false)
+  })
+
+  it('tillåter SMS som vanligt om kunddata ännu inte hunnit läsas in (kund saknas)', async () => {
+    render(<ArendeAtgarder arende={arende} personal={[]} vidBoka={vi.fn()} />)
+
+    const knapp = screen.getByRole('button', { name: /SMS: klart för upphämtning/ })
+    expect((knapp as HTMLButtonElement).disabled).toBe(false)
+  })
+})
 
 describe('ArendeAtgarder – felhantering och dubbelklicksskydd', () => {
   afterEach(() => {

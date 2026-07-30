@@ -347,11 +347,22 @@ async function hittaEllerSkapaKund(
 
   if (error) throw new Error('Kunde inte slå upp kund.')
   if (befintlig) {
+    // Kundens telefonnummer kan ha ändrats sedan förra ärendet (nytt
+    // nummer, ny arbetsgivare, etc.) - det NYA ärendet ska alltid spegla
+    // vad kunden faktiskt skrev i just den här inskickningen, inte ett
+    // gammalt lagrat nummer. Uppdatera samtidigt admin_kunder så att
+    // framtida ärenden också får rätt nummer, i stället för att tyst
+    // återanvända ett nummer som hör till en annan inskickning.
+    const nyttTelefonnummer = uppgifter.telefon && uppgifter.telefon !== befintlig.telefon
+    if (nyttTelefonnummer) {
+      await supabase.from('admin_kunder').update({ telefon: uppgifter.telefon }).eq('id', befintlig.id)
+    }
+
     return {
       id: String(befintlig.id),
       namn: String(befintlig.namn),
       epost: String(befintlig.epost),
-      telefon: String(befintlig.telefon),
+      telefon: nyttTelefonnummer ? uppgifter.telefon : String(befintlig.telefon),
       kundtyp: befintlig.kundtyp as Kundtyp,
       organisation: befintlig.organisation as string | null | undefined,
     }

@@ -41,7 +41,7 @@ import {
   skickaKlarSms,
   tilldelaArende,
 } from '@/lib/store'
-import type { Anvandare, Arende, ArendeStatus, Prioritet } from '@/lib/types'
+import type { Anvandare, Arende, ArendeStatus, Kund, Prioritet } from '@/lib/types'
 
 /**
  * Åtgärdsraden på ärendedetaljsidan: status, prioritet, ansvarig, bokning och
@@ -54,10 +54,12 @@ import type { Anvandare, Arende, ArendeStatus, Prioritet } from '@/lib/types'
 export function ArendeAtgarder({
   arende,
   personal,
+  kund,
   vidBoka,
 }: {
   arende: Arende
   personal: Anvandare[]
+  kund?: Kund
   vidBoka: () => void
 }) {
   const { anvandare, kan } = useAuth()
@@ -67,6 +69,11 @@ export function ArendeAtgarder({
 
   const kanTilldela = kan('tilldela_arende')
   const kanSkickaSms = kan('svara_kund')
+  // Fail-open: `kund` saknas i det korta ögonblicket innan `db.kunder`
+  // hunnit läsas in, och `kontaktKlartSms` saknas i äldre testdata/demodata
+  // som föregår det här fältet - i båda fallen ska SMS-knappen fungera som
+  // vanligt. Bara ett EXPLICIT `false` (kundens faktiska opt-out) låser den.
+  const smsLastAvKund = kund?.kontaktKlartSms === false
   const avslutat = arende.status === 'lost' || arende.status === 'stangd'
 
   function felmeddelande(error: unknown) {
@@ -258,7 +265,22 @@ export function ArendeAtgarder({
           <CalendarPlusIcon data-icon="inline-start" />
           Boka tid
         </Button>
-        {kanSkickaSms && (
+        {kanSkickaSms && smsLastAvKund && (
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <span>
+                  <Button variant="outline" size="sm" disabled>
+                    <SmartphoneIcon data-icon="inline-start" />
+                    SMS: klart för upphämtning
+                  </Button>
+                </span>
+              }
+            />
+            <TooltipContent>Kunden har valt att inte ta emot SMS</TooltipContent>
+          </Tooltip>
+        )}
+        {kanSkickaSms && !smsLastAvKund && (
           <AlertDialog>
             <AlertDialogTrigger
               render={

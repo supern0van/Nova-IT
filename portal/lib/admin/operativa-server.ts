@@ -1,3 +1,4 @@
+import { forsokAviseraKundOmSvar } from '@/lib/admin/arende-avisering-server'
 import { arAdministrator, arSystemRoll } from '@/lib/auth/roll'
 import { initialerFranNamn } from '@/lib/personal'
 import { skapaSupabaseServiceklient } from '@/lib/supabase/service'
@@ -567,7 +568,7 @@ export async function laggTillOperativtMeddelande({
     arendeUppdatering.sista_svar = nu
   }
 
-  await Promise.all([
+  const [, , arendeForAvisering] = await Promise.all([
     supabase.from('admin_arenden').update(arendeUppdatering).eq('id', arendeId),
     supabase.from('admin_aktiviteter').insert({
       arende_id: arendeId,
@@ -575,9 +576,73 @@ export async function laggTillOperativtMeddelande({
       beskrivning: internt ? 'Intern anteckning tillagd' : 'Svar skickat till kund',
       aktor: text(avsandareNamn) || 'Okänd',
     }),
+    internt
+      ? Promise.resolve(null)
+      : supabase
+          .from('admin_arenden')
+          .select('kund_id, arendenummer, kund_namn, epost')
+          .eq('id', arendeId)
+          .single(),
   ])
 
+  // Icke-internt svar: avisera kunden via mail, men bara om hen inte
+  // opt:at ut (kontakt_uppdatering_epost - satt i kundportalens
+  // /kontaktinstallningar, se docs/kundportal-planering.md). Soft-fail
+  // genomgående - se forsokAviseraKundOmSvar. `kund_id` läses live från
+  // admin_kunder eftersom valet kan ha ändrats EFTER att ärendet skapades.
+  if (!internt && arendeForAvisering && 'data' in arendeForAvisering && arendeForAvisering.data) {
+    const arendeRad = arendeForAvisering.data as {
+      kund_id: string
+      arendenummer: string
+      kund_namn: string
+      epost: string
+    }
+    const { data: kundRad } = await supabase
+      .from('admin_kunder')
+      .select('kontakt_uppdatering_epost')
+      .eq('id', arendeRad.kund_id)
+      .single()
+
+    if (kundRad?.kontakt_uppdatering_epost !== false) {
+      await forsokAviseraKundOmSvar({
+        epost: arendeRad.epost,
+        kundNamn: arendeRad.kund_namn,
+        arendenummer: arendeRad.arendenummer,
+        arendeId,
+      })
+    }
+  }
+
   return meddelande
+}
+
+/**
+ * Uppdaterar kontaktpreferens-kolumnerna på admin_kunder. Anropas ENDAST
+ * från `app/api/internal/kundpreferenser/route.ts` (kundportalen är
+ * källan till sanning för kundens val, se Kundportalens
+ * app/kontaktinstallningar/page.tsx - denna funktion speglar bara).
+ */
+export async function uppdateraKontaktpreferenser(uppgifter: {
+  adminKundId: string
+  kontaktUppdateringEpost: boolean
+  kontaktUppdateringSms: boolean
+  kontaktKlartEpost: boolean
+  kontaktKlartSms: boolean
+}): Promise<boolean> {
+  if (!text(uppgifter.adminKundId)) return false
+
+  const supabase = skapaSupabaseServiceklient()
+  const { error } = await supabase
+    .from('admin_kunder')
+    .update({
+      kontakt_uppdatering_epost: uppgifter.kontaktUppdateringEpost,
+      kontakt_uppdatering_sms: uppgifter.kontaktUppdateringSms,
+      kontakt_klart_epost: uppgifter.kontaktKlartEpost,
+      kontakt_klart_sms: uppgifter.kontaktKlartSms,
+    })
+    .eq('id', uppgifter.adminKundId)
+
+  return !error
 }
 
 export async function laggTillOperativKundanteckning({
@@ -720,6 +785,10 @@ function normaliseraKundRad(data: unknown): Kund | null {
     kontaktperson: optionalText(data.kontaktperson),
     senasteKontakt,
     skapad,
+    kontaktUppdateringEpost: data.kontakt_uppdatering_epost !== false,
+    kontaktUppdateringSms: data.kontakt_uppdatering_sms !== false,
+    kontaktKlartEpost: data.kontakt_klart_epost !== false,
+    kontaktKlartSms: data.kontakt_klart_sms !== false,
   }
 }
 

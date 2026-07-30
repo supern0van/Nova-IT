@@ -57,6 +57,17 @@ export interface Kund {
   senasteKontakt: string
   interntAnteckning?: string
   skapad: string
+  /**
+   * Kundens kontaktpreferenser, satta av kunden själv i kundportalens
+   * /kontaktinstallningar och synkade hit via /api/internal/kundpreferenser
+   * (se Nova-IT-Kundportal). Styr bl.a. om SMS-knappen i arende-atgarder.tsx
+   * är låst - kunden kan ha opt:at ut EFTER att ärendet skapades, så det
+   * här måste vara ett live-värde, inte en ögonblicksbild.
+   */
+  kontaktUppdateringEpost?: boolean
+  kontaktUppdateringSms?: boolean
+  kontaktKlartEpost?: boolean
+  kontaktKlartSms?: boolean
 }
 
 /**

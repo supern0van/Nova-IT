@@ -219,6 +219,7 @@ export function ArendeDetalj({ arendeId }: { arendeId: string }) {
         <ArendeAtgarder
           arende={arende}
           personal={db.personal}
+          kund={kund}
           vidBoka={() => {
             setRedigeraBokning(undefined)
             setBokningOppen(true)

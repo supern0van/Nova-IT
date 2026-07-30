@@ -55,6 +55,10 @@ describe('admin Worker-konfiguration', () => {
       'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY',
       'SUPABASE_SERVICE_ROLE_KEY',
       'INTAG_SECRET',
+      'ELKS_API_USERNAME',
+      'ELKS_API_PASSWORD',
+      'RESEND_API_KEY',
+      'ARENDE_AVISERING_FROM',
     ])
   })
 })
