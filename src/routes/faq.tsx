@@ -63,7 +63,7 @@ function FaqPage() {
               </p>
               <Link
                 to="/kontakt"
-                search={{}}
+                search={{ service: undefined }}
                 aria-label="Beskriv ett ärende"
                 title="Beskriv ett ärende"
                 className="grid h-9 w-9 shrink-0 place-items-center rounded-md border border-sky-300/20 text-sky-200 transition-colors hover:border-sky-300/50 hover:bg-sky-300/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"

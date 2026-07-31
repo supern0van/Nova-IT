@@ -86,7 +86,7 @@ function PrivateCustomersPage() {
             <p className="mt-4 leading-7 text-slate-300">{serviceRegion.description}</p>
             <p className="mt-3 text-sm leading-6 text-slate-400">{serviceRegion.practicalNote}</p>
             <Button asChild className="mt-6 w-full">
-              <Link to="/kontakt" search={{ form: "request" }}>
+              <Link to="/kontakt" search={{ form: "request", service: undefined }}>
                 Beskriv ditt ärende
               </Link>
             </Button>

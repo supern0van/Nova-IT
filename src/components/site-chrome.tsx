@@ -78,7 +78,7 @@ export function SiteHeader() {
               </Link>
             ))}
             <Button asChild size="sm" className="ml-1.5 whitespace-nowrap">
-              <Link to="/kontakt" search={{ form: "request" }}>
+              <Link to="/kontakt" search={{ form: "request", service: undefined }}>
                 Kontakta oss <ArrowUpRight className="h-4 w-4" />
               </Link>
             </Button>
@@ -127,7 +127,11 @@ export function SiteHeader() {
                 </Link>
               ))}
               <Button asChild className="mt-5">
-                <Link to="/kontakt" search={{ form: "request" }} onClick={() => setOpen(false)}>
+                <Link
+                  to="/kontakt"
+                  search={{ form: "request", service: undefined }}
+                  onClick={() => setOpen(false)}
+                >
                   Kontakta oss <ArrowUpRight className="h-4 w-4" />
                 </Link>
               </Button>
