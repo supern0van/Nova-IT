@@ -3,39 +3,6 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { adminWorkerDomäner, primarAdminDomän } from '@/lib/admin/worker-konfiguration'
 import { uppdateraSessionOchSkyddaPortal } from '@/lib/supabase/proxy'
 
-// next.config.mjs's headers() visade sig INTE tillämpas av OpenNext på
-// Cloudflare Workers (bekräftat live: varken CSP eller poweredByHeader:false
-// syntes i svaren). Middleware körs garanterat på varje request (se matcher
-// nedan) och är den enda punkt som faktiskt fungerar för det här.
-const SECURITY_HEADERS: Record<string, string> = {
-  'X-Content-Type-Options': 'nosniff',
-  'X-Frame-Options': 'DENY',
-  'Referrer-Policy': 'strict-origin-when-cross-origin',
-  'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
-  'Strict-Transport-Security': 'max-age=15552000; includeSubDomains',
-  'Content-Security-Policy': [
-    "default-src 'self'",
-    "script-src 'self'",
-    "connect-src 'self' https://*.supabase.co",
-    "style-src 'self' 'unsafe-inline'",
-    "img-src 'self' data:",
-    "font-src 'self'",
-    "frame-ancestors 'none'",
-    "base-uri 'self'",
-    "form-action 'self'",
-  ].join('; '),
-}
-
-function medSakerhetsHeaders(svar: NextResponse): NextResponse {
-  for (const [namn, varde] of Object.entries(SECURITY_HEADERS)) {
-    svar.headers.set(namn, varde)
-  }
-  // next.config.mjs's poweredByHeader:false tas inte bort av OpenNext på
-  // Cloudflare Workers (bekräftat live) - ta bort den explicit här istället.
-  svar.headers.delete('X-Powered-By')
-  return svar
-}
-
 /**
  * Next.js Middleware körs på servern (Edge-runtime) innan någon route
  * renderas. Portalen använder medvetet Middleware tills OpenNext stödjer
@@ -64,7 +31,7 @@ export async function middleware(request: NextRequest) {
     malAdress.protocol = 'https:'
     malAdress.hostname = primarAdminDomän
     malAdress.port = ''
-    return medSakerhetsHeaders(NextResponse.redirect(malAdress, 307))
+    return NextResponse.redirect(malAdress, 307)
   }
 
   // Middleware körs nu på alla paths för att kunna canonicalisera även API:n.
@@ -83,8 +50,8 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith('/api/admin/') ||
     pathname.startsWith('/api/mfa/')
 
-  if (!arAuthPath) return medSakerhetsHeaders(NextResponse.next())
-  return medSakerhetsHeaders(await uppdateraSessionOchSkyddaPortal(request))
+  if (!arAuthPath) return NextResponse.next()
+  return uppdateraSessionOchSkyddaPortal(request)
 }
 
 export const config = {

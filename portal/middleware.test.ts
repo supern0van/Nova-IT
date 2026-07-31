@@ -28,25 +28,3 @@ describe('middleware – canonical admin-host', () => {
     expect(vi.mocked(uppdateraSessionOchSkyddaPortal)).not.toHaveBeenCalled()
   })
 })
-
-describe('middleware – säkerhetsheaders', () => {
-  it('sätter CSP m.fl. på ett svar som passerar utan sessionskontroll', async () => {
-    const svar = await middleware(new NextRequest('https://admin.nova-it.se/api/public/intag'))
-
-    expect(svar.headers.get('Content-Security-Policy')).toContain("default-src 'self'")
-    expect(svar.headers.get('X-Frame-Options')).toBe('DENY')
-    expect(svar.headers.get('X-Content-Type-Options')).toBe('nosniff')
-  })
-
-  it('sätter säkerhetsheaders även på svaret från uppdateraSessionOchSkyddaPortal', async () => {
-    const svar = await middleware(new NextRequest('https://admin.nova-it.se/portal'))
-
-    expect(svar.headers.get('Content-Security-Policy')).toContain("default-src 'self'")
-  })
-
-  it('tar bort X-Powered-By (poweredByHeader:false tillämpas inte av OpenNext)', async () => {
-    const svar = await middleware(new NextRequest('https://admin.nova-it.se/api/public/intag'))
-
-    expect(svar.headers.get('X-Powered-By')).toBeNull()
-  })
-})
