@@ -23,7 +23,11 @@ const SECURITY_HEADERS: Record<string, string> = {
   "Strict-Transport-Security": "max-age=15552000; includeSubDomains",
   "Content-Security-Policy": [
     "default-src 'self'",
-    "script-src 'self' https://challenges.cloudflare.com https://static.cloudflareinsights.com",
+    // TanStack Start serialiserar bootstrap-/router-state som inline-scripts i
+    // SSR-svaret. Utan inline-stöd blockeras state-hydreringen av CSP och
+    // klienten kraschar efter första paint med "Invariant failed".
+    // TODO: byt till nonce-baserad CSP när server-renderingen har nonce-stöd.
+    "script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com https://static.cloudflareinsights.com",
     "frame-src https://challenges.cloudflare.com",
     "connect-src 'self' https://challenges.cloudflare.com https://cloudflareinsights.com https://static.cloudflareinsights.com",
     "style-src 'self' 'unsafe-inline'",
