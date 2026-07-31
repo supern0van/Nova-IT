@@ -123,7 +123,7 @@ export function Konversation({
           </EmptyHeader>
         </Empty>
       ) : (
-        <ol className="flex flex-col gap-2.5">
+        <ol className="flex flex-col gap-2.5" role="log" aria-live="polite" aria-label="Konversation">
           {meddelanden.map((m) => (
             <MeddelandeBubbla key={m.id} meddelande={m} />
           ))}

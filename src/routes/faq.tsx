@@ -62,14 +62,17 @@ function FaqPage() {
               </Link>
             </div>
           </div>
-          <Accordion type="single" collapsible className="border-t border-white/10">
-            {faqs.map((faq) => (
-              <AccordionItem key={faq.q} value={faq.q}>
-                <AccordionTrigger className="text-left text-base">{faq.q}</AccordionTrigger>
-                <AccordionContent className="leading-7 text-slate-300">{faq.a}</AccordionContent>
-              </AccordionItem>
-            ))}
-          </Accordion>
+          <div>
+            <h2 className="sr-only">Frågor och svar</h2>
+            <Accordion type="single" collapsible className="border-t border-white/10">
+              {faqs.map((faq) => (
+                <AccordionItem key={faq.q} value={faq.q}>
+                  <AccordionTrigger className="text-left text-base">{faq.q}</AccordionTrigger>
+                  <AccordionContent className="leading-7 text-slate-300">{faq.a}</AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+          </div>
         </Container>
       </section>
     </>
