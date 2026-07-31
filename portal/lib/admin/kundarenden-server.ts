@@ -57,24 +57,6 @@ export interface KundArendeDetalj extends KundArendeSammanfattning {
  * fält än nödvändigt – ingen intern routning (ansvarig_id), inga interna
  * anteckningar, inga andra kunders data.
  */
-/**
- * Slår upp vilken kund (adminKundId) ett givet ärendenummer tillhör -
- * används av kundportalens inloggning (kunden loggar in med valfritt av
- * sina egna ärendenummer + lösenord, se docs/kundportal-planering.md).
- * Returnerar `null` om ärendenumret inte finns, utan att avslöja mer än så.
- */
-export async function hamtaKundIdForArendenummer(arendenummer: string): Promise<string | null> {
-  const supabase = skapaSupabaseServiceklient()
-  const { data, error } = await supabase
-    .from('admin_arenden')
-    .select('kund_id')
-    .eq('arendenummer', arendenummer)
-    .maybeSingle()
-
-  if (error) throw new KundArendeFel('Kunde inte slå upp ärendenumret.', 500)
-  return data ? String(data.kund_id) : null
-}
-
 export async function hamtaKundArenden(adminKundId: string): Promise<KundArendeSammanfattning[]> {
   const supabase = skapaSupabaseServiceklient()
   const { data, error } = await supabase

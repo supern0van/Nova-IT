@@ -124,7 +124,7 @@ export function formatCustomerConfirmationEmail(
           "",
           "Du kan följa ärendet i vår kundportal:",
           KUNDPORTAL_INLOGGNING_URL,
-          `Logga in med ärendenumret ovan (${arendenummer}) och lösenordet nedan.`,
+          `E-post: ${kundportalKonto.epost}`,
           `Tillfälligt lösenord: ${kundportalKonto.tillfalligtLosenord}`,
           "Du blir ombedd att byta lösenordet första gången du loggar in.",
         ]
