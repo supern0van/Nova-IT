@@ -95,7 +95,7 @@ function About() {
               Datorer, nätverk, konton, felsökning och grundläggande säkerhet.
             </div>
             <Button asChild className="mt-6 w-full">
-              <Link to="/kontakt" search={{ form: "request", service: undefined }}>
+              <Link to="/kontakt" search={{ form: "request" }}>
                 Beskriv ditt ärende
               </Link>
             </Button>

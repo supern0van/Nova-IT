@@ -88,7 +88,7 @@ function WorkMethodPage() {
             </h2>
           </div>
           <Button asChild size="lg" className="shrink-0">
-            <Link to="/kontakt" search={{ form: "request", service: undefined }}>
+            <Link to="/kontakt" search={{ form: "request" }}>
               Beskriv ärende <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>

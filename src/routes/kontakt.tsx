@@ -33,10 +33,24 @@ const contactTitle = "Kontakta Nova IT";
 const contactDescription = "Berätta vad som krånglar så återkommer Nova IT med en bra start.";
 const socialImageUrl = "https://nova-it.se/nova-it-workspace.png";
 
+type ContactSearch = {
+  form?: "request";
+  service?: string;
+};
+
 export const Route = createFileRoute("/kontakt")({
-  validateSearch: (search: Record<string, unknown>) => {
-    const service = typeof search.service === "string" ? search.service : undefined;
-    return search.form === "request" ? { service, form: "request" as const } : { service };
+  validateSearch: (search: Record<string, unknown>): ContactSearch => {
+    const normalized: ContactSearch = {};
+
+    if (search.form === "request") {
+      normalized.form = "request";
+    }
+
+    if (typeof search.service === "string" && search.service.trim()) {
+      normalized.service = search.service;
+    }
+
+    return normalized;
   },
   head: () => ({
     meta: [
@@ -135,6 +149,7 @@ function createInitialValues(service = ""): FormValues {
 
 function ContactPage() {
   const search = Route.useSearch();
+  const shouldConsumeHandoff = search.form === "request";
   const selectedService = getServiceBySlug(search.service);
   const selectedServiceTitle = selectedService?.title ?? "";
   const [submitted, setSubmitted] = useState(false);
@@ -167,7 +182,7 @@ function ContactPage() {
   }, [selectedServiceTitle]);
 
   useEffect(() => {
-    if (!("form" in search) || search.form !== "request") return;
+    if (!shouldConsumeHandoff) return;
     const handoff = consumeSupportHandoff();
     if (!handoff) return;
     const handoffService = getServiceBySlug(handoff.serviceSlug);
@@ -186,7 +201,7 @@ function ContactPage() {
       guidance: handoff.guidance,
     });
     setAssistantHandoffApplied(true);
-  }, ["form" in search ? search.form : undefined]);
+  }, [shouldConsumeHandoff]);
 
   function update<K extends keyof FormValues>(key: K, value: FormValues[K]) {
     setValues((current) => ({ ...current, [key]: value }));
