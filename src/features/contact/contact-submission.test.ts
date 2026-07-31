@@ -99,7 +99,7 @@ test("includes kundportal login details only when a new account was created", ()
   });
 
   expect(email.text).toContain("kundportal");
-  expect(email.text).toContain("E-post: anna@example.se");
+  expect(email.text).toContain("ärendenumret ovan (NIT-2601)");
   expect(email.text).toContain("Tillfälligt lösenord: xR7-tillfalligt-9k2");
 });
 
