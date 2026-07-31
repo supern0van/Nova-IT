@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { LegalDialogTrigger } from "@/components/legal-dialog";
 
 const STORAGE_KEY = "nova-it-cookie-consent";
@@ -36,6 +36,11 @@ export function CookieConsent() {
   const [visible, setVisible] = useState(false);
   const [statistics, setStatistics] = useState(false);
   const [marketing, setMarketing] = useState(false);
+  const rubrikRef = useRef<HTMLHeadingElement>(null);
+
+  useEffect(() => {
+    if (visible) rubrikRef.current?.focus();
+  }, [visible]);
 
   useEffect(() => {
     const stored = readConsent();
@@ -67,9 +72,16 @@ export function CookieConsent() {
   return (
     <section
       aria-labelledby="cookie-consent-title"
+      role="region"
+      aria-live="polite"
       className="fixed inset-x-4 bottom-4 z-[70] rounded-xl border border-slate-300 bg-white p-5 text-slate-900 shadow-2xl shadow-slate-950/20 sm:inset-x-auto sm:left-6 sm:max-w-2xl sm:p-6"
     >
-      <h2 id="cookie-consent-title" className="text-lg font-semibold">
+      <h2
+        id="cookie-consent-title"
+        ref={rubrikRef}
+        tabIndex={-1}
+        className="text-lg font-semibold outline-none"
+      >
         Hantera kakor
       </h2>
       <p className="mt-2 max-w-xl text-sm leading-6 text-slate-600">
