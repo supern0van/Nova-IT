@@ -16,6 +16,8 @@ import { SiteHeader, SiteFooter } from "../components/site-chrome";
 import { SupportBotLauncher } from "../features/support/SupportBotLauncher";
 import { LegalDialogProvider } from "../components/legal-dialog";
 import { CookieConsent } from "../components/cookie-consent";
+import { JsonLd } from "../components/json-ld";
+import { buildWebSiteJsonLd } from "../lib/structured-data";
 
 const siteUrl = "https://nova-it.se";
 const socialImageUrl = `${siteUrl}/nova-it-workspace.png`;
@@ -91,6 +93,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         content:
           "Praktisk hjälp med datorer, nätverk, installationer, konton och program som krånglar.",
       },
+      { name: "robots", content: "index, follow" },
       { name: "author", content: "Nova IT" },
       { property: "og:locale", content: "sv_SE" },
       { property: "og:site_name", content: "Nova IT" },
@@ -102,6 +105,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:type", content: "website" },
       { property: "og:url", content: siteUrl },
       { property: "og:image", content: socialImageUrl },
+      { property: "og:image:width", content: "1200" },
+      { property: "og:image:height", content: "630" },
       { property: "og:image:alt", content: "Nova IT – praktisk IT-hjälp" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "Nova IT – IT som bara fungerar" },
@@ -147,6 +152,7 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <LegalDialogProvider>
         <div className="flex min-h-screen flex-col bg-background text-foreground">
+          <JsonLd data={buildWebSiteJsonLd()} />
           <a
             href="#main-content"
             className="sr-only fixed left-4 top-4 z-50 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground focus:not-sr-only"

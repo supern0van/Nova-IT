@@ -3,8 +3,11 @@ import { ArrowRight, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Container, PageHeader } from "@/components/design-system";
 import { getServiceBySlug } from "@/lib/nova-data";
-import { buildServiceJsonLd } from "@/lib/structured-data";
+import { buildBreadcrumbJsonLd, buildServiceJsonLd } from "@/lib/structured-data";
 import { JsonLd } from "@/components/json-ld";
+
+const siteUrl = "https://nova-it.se";
+const socialImageUrl = `${siteUrl}/nova-it-workspace.png`;
 
 export const Route = createFileRoute("/tjanster/$slug")({
   head: ({ params }) => {
@@ -21,6 +24,10 @@ export const Route = createFileRoute("/tjanster/$slug")({
         { property: "og:title", content: title },
         { property: "og:description", content: description },
         { property: "og:url", content: canonical },
+        { property: "og:image", content: socialImageUrl },
+        { name: "twitter:title", content: title },
+        { name: "twitter:description", content: description },
+        { name: "twitter:image", content: socialImageUrl },
       ],
       links: [{ rel: "canonical", href: canonical }],
     };
@@ -44,10 +51,18 @@ function ServiceLandingPage() {
   }
 
   const serviceJsonLd = buildServiceJsonLd(service.slug);
+  const canonical = `${siteUrl}/tjanster/${service.slug}`;
 
   return (
     <>
       {serviceJsonLd && <JsonLd data={serviceJsonLd} />}
+      <JsonLd
+        data={buildBreadcrumbJsonLd([
+          { name: "Hem", url: `${siteUrl}/` },
+          { name: "Tjänster", url: `${siteUrl}/tjanster` },
+          { name: service.title, url: canonical },
+        ])}
+      />
       <PageHeader eyebrow={service.category} title={service.title} intro={service.description} />
 
       <section className="nova-section">

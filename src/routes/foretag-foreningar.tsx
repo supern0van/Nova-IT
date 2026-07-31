@@ -4,18 +4,29 @@ import { Button } from "@/components/ui/button";
 import { Container, PageHeader } from "@/components/design-system";
 import { getServiceBySlug } from "@/lib/nova-data";
 import { serviceRegion } from "@/lib/service-region";
+import { buildBreadcrumbJsonLd } from "@/lib/structured-data";
+import { JsonLd } from "@/components/json-ld";
+
+const pageUrl = "https://nova-it.se/foretag-foreningar";
+const pageTitle = "IT-stöd för småföretag och föreningar – Nova IT";
+const pageDescription =
+  "Praktiskt IT-stöd för mindre företag och föreningar i Västerort, Bromma och Stockholms innerstad med arbetsplatser, nätverk, konton och backup.";
+const socialImageUrl = "https://nova-it.se/nova-it-workspace.png";
 
 export const Route = createFileRoute("/foretag-foreningar")({
   head: () => ({
     meta: [
-      { title: "IT-stöd för småföretag och föreningar – Nova IT" },
-      {
-        name: "description",
-        content:
-          "Praktiskt IT-stöd för mindre företag och föreningar i Västerort, Bromma och Stockholms innerstad med arbetsplatser, nätverk, konton och backup.",
-      },
+      { title: pageTitle },
+      { name: "description", content: pageDescription },
+      { property: "og:title", content: pageTitle },
+      { property: "og:description", content: pageDescription },
+      { property: "og:url", content: pageUrl },
+      { property: "og:image", content: socialImageUrl },
+      { name: "twitter:title", content: pageTitle },
+      { name: "twitter:description", content: pageDescription },
+      { name: "twitter:image", content: socialImageUrl },
     ],
-    links: [{ rel: "canonical", href: "https://nova-it.se/foretag-foreningar" }],
+    links: [{ rel: "canonical", href: pageUrl }],
   }),
   component: BusinessCustomersPage,
 });
@@ -40,6 +51,12 @@ const relatedServiceSlugs = ["natverk", "microsoft-google", "sakerhet-backup"] a
 function BusinessCustomersPage() {
   return (
     <>
+      <JsonLd
+        data={buildBreadcrumbJsonLd([
+          { name: "Hem", url: "https://nova-it.se/" },
+          { name: "Företag och föreningar", url: pageUrl },
+        ])}
+      />
       <PageHeader
         eyebrow="För mindre verksamheter"
         title="Praktiskt IT-stöd utan en egen IT-avdelning."

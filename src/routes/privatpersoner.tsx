@@ -4,18 +4,29 @@ import { Button } from "@/components/ui/button";
 import { Container, PageHeader } from "@/components/design-system";
 import { getServiceBySlug } from "@/lib/nova-data";
 import { serviceRegion } from "@/lib/service-region";
+import { buildBreadcrumbJsonLd } from "@/lib/structured-data";
+import { JsonLd } from "@/components/json-ld";
+
+const pageUrl = "https://nova-it.se/privatpersoner";
+const pageTitle = "IT-hjälp för privatpersoner – Nova IT";
+const pageDescription =
+  "Praktisk IT-hjälp för privatpersoner i Hässelby, Västerort, Bromma och Stockholms innerstad med datorer, Wi-Fi, konton, installationer och backup.";
+const socialImageUrl = "https://nova-it.se/nova-it-workspace.png";
 
 export const Route = createFileRoute("/privatpersoner")({
   head: () => ({
     meta: [
-      { title: "IT-hjälp för privatpersoner – Nova IT" },
-      {
-        name: "description",
-        content:
-          "Praktisk IT-hjälp för privatpersoner i Hässelby, Västerort, Bromma och Stockholms innerstad med datorer, Wi-Fi, konton, installationer och backup.",
-      },
+      { title: pageTitle },
+      { name: "description", content: pageDescription },
+      { property: "og:title", content: pageTitle },
+      { property: "og:description", content: pageDescription },
+      { property: "og:url", content: pageUrl },
+      { property: "og:image", content: socialImageUrl },
+      { name: "twitter:title", content: pageTitle },
+      { name: "twitter:description", content: pageDescription },
+      { name: "twitter:image", content: socialImageUrl },
     ],
-    links: [{ rel: "canonical", href: "https://nova-it.se/privatpersoner" }],
+    links: [{ rel: "canonical", href: pageUrl }],
   }),
   component: PrivateCustomersPage,
 });
@@ -40,6 +51,12 @@ const relatedServiceSlugs = ["it-support", "datorinstallation", "sakerhet-backup
 function PrivateCustomersPage() {
   return (
     <>
+      <JsonLd
+        data={buildBreadcrumbJsonLd([
+          { name: "Hem", url: "https://nova-it.se/" },
+          { name: "Privatpersoner", url: pageUrl },
+        ])}
+      />
       <PageHeader
         eyebrow="För privatpersoner"
         title="IT-hjälp utan onödigt teknikspråk."
