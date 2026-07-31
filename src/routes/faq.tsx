@@ -8,29 +8,25 @@ import {
 } from "@/components/ui/accordion";
 import { faqs } from "@/lib/nova-data";
 import { Container, TrustNotice, PageHeader } from "@/components/design-system";
-import { buildBreadcrumbJsonLd, buildFaqPageJsonLd } from "@/lib/structured-data";
+import { buildFaqPageJsonLd } from "@/lib/structured-data";
 import { JsonLd } from "@/components/json-ld";
 
 const faqUrl = "https://nova-it.se/faq";
-const faqTitle = "Vanliga frågor – Nova IT";
-const faqDescription = "Svar om hur vi hjälper med datorer, nätverk, konton och installationer.";
-const socialImageUrl = "https://nova-it.se/nova-it-workspace.png";
 
 export const Route = createFileRoute("/faq")({
   head: () => ({
     meta: [
-      { title: faqTitle },
-      { name: "description", content: faqDescription },
-      { property: "og:title", content: faqTitle },
+      { title: "Vanliga frågor – Nova IT" },
+      {
+        name: "description",
+        content: "Svar om hur vi hjälper med datorer, nätverk, konton och installationer.",
+      },
+      { property: "og:title", content: "Vanliga frågor – Nova IT" },
       {
         property: "og:description",
         content: "Korta svar om Nova IT:s hjälp med datorer, nätverk, konton och installationer.",
       },
       { property: "og:url", content: faqUrl },
-      { property: "og:image", content: socialImageUrl },
-      { name: "twitter:title", content: faqTitle },
-      { name: "twitter:description", content: faqDescription },
-      { name: "twitter:image", content: socialImageUrl },
     ],
     links: [{ rel: "canonical", href: faqUrl }],
   }),
@@ -41,12 +37,6 @@ function FaqPage() {
   return (
     <>
       <JsonLd data={buildFaqPageJsonLd(faqs)} />
-      <JsonLd
-        data={buildBreadcrumbJsonLd([
-          { name: "Hem", url: "https://nova-it.se/" },
-          { name: "Vanliga frågor", url: faqUrl },
-        ])}
-      />
       <PageHeader
         eyebrow="Vanliga frågor"
         title="Vanliga frågor, utan teknikspråk."

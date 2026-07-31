@@ -4,14 +4,10 @@ import { ServiceCatalog } from "@/components/service-catalog";
 import { ServiceAreas } from "@/components/service-areas";
 import { ProjectProof } from "@/components/project-proof";
 import { Container, PageHeader } from "@/components/design-system";
-import { JsonLd } from "@/components/json-ld";
-import { buildBreadcrumbJsonLd } from "@/lib/structured-data";
 
 const tjansterUrl = "https://nova-it.se/tjanster";
 const tjansterTitle = "Tjänster – Nova IT";
-const tjansterDescription =
-  "Praktisk IT-hjälp i Hässelby, Västerort och Stockholms innerstad för datorer, nätverk, installationer, konton och säkerhet.";
-const socialImageUrl = "https://nova-it.se/nova-it-workspace.png";
+const tjansterDescription = "Praktisk IT-hjälp för datorer, nätverk, installationer och konton.";
 
 export const Route = createFileRoute("/tjanster/")({
   head: () => ({
@@ -21,10 +17,6 @@ export const Route = createFileRoute("/tjanster/")({
       { property: "og:title", content: tjansterTitle },
       { property: "og:description", content: tjansterDescription },
       { property: "og:url", content: tjansterUrl },
-      { property: "og:image", content: socialImageUrl },
-      { name: "twitter:title", content: tjansterTitle },
-      { name: "twitter:description", content: tjansterDescription },
-      { name: "twitter:image", content: socialImageUrl },
     ],
     links: [{ rel: "canonical", href: tjansterUrl }],
   }),
@@ -34,12 +26,6 @@ export const Route = createFileRoute("/tjanster/")({
 function ServicesPage() {
   return (
     <>
-      <JsonLd
-        data={buildBreadcrumbJsonLd([
-          { name: "Hem", url: "https://nova-it.se/" },
-          { name: "Tjänster", url: tjansterUrl },
-        ])}
-      />
       <PageHeader
         eyebrow="Tjänster"
         title="Hjälp när tekniken behöver fungera."

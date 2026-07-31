@@ -25,13 +25,8 @@ import {
 } from "@/features/contact/contact-submission";
 import { consumeSupportHandoff } from "@/features/support/support-handoff";
 import { TurnstileWidget } from "@/components/turnstile-widget";
-import { JsonLd } from "@/components/json-ld";
-import { buildBreadcrumbJsonLd } from "@/lib/structured-data";
 
 const contactUrl = "https://nova-it.se/kontakt";
-const contactTitle = "Kontakta Nova IT";
-const contactDescription = "Berätta vad som krånglar så återkommer Nova IT med en bra start.";
-const socialImageUrl = "https://nova-it.se/nova-it-workspace.png";
 
 export const Route = createFileRoute("/kontakt")({
   validateSearch: (search: Record<string, unknown>) => {
@@ -40,18 +35,17 @@ export const Route = createFileRoute("/kontakt")({
   },
   head: () => ({
     meta: [
-      { title: contactTitle },
-      { name: "description", content: contactDescription },
-      { property: "og:title", content: contactTitle },
+      { title: "Kontakta Nova IT" },
+      {
+        name: "description",
+        content: "Berätta vad som krånglar så återkommer Nova IT med en bra start.",
+      },
+      { property: "og:title", content: "Kontakta Nova IT" },
       {
         property: "og:description",
         content: "Berätta vad som krånglar med datorer, nätverk, installationer eller konton.",
       },
       { property: "og:url", content: contactUrl },
-      { property: "og:image", content: socialImageUrl },
-      { name: "twitter:title", content: contactTitle },
-      { name: "twitter:description", content: contactDescription },
-      { name: "twitter:image", content: socialImageUrl },
     ],
     links: [{ rel: "canonical", href: contactUrl }],
   }),
@@ -390,12 +384,6 @@ function ContactPage() {
 
   return (
     <>
-      <JsonLd
-        data={buildBreadcrumbJsonLd([
-          { name: "Hem", url: "https://nova-it.se/" },
-          { name: "Kontakt", url: contactUrl },
-        ])}
-      />
       <section className="nova-page-header">
         <Container className="py-14 lg:py-18">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-sky-300">Kontakt</p>

@@ -3,29 +3,18 @@ import { Building2, HeartHandshake, MapPin, Network, ShieldCheck } from "lucide-
 import { Button } from "@/components/ui/button";
 import { Container, PageHeader } from "@/components/design-system";
 import { serviceRegion } from "@/lib/service-region";
-import { buildBreadcrumbJsonLd } from "@/lib/structured-data";
-import { JsonLd } from "@/components/json-ld";
-
-const pageUrl = "https://nova-it.se/om-oss";
-const pageTitle = "Om Nova IT – praktisk IT-hjälp i Västerort";
-const pageDescription =
-  "Nova IT utgår från Hässelby och hjälper privatpersoner, småföretag och föreningar med datorer, nätverk, felsökning och säkerhet.";
-const socialImageUrl = "https://nova-it.se/nova-it-workspace.png";
 
 export const Route = createFileRoute("/om-oss")({
   head: () => ({
     meta: [
-      { title: pageTitle },
-      { name: "description", content: pageDescription },
-      { property: "og:title", content: pageTitle },
-      { property: "og:description", content: pageDescription },
-      { property: "og:url", content: pageUrl },
-      { property: "og:image", content: socialImageUrl },
-      { name: "twitter:title", content: pageTitle },
-      { name: "twitter:description", content: pageDescription },
-      { name: "twitter:image", content: socialImageUrl },
+      { title: "Om Nova IT – praktisk IT-hjälp i Västerort" },
+      {
+        name: "description",
+        content:
+          "Nova IT utgår från Hässelby och hjälper privatpersoner, småföretag och föreningar med datorer, nätverk, felsökning och säkerhet.",
+      },
     ],
-    links: [{ rel: "canonical", href: pageUrl }],
+    links: [{ rel: "canonical", href: "https://nova-it.se/om-oss" }],
   }),
   component: About,
 });
@@ -51,12 +40,6 @@ const principles = [
 function About() {
   return (
     <>
-      <JsonLd
-        data={buildBreadcrumbJsonLd([
-          { name: "Hem", url: "https://nova-it.se/" },
-          { name: "Om Nova IT", url: pageUrl },
-        ])}
-      />
       <PageHeader
         eyebrow="Om Nova IT"
         title="Lokal IT-hjälp med fokus på nätverk, drift och felsökning."
@@ -72,14 +55,10 @@ function About() {
             </h2>
             <div className="mt-6 space-y-4 leading-7 text-slate-300">
               <p>
-                Nova IT har en teknisk inriktning mot nätverk, IT-drift och metodisk felsökning. Det
-                innebär att ett ärende först ringas in innan en åtgärd eller större förändring
-                föreslås.
+                Nova IT har en teknisk inriktning mot nätverk, IT-drift och metodisk felsökning. Det innebär att ett ärende först ringas in innan en åtgärd eller större förändring föreslås.
               </p>
               <p>
-                Målet är att hjälpa kunden förstå vad som händer, vad som är värt att göra och vad
-                som kan vänta. Inga certifieringar, partnerskap eller resultat påstås utan att de
-                kan styrkas.
+                Målet är att hjälpa kunden förstå vad som händer, vad som är värt att göra och vad som kan vänta. Inga certifieringar, partnerskap eller resultat påstås utan att de kan styrkas.
               </p>
             </div>
           </div>
