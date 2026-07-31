@@ -590,12 +590,6 @@ function ArendeTabell({
   const router = useRouter()
   const visaKryssrutor = valda !== undefined && vidVaxlaVald !== undefined
 
-  function ariaSortFor(falt: Sortering): 'ascending' | 'descending' | 'none' | undefined {
-    if (!vidSortera) return undefined
-    if (sortering !== falt) return 'none'
-    return sorteringsRiktning === 'asc' ? 'ascending' : 'descending'
-  }
-
   return (
     <Table className="text-[13px]">
       <TableHeader>
@@ -618,46 +612,25 @@ function ArendeTabell({
               />
             </TableHead>
           )}
-          <TableHead
-            className="h-9 pl-4 text-[11px] font-medium uppercase tracking-[0.05em] text-muted-foreground"
-            aria-sort={ariaSortFor('nummer')}
-          >
+          <TableHead className="h-9 pl-4 text-[11px] font-medium uppercase tracking-[0.05em] text-muted-foreground">
             <Rubrik falt="nummer" sortering={sortering} sorteringsRiktning={sorteringsRiktning} vidSortera={vidSortera}>Ärende</Rubrik>
           </TableHead>
-          <TableHead
-            className="h-9 text-[11px] font-medium uppercase tracking-[0.05em] text-muted-foreground"
-            aria-sort={ariaSortFor('kund')}
-          >
+          <TableHead className="h-9 text-[11px] font-medium uppercase tracking-[0.05em] text-muted-foreground">
             <Rubrik falt="kund" sortering={sortering} sorteringsRiktning={sorteringsRiktning} vidSortera={vidSortera}>Kund</Rubrik>
           </TableHead>
-          <TableHead
-            className="hidden h-9 text-[11px] font-medium uppercase tracking-[0.05em] text-muted-foreground xl:table-cell"
-            aria-sort={ariaSortFor('kategori')}
-          >
+          <TableHead className="hidden h-9 text-[11px] font-medium uppercase tracking-[0.05em] text-muted-foreground xl:table-cell">
             <Rubrik falt="kategori" sortering={sortering} sorteringsRiktning={sorteringsRiktning} vidSortera={vidSortera}>Kategori</Rubrik>
           </TableHead>
-          <TableHead
-            className="h-9 text-[11px] font-medium uppercase tracking-[0.05em] text-muted-foreground"
-            aria-sort={ariaSortFor('status')}
-          >
+          <TableHead className="h-9 text-[11px] font-medium uppercase tracking-[0.05em] text-muted-foreground">
             <Rubrik falt="status" sortering={sortering} sorteringsRiktning={sorteringsRiktning} vidSortera={vidSortera}>Status</Rubrik>
           </TableHead>
-          <TableHead
-            className="h-9 text-[11px] font-medium uppercase tracking-[0.05em] text-muted-foreground"
-            aria-sort={ariaSortFor('prioritet')}
-          >
+          <TableHead className="h-9 text-[11px] font-medium uppercase tracking-[0.05em] text-muted-foreground">
             <Rubrik falt="prioritet" sortering={sortering} sorteringsRiktning={sorteringsRiktning} vidSortera={vidSortera}>Prioritet</Rubrik>
           </TableHead>
-          <TableHead
-            className="hidden h-9 text-[11px] font-medium uppercase tracking-[0.05em] text-muted-foreground lg:table-cell"
-            aria-sort={ariaSortFor('ansvarig')}
-          >
+          <TableHead className="hidden h-9 text-[11px] font-medium uppercase tracking-[0.05em] text-muted-foreground lg:table-cell">
             <Rubrik falt="ansvarig" sortering={sortering} sorteringsRiktning={sorteringsRiktning} vidSortera={vidSortera}>Ansvarig</Rubrik>
           </TableHead>
-          <TableHead
-            className="h-9 pr-4 text-right text-[11px] font-medium uppercase tracking-[0.05em] text-muted-foreground"
-            aria-sort={ariaSortFor('uppdaterad')}
-          >
+          <TableHead className="h-9 pr-4 text-right text-[11px] font-medium uppercase tracking-[0.05em] text-muted-foreground">
             <span className="inline-flex items-center justify-end gap-1 [&>button]:flex-row-reverse">
               <Rubrik falt="uppdaterad" sortering={sortering} sorteringsRiktning={sorteringsRiktning} vidSortera={vidSortera}>
                 <ArrowUpDownIcon className="size-3" aria-hidden />

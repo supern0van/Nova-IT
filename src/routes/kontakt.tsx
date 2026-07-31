@@ -482,7 +482,7 @@ function ContactPage() {
                   <fieldset className="min-w-0 rounded-lg border border-border p-5">
                     <legend className="px-2 text-sm font-semibold">Dina uppgifter</legend>
                     <div className="grid gap-4 sm:grid-cols-2">
-                      <Field label="Namn" name="name" error={errors.name} required>
+                      <Field label="Namn" name="name" error={errors.name}>
                         {(fieldProps) => (
                           <Input
                             {...fieldProps}
@@ -493,7 +493,7 @@ function ContactPage() {
                           />
                         )}
                       </Field>
-                      <Field label="E-post" name="email" error={errors.email} required>
+                      <Field label="E-post" name="email" error={errors.email}>
                         {(fieldProps) => (
                           <Input
                             {...fieldProps}
@@ -524,12 +524,7 @@ function ContactPage() {
                           />
                         )}
                       </Field>
-                      <Field
-                        label="Kundtyp"
-                        name="customerType"
-                        error={errors.customerType}
-                        required
-                      >
+                      <Field label="Kundtyp" name="customerType" error={errors.customerType}>
                         {(fieldProps) => (
                           <Select
                             value={values.customerType}
@@ -555,7 +550,6 @@ function ContactPage() {
                           label="Verksamhetens namn"
                           name="companyName"
                           error={errors.companyName}
-                          required
                         >
                           {(fieldProps) => (
                             <Input
@@ -579,7 +573,6 @@ function ContactPage() {
                         label="Tjänst"
                         name="service"
                         error={errors.service}
-                        required
                         hint={
                           selectedService
                             ? `Förvalt från länken: ${selectedService.title}.`
@@ -604,12 +597,7 @@ function ContactPage() {
                           </Select>
                         )}
                       </Field>
-                      <Field
-                        label="När behöver du hjälp?"
-                        name="urgency"
-                        error={errors.urgency}
-                        required
-                      >
+                      <Field label="När behöver du hjälp?" name="urgency" error={errors.urgency}>
                         {(fieldProps) => (
                           <Select
                             value={values.urgency}
@@ -659,7 +647,6 @@ function ContactPage() {
                         label={assistantContext ? "Din beskrivning" : "Beskriv ärendet"}
                         name="message"
                         error={errors.message}
-                        required
                         hint={
                           assistantHandoffApplied
                             ? `Skriv med egna ord under den låsta kontaktorsaken. ${messageLength}/${MESSAGE_MAX} tecken använda.`
@@ -844,14 +831,12 @@ function Field({
   name,
   error,
   hint,
-  required,
   children,
 }: {
   label: string;
   name: keyof FormValues;
   error?: string;
   hint?: ReactNode;
-  required?: boolean;
   children: (props: FieldControlProps) => ReactNode;
 }) {
   const errorId = `${name}-error`;
@@ -864,11 +849,6 @@ function Field({
     <div>
       <Label htmlFor={name} className="mb-1.5 block">
         {label}
-        {required && (
-          <span className="ml-0.5 text-destructive" aria-hidden="true">
-            *
-          </span>
-        )}
       </Label>
       {children({
         id: name,
