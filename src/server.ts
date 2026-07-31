@@ -40,6 +40,14 @@ function withSecurityHeaders(response: Response): Response {
   for (const [name, value] of Object.entries(SECURITY_HEADERS)) {
     headers.set(name, value);
   }
+
+  const contentType = headers.get("content-type") ?? "";
+  if (contentType.includes("text/html")) {
+    headers.set("Cache-Control", "no-cache, no-store, must-revalidate");
+    headers.set("Pragma", "no-cache");
+    headers.set("Expires", "0");
+  }
+
   return new Response(response.body, {
     status: response.status,
     statusText: response.statusText,
