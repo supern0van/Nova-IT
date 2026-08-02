@@ -134,7 +134,9 @@ export async function skickaKontaktforfragan(
     });
   } catch (error) {
     console.error("Kunde inte nå det interna ärendeintaget.", error);
-    throw new Error("Ärendet kunde inte skickas just nu. Försök igen om en stund.");
+    throw new Error("Ärendet kunde inte skickas just nu. Försök igen om en stund.", {
+      cause: error,
+    });
   }
 
   const intakeBody = (await intakeResponse.json().catch(() => null)) as {
@@ -259,7 +261,9 @@ async function verifieraTurnstile(token: string | null, idempotencyKey: string):
   } catch (error) {
     if (error instanceof Error && error.message.startsWith("Verifieringen")) throw error;
     console.error("Turnstile-verifiering misslyckades.", error);
-    throw new Error("Verifieringen kunde inte genomföras. Ladda om sidan och försök igen.");
+    throw new Error("Verifieringen kunde inte genomföras. Ladda om sidan och försök igen.", {
+      cause: error,
+    });
   }
 }
 

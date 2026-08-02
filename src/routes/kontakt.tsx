@@ -155,16 +155,22 @@ function ContactPage() {
   const idempotencyKeyRef = useRef(crypto.randomUUID());
   // Spam-/missbruksskydd: se skickaKontaktforfragan() i contact-server.ts
   // för varför dessa tre kontrolleras server-side, inte bara här.
-  const formRenderedAtRef = useRef(Date.now());
+  const formRenderedAtRef = useRef<number | null>(null);
   const [honeypot, setHoneypot] = useState("");
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
 
   useEffect(() => {
     if (!selectedServiceTitle) return;
+    // The URL search parameter can change without remounting the route.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setValues((current) =>
       current.service ? current : { ...current, service: selectedServiceTitle },
     );
   }, [selectedServiceTitle]);
+
+  useEffect(() => {
+    formRenderedAtRef.current ??= Date.now();
+  }, []);
 
   useEffect(() => {
     if (!("form" in search) || search.form !== "request") return;
@@ -172,6 +178,8 @@ function ContactPage() {
     if (!handoff) return;
     const handoffService = getServiceBySlug(handoff.serviceSlug);
 
+    // The handoff is consumed from browser sessionStorage after hydration.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setValues((current) => ({
       ...current,
       message: current.message || handoff.customerDescription,
@@ -243,7 +251,7 @@ function ContactPage() {
           message: composeContactMessage(values.message, assistantContext),
           idempotencyKey: idempotencyKeyRef.current,
           website: honeypot,
-          formRenderedAt: formRenderedAtRef.current,
+          formRenderedAt: formRenderedAtRef.current ?? Date.now(),
           turnstileToken,
         },
       });

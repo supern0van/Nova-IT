@@ -32,8 +32,11 @@ describe('middleware – canonical admin-host', () => {
 describe('middleware – säkerhetsheaders', () => {
   it('sätter CSP m.fl. på ett svar som passerar utan sessionskontroll', async () => {
     const svar = await middleware(new NextRequest('https://admin.nova-it.se/api/public/intag'))
+    const csp = svar.headers.get('Content-Security-Policy')
 
-    expect(svar.headers.get('Content-Security-Policy')).toContain("default-src 'self'")
+    expect(csp).toContain("default-src 'self'")
+    expect(csp).toMatch(/script-src 'self' 'nonce-[a-f0-9]{32}' 'strict-dynamic'/)
+    expect(csp?.match(/script-src[^;]*/)?.[0]).not.toContain("'unsafe-inline'")
     expect(svar.headers.get('X-Frame-Options')).toBe('DENY')
     expect(svar.headers.get('X-Content-Type-Options')).toBe('nosniff')
   })
@@ -42,6 +45,22 @@ describe('middleware – säkerhetsheaders', () => {
     const svar = await middleware(new NextRequest('https://admin.nova-it.se/portal'))
 
     expect(svar.headers.get('Content-Security-Policy')).toContain("default-src 'self'")
+    const sakerRequest = vi.mocked(uppdateraSessionOchSkyddaPortal).mock.calls.at(-1)?.[0]
+    expect(sakerRequest?.headers.get('x-nonce')).toMatch(/^[a-f0-9]{32}$/)
+    expect(sakerRequest?.headers.get('Content-Security-Policy')).toContain(
+      `'nonce-${sakerRequest?.headers.get('x-nonce')}'`,
+    )
+  })
+
+  it('skapar en ny nonce för varje request', async () => {
+    const forsta = await middleware(new NextRequest('https://admin.nova-it.se/api/public/intag'))
+    const andra = await middleware(new NextRequest('https://admin.nova-it.se/api/public/intag'))
+    const hamtaNonce = (svar: Response) =>
+      svar.headers.get('Content-Security-Policy')?.match(/'nonce-([^']+)'/)?.[1]
+
+    expect(hamtaNonce(forsta)).toMatch(/^[a-f0-9]{32}$/)
+    expect(hamtaNonce(andra)).toMatch(/^[a-f0-9]{32}$/)
+    expect(hamtaNonce(forsta)).not.toBe(hamtaNonce(andra))
   })
 
   it('tar bort X-Powered-By (poweredByHeader:false tillämpas inte av OpenNext)', async () => {

@@ -1,4 +1,4 @@
-import { NextResponse, type NextRequest } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 
 import { adminWorkerDomäner, primarAdminDomän } from '@/lib/admin/worker-konfiguration'
 import { uppdateraSessionOchSkyddaPortal } from '@/lib/supabase/proxy'
@@ -13,23 +13,30 @@ const SECURITY_HEADERS: Record<string, string> = {
   'Referrer-Policy': 'strict-origin-when-cross-origin',
   'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
   'Strict-Transport-Security': 'max-age=15552000; includeSubDomains',
-  'Content-Security-Policy': [
+}
+
+function skapaContentSecurityPolicy(nonce: string): string {
+  const utvecklingsTillagg = process.env.NODE_ENV === 'development' ? " 'unsafe-eval'" : ''
+
+  return [
     "default-src 'self'",
-    "script-src 'self'",
+    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${utvecklingsTillagg}`,
     "connect-src 'self' https://*.supabase.co",
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data:",
     "font-src 'self'",
+    "object-src 'none'",
     "frame-ancestors 'none'",
     "base-uri 'self'",
     "form-action 'self'",
-  ].join('; '),
+  ].join('; ')
 }
 
-function medSakerhetsHeaders(svar: NextResponse): NextResponse {
+function medSakerhetsHeaders(svar: NextResponse, contentSecurityPolicy: string): NextResponse {
   for (const [namn, varde] of Object.entries(SECURITY_HEADERS)) {
     svar.headers.set(namn, varde)
   }
+  svar.headers.set('Content-Security-Policy', contentSecurityPolicy)
   // next.config.mjs's poweredByHeader:false tas inte bort av OpenNext på
   // Cloudflare Workers (bekräftat live) - ta bort den explicit här istället.
   svar.headers.delete('X-Powered-By')
@@ -52,6 +59,13 @@ function medSakerhetsHeaders(svar: NextResponse): NextResponse {
  * (klient-, server- och proxyhjälpare i `lib/supabase/`).
  */
 export async function middleware(request: NextRequest) {
+  const nonce = crypto.randomUUID().replaceAll('-', '')
+  const contentSecurityPolicy = skapaContentSecurityPolicy(nonce)
+  const requestHeaders = new Headers(request.headers)
+  requestHeaders.set('x-nonce', nonce)
+  requestHeaders.set('Content-Security-Policy', contentSecurityPolicy)
+  const sakerRequest = new NextRequest(request, { headers: requestHeaders })
+
   const hostname = request.nextUrl.hostname.toLowerCase()
   const arKandAdminHost = adminWorkerDomäner.some((domän) => domän.toLowerCase() === hostname)
 
@@ -64,7 +78,7 @@ export async function middleware(request: NextRequest) {
     malAdress.protocol = 'https:'
     malAdress.hostname = primarAdminDomän
     malAdress.port = ''
-    return medSakerhetsHeaders(NextResponse.redirect(malAdress, 307))
+    return medSakerhetsHeaders(NextResponse.redirect(malAdress, 307), contentSecurityPolicy)
   }
 
   // Middleware körs nu på alla paths för att kunna canonicalisera även API:n.
@@ -83,8 +97,16 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith('/api/admin/') ||
     pathname.startsWith('/api/mfa/')
 
-  if (!arAuthPath) return medSakerhetsHeaders(NextResponse.next())
-  return medSakerhetsHeaders(await uppdateraSessionOchSkyddaPortal(request))
+  if (!arAuthPath) {
+    return medSakerhetsHeaders(
+      NextResponse.next({ request: { headers: requestHeaders } }),
+      contentSecurityPolicy,
+    )
+  }
+  return medSakerhetsHeaders(
+    await uppdateraSessionOchSkyddaPortal(sakerRequest),
+    contentSecurityPolicy,
+  )
 }
 
 export const config = {
