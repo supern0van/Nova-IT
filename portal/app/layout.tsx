@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next'
 import { Inter, JetBrains_Mono } from 'next/font/google'
+import { connection } from 'next/server'
 
 import { AuthProvider } from '@/components/auth/auth-provider'
 import { Toaster } from '@/components/ui/sonner'
@@ -40,11 +41,15 @@ export const viewport: Viewport = {
   initialScale: 1,
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  // En unik CSP-nonce skapas i middleware för varje dokumentrequest. Next kan
+  // bara applicera den på sina bootstrap-skript när trädet renderas per request.
+  await connection()
+
   return (
     <html lang="sv" className={`bg-background ${inter.variable} ${jetbrainsMono.variable}`}>
       <body className="font-sans antialiased">
