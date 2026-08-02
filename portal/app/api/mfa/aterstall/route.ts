@@ -3,6 +3,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { aterstallMfaForEpost } from '@/lib/auth/mfa-admin-server'
 import { arAdministrator } from '@/lib/auth/roll'
 import { hamtaRollFranDatabasen } from '@/lib/auth/roll-server'
+import { verifieraBrowserJsonMutation } from '@/lib/route-sakerhet'
 import { hamtaAutentiseradAnvandarId } from '@/lib/supabase/route-anvandare'
 import { skapaSupabaseServiceklient } from '@/lib/supabase/service'
 
@@ -31,6 +32,11 @@ const EPOST_MONSTER = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
  * sluttillståndet med ett nytt `listFactors()`-anrop innan den svarar.
  */
 export async function POST(request: NextRequest) {
+  const requestStatus = verifieraBrowserJsonMutation(request)
+  if (requestStatus !== 200) {
+    return NextResponse.json({ ok: false, fel: 'Ogiltig begäran.' }, { status: requestStatus })
+  }
+
   const anvandareId = await hamtaAutentiseradAnvandarId(request)
   if (!anvandareId) {
     return NextResponse.json(

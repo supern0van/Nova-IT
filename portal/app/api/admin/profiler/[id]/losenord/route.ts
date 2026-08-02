@@ -5,6 +5,7 @@ import {
   harAdminAtkomst,
   skickaLosenordsaterstallningForProfil,
 } from '@/lib/auth/profiler-server'
+import { verifieraSameOrigin } from '@/lib/route-sakerhet'
 import { hamtaAutentiseradAnvandarId } from '@/lib/supabase/route-anvandare'
 
 interface RouteContext {
@@ -12,6 +13,11 @@ interface RouteContext {
 }
 
 export async function POST(request: NextRequest, { params }: RouteContext) {
+  const requestStatus = verifieraSameOrigin(request)
+  if (requestStatus !== 200) {
+    return NextResponse.json({ ok: false }, { status: requestStatus })
+  }
+
   const anvandareId = await hamtaAutentiseradAnvandarId(request)
   if (!anvandareId) {
     return NextResponse.json({ ok: false }, { status: 401 })

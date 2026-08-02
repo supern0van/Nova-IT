@@ -1,4 +1,4 @@
-import type { NextRequest } from 'next/server'
+import { NextRequest } from 'next/server'
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
 const hamtaAutentiseradAnvandarId = vi.fn()
@@ -25,14 +25,16 @@ beforeAll(async () => {
   ;({ POST } = await import('@/app/api/mfa/aterstall/route'))
 })
 
-function fakeRequest(kropp?: unknown): NextRequest {
-  return {
-    json: async () => {
-      if (kropp === undefined) throw new Error('Ogiltig JSON')
-      return kropp
+function fakeRequest(kropp?: unknown, headers: Record<string, string> = {}): NextRequest {
+  return new NextRequest('https://admin.nova-it.se/api/mfa/aterstall', {
+    method: 'POST',
+    headers: {
+      origin: 'https://admin.nova-it.se',
+      'content-type': 'application/json',
+      ...headers,
     },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } as any
+    body: kropp === undefined ? '{ inte giltig json' : JSON.stringify(kropp),
+  })
 }
 
 /**
@@ -54,6 +56,15 @@ describe('POST /api/mfa/aterstall', () => {
     expect(svar.status).toBe(401)
     expect(hamtaRollFranDatabasen).not.toHaveBeenCalled()
     expect(aterstallMfaForEpost).not.toHaveBeenCalled()
+  })
+
+  it('nekar återställning från annat origin innan sessionen används', async () => {
+    hamtaAutentiseradAnvandarId.mockResolvedValue('user-admin')
+
+    const svar = await POST(fakeRequest({ epost: 'nagon@nova-it.se' }, { origin: 'https://angripare.example' }))
+
+    expect(svar.status).toBe(403)
+    expect(hamtaAutentiseradAnvandarId).not.toHaveBeenCalled()
   })
 
   it('403 för en inloggad, MFA-verifierad medarbetare (inte administrator)', async () => {

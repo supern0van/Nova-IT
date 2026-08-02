@@ -87,6 +87,10 @@ function request() {
 function postRequest(body: unknown) {
   return new NextRequest('https://admin.nova-it.se/api/admin/operativt', {
     method: 'POST',
+    headers: {
+      origin: 'https://admin.nova-it.se',
+      'content-type': 'application/json',
+    },
     body: JSON.stringify(body),
   })
 }
@@ -94,6 +98,10 @@ function postRequest(body: unknown) {
 function patchRequest(body: unknown) {
   return new NextRequest('https://admin.nova-it.se/api/admin/operativt', {
     method: 'PATCH',
+    headers: {
+      origin: 'https://admin.nova-it.se',
+      'content-type': 'application/json',
+    },
     body: JSON.stringify(body),
   })
 }
@@ -218,6 +226,42 @@ describe('/api/admin/operativt', () => {
     expect(skapaOperativKundMock).not.toHaveBeenCalled()
   })
 
+  it('nekar POST från annat origin innan sessionen används', async () => {
+    hamtaAutentiseradAnvandarIdMock.mockResolvedValue('user-1')
+
+    const svar = await POST(
+      new NextRequest('https://admin.nova-it.se/api/admin/operativt', {
+        method: 'POST',
+        headers: {
+          origin: 'https://angripare.example',
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({ typ: 'skapa_kund', data: {} }),
+      }),
+    )
+
+    expect(svar.status).toBe(403)
+    expect(hamtaAutentiseradAnvandarIdMock).not.toHaveBeenCalled()
+  })
+
+  it('kräver JSON för POST innan sessionen används', async () => {
+    hamtaAutentiseradAnvandarIdMock.mockResolvedValue('user-1')
+
+    const svar = await POST(
+      new NextRequest('https://admin.nova-it.se/api/admin/operativt', {
+        method: 'POST',
+        headers: {
+          origin: 'https://admin.nova-it.se',
+          'content-type': 'text/plain',
+        },
+        body: 'typ=skapa_kund',
+      }),
+    )
+
+    expect(svar.status).toBe(415)
+    expect(hamtaAutentiseradAnvandarIdMock).not.toHaveBeenCalled()
+  })
+
   it('returnerar 400 vid okänd POST-typ', async () => {
     hamtaAutentiseradAnvandarIdMock.mockResolvedValue('user-1')
     hamtaRollFranDatabasenMock.mockResolvedValue('administrator')
@@ -234,6 +278,10 @@ describe('/api/admin/operativt', () => {
 
     const trasigRequest = new NextRequest('https://admin.nova-it.se/api/admin/operativt', {
       method: 'POST',
+      headers: {
+        origin: 'https://admin.nova-it.se',
+        'content-type': 'application/json',
+      },
       body: '{ inte giltig json',
     })
     const svar = await POST(trasigRequest)
@@ -427,6 +475,24 @@ describe('/api/admin/operativt', () => {
     expect(uppdateraOperativKundMock).not.toHaveBeenCalled()
   })
 
+  it('nekar PATCH från annat origin innan sessionen används', async () => {
+    hamtaAutentiseradAnvandarIdMock.mockResolvedValue('user-1')
+
+    const svar = await PATCH(
+      new NextRequest('https://admin.nova-it.se/api/admin/operativt', {
+        method: 'PATCH',
+        headers: {
+          origin: 'https://angripare.example',
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({ typ: 'uppdatera_kund', data: { id: 'kund-1' } }),
+      }),
+    )
+
+    expect(svar.status).toBe(403)
+    expect(hamtaAutentiseradAnvandarIdMock).not.toHaveBeenCalled()
+  })
+
   it('returnerar 400 vid okänd PATCH-typ', async () => {
     hamtaAutentiseradAnvandarIdMock.mockResolvedValue('user-1')
     hamtaRollFranDatabasenMock.mockResolvedValue('administrator')
@@ -443,6 +509,10 @@ describe('/api/admin/operativt', () => {
 
     const trasigRequest = new NextRequest('https://admin.nova-it.se/api/admin/operativt', {
       method: 'PATCH',
+      headers: {
+        origin: 'https://admin.nova-it.se',
+        'content-type': 'application/json',
+      },
       body: '{ inte giltig json',
     })
     const svar = await PATCH(trasigRequest)

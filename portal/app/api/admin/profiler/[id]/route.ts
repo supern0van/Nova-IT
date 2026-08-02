@@ -6,6 +6,7 @@ import {
   uppdateraProfilRollIDatabasen,
 } from '@/lib/auth/profiler-server'
 import { arSystemRoll } from '@/lib/auth/roll'
+import { verifieraBrowserJsonMutation } from '@/lib/route-sakerhet'
 import { hamtaAutentiseradAnvandarId } from '@/lib/supabase/route-anvandare'
 
 interface RouteContext {
@@ -13,6 +14,11 @@ interface RouteContext {
 }
 
 export async function PATCH(request: NextRequest, { params }: RouteContext) {
+  const requestStatus = verifieraBrowserJsonMutation(request)
+  if (requestStatus !== 200) {
+    return NextResponse.json({ profil: null }, { status: requestStatus })
+  }
+
   const anvandareId = await hamtaAutentiseradAnvandarId(request)
 
   if (!anvandareId) {
