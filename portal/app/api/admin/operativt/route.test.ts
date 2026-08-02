@@ -2,7 +2,7 @@ import { NextRequest } from 'next/server'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { GET, PATCH, POST } from './route'
-import { hamtaRollFranDatabasen } from '@/lib/auth/roll-server'
+import { hamtaEgenProfilFranDatabasen, hamtaRollFranDatabasen } from '@/lib/auth/roll-server'
 import {
   hamtaOperativAdminData,
   OperativtAdminFel,
@@ -20,6 +20,7 @@ import {
   uppdateraOperativKundanteckning,
   uppdateraOperativtArende,
 } from '@/lib/admin/operativa-server'
+import { skickaKlarForUpphamtningSms } from '@/lib/admin/sms-server'
 import { hamtaAutentiseradAnvandarId } from '@/lib/supabase/route-anvandare'
 
 const { hamtaAutentiseradAnvandare } = vi.hoisted(() => ({
@@ -29,7 +30,10 @@ vi.mock('@/lib/supabase/route-anvandare', () => ({
   hamtaAutentiseradAnvandarId: vi.fn(),
   hamtaAutentiseradAnvandare,
 }))
-vi.mock('@/lib/auth/roll-server', () => ({ hamtaRollFranDatabasen: vi.fn() }))
+vi.mock('@/lib/auth/roll-server', () => ({
+  hamtaEgenProfilFranDatabasen: vi.fn(),
+  hamtaRollFranDatabasen: vi.fn(),
+}))
 vi.mock('@/lib/admin/operativa-server', () => ({
   OperativtAdminFel: class OperativtAdminFel extends Error {
     status: number
@@ -58,6 +62,7 @@ vi.mock('@/lib/admin/sms-server', () => ({
 }))
 
 const hamtaAutentiseradAnvandarIdMock = vi.mocked(hamtaAutentiseradAnvandarId)
+const hamtaEgenProfilFranDatabasenMock = vi.mocked(hamtaEgenProfilFranDatabasen)
 const hamtaRollFranDatabasenMock = vi.mocked(hamtaRollFranDatabasen)
 const hamtaOperativAdminDataMock = vi.mocked(hamtaOperativAdminData)
 const avbokaOperativBokningMock = vi.mocked(avbokaOperativBokning)
@@ -73,6 +78,7 @@ const uppdateraOperativBokningMock = vi.mocked(uppdateraOperativBokning)
 const uppdateraOperativKundMock = vi.mocked(uppdateraOperativKund)
 const uppdateraOperativKundanteckningMock = vi.mocked(uppdateraOperativKundanteckning)
 const uppdateraOperativtArendeMock = vi.mocked(uppdateraOperativtArende)
+const skickaKlarForUpphamtningSmsMock = vi.mocked(skickaKlarForUpphamtningSms)
 
 function request() {
   return new NextRequest('https://admin.nova-it.se/api/admin/operativt')
@@ -117,6 +123,10 @@ const kundStomme = {
 describe('/api/admin/operativt', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    hamtaEgenProfilFranDatabasenMock.mockResolvedValue({
+      epost: 'test@example.com',
+      namn: 'Verifierad Admin',
+    })
     hamtaAutentiseradAnvandare.mockImplementation(async (request: NextRequest) => {
       const id = await hamtaAutentiseradAnvandarIdMock(request)
       return id ? { id, epost: 'test@example.com', demogast: false } : null
@@ -173,6 +183,18 @@ describe('/api/admin/operativt', () => {
 
     expect(svar.status).toBe(500)
     expect(await svar.json()).toEqual(tomtOperativtSvar)
+  })
+
+  it('fail-closed om den verifierade serverprofilen saknas', async () => {
+    hamtaAutentiseradAnvandarIdMock.mockResolvedValue('user-1')
+    hamtaRollFranDatabasenMock.mockResolvedValue('administrator')
+    hamtaEgenProfilFranDatabasenMock.mockResolvedValue(null)
+
+    const svar = await GET(request())
+
+    expect(svar.status).toBe(500)
+    expect(await svar.json()).toEqual(tomtOperativtSvar)
+    expect(hamtaOperativAdminDataMock).not.toHaveBeenCalled()
   })
 
   it('fail-closed om operativa tabeller inte kan läsas', async () => {
@@ -300,12 +322,15 @@ describe('/api/admin/operativt', () => {
     hamtaRollFranDatabasenMock.mockResolvedValue('administrator')
     skapaOperativKundMock.mockResolvedValue(kundStomme)
 
-    const data = { namn: 'Nova Test' }
+    const data = { namn: 'Nova Test', forfattare: 'Förfalskat namn' }
     const svar = await POST(postRequest({ typ: 'skapa_kund', data }))
 
     expect(svar.status).toBe(201)
     expect(await svar.json()).toEqual({ ok: true, kund: kundStomme })
-    expect(skapaOperativKundMock).toHaveBeenCalledWith(data)
+    expect(skapaOperativKundMock).toHaveBeenCalledWith({
+      ...data,
+      forfattare: 'Verifierad Admin',
+    })
   })
 
   it('skapar ärende och bokning för admin', async () => {
@@ -345,11 +370,17 @@ describe('/api/admin/operativt', () => {
     })
 
     await expect(
-      (await POST(postRequest({ typ: 'skapa_arende', data: { rubrik: 'Test' } }))).json(),
+      (await POST(postRequest({ typ: 'skapa_arende', data: { rubrik: 'Test', aktor: 'Förfalskat namn' } }))).json(),
     ).resolves.toMatchObject({ ok: true, arende: { id: 'arende-1' } })
     await expect(
-      (await POST(postRequest({ typ: 'skapa_bokning', data: { kundId: 'kund-1' } }))).json(),
+      (await POST(postRequest({ typ: 'skapa_bokning', data: { kundId: 'kund-1', aktor: 'Förfalskat namn' } }))).json(),
     ).resolves.toMatchObject({ ok: true, bokning: { id: 'bokning-1' } })
+    expect(skapaOperativtArendeMock).toHaveBeenCalledWith(
+      expect.objectContaining({ aktor: 'Verifierad Admin' }),
+    )
+    expect(skapaOperativBokningMock).toHaveBeenCalledWith(
+      expect.objectContaining({ aktor: 'Verifierad Admin' }),
+    )
   })
 
   it('skapar meddelande och kundanteckning för admin', async () => {
@@ -373,11 +404,17 @@ describe('/api/admin/operativt', () => {
     })
 
     await expect(
-      (await POST(postRequest({ typ: 'lagg_till_meddelande', data: { arendeId: 'arende-1', text: 'Svar' } }))).json(),
+      (await POST(postRequest({ typ: 'lagg_till_meddelande', data: { arendeId: 'arende-1', text: 'Svar', avsandareNamn: 'Förfalskat namn' } }))).json(),
     ).resolves.toMatchObject({ ok: true, meddelande: { id: 'meddelande-1' } })
     await expect(
-      (await POST(postRequest({ typ: 'lagg_till_kundanteckning', data: { kundId: 'kund-1', text: 'Intern notering' } }))).json(),
+      (await POST(postRequest({ typ: 'lagg_till_kundanteckning', data: { kundId: 'kund-1', text: 'Intern notering', forfattare: 'Förfalskat namn' } }))).json(),
     ).resolves.toMatchObject({ ok: true, anteckning: { id: 'anteckning-1' } })
+    expect(laggTillOperativtMeddelandeMock).toHaveBeenCalledWith(
+      expect.objectContaining({ avsandareNamn: 'Verifierad Admin' }),
+    )
+    expect(laggTillOperativKundanteckningMock).toHaveBeenCalledWith(
+      expect.objectContaining({ forfattare: 'Verifierad Admin' }),
+    )
   })
 
   it('returnerar 401 vid PATCH utan AAL2-session', async () => {
@@ -541,6 +578,16 @@ describe('/api/admin/operativt', () => {
     await expect(
       (await PATCH(patchRequest({ typ: 'uppdatera_arende', data: { id: 'arende-1', andringar: { ansvarigId: 'user-2' }, aktivitet: { typ: 'tilldelning', beskrivning: 'Tilldelades', aktor: 'Admin' } } }))).json(),
     ).resolves.toMatchObject({ ok: true, arende: { id: 'arende-1' } })
+    expect(uppdateraOperativBokningMock).toHaveBeenCalledWith(
+      'bokning-1',
+      { status: 'bekraftad' },
+      'Verifierad Admin',
+    )
+    expect(uppdateraOperativtArendeMock).toHaveBeenCalledWith(
+      'arende-1',
+      { ansvarigId: 'user-2' },
+      expect.objectContaining({ aktor: 'Verifierad Admin' }),
+    )
   })
 
   it('avbokar bokning för admin', async () => {
@@ -563,6 +610,23 @@ describe('/api/admin/operativt', () => {
 
     expect(svar.status).toBe(200)
     expect(await svar.json()).toMatchObject({ ok: true, bokning: { status: 'avbokad' } })
+    expect(avbokaOperativBokningMock).toHaveBeenCalledWith('bokning-1', 'Verifierad Admin')
+  })
+
+  it('använder verifierat profilnamn i stället för klientens namn vid SMS', async () => {
+    hamtaAutentiseradAnvandarIdMock.mockResolvedValue('user-1')
+    hamtaRollFranDatabasenMock.mockResolvedValue('administrator')
+    skickaKlarForUpphamtningSmsMock.mockResolvedValue({ skickat: true, till: '+46700000000' })
+
+    const svar = await PATCH(
+      patchRequest({ typ: 'skicka_sms', data: { arendeId: 'arende-1', aktor: 'Förfalskat namn' } }),
+    )
+
+    expect(svar.status).toBe(200)
+    expect(skickaKlarForUpphamtningSmsMock).toHaveBeenCalledWith(
+      'arende-1',
+      'Verifierad Admin',
+    )
   })
 
   it('uppdaterar och tar bort kundanteckning för admin', async () => {
