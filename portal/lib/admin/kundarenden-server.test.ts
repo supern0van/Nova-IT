@@ -6,15 +6,28 @@ const meddelandenListRad = { data: null as unknown, error: null as unknown }
 const meddelandeInsertRad = { data: null as unknown, error: null as unknown }
 const updateSpy = vi.fn()
 const aktivitetInsertSpy = vi.fn()
+const arendeFilterSpy = vi.fn()
+
+function skapaArendeFilterfraga() {
+  const fraga = {
+    eq: vi.fn((kolumn: string, varde: string) => {
+      arendeFilterSpy(kolumn, varde)
+      return fraga
+    }),
+    maybeSingle: vi.fn(() => Promise.resolve(arendeRad)),
+  }
+  return fraga
+}
 
 const service = {
   from: vi.fn((table: string) => {
     if (table === 'admin_arenden') {
       return {
         select: vi.fn((valda: string) => ({
-          eq: vi.fn(() => {
+          eq: vi.fn((kolumn: string, varde: string) => {
             if (valda.includes('kund_id')) {
-              return { maybeSingle: vi.fn(() => Promise.resolve(arendeRad)) }
+              const fraga = skapaArendeFilterfraga()
+              return fraga.eq(kolumn, varde)
             }
             return { order: vi.fn(() => Promise.resolve(arendenListRad)) }
           }),
@@ -101,21 +114,14 @@ describe('hamtaKundArende', () => {
   })
 
   it('returnerar null om ärendet inte tillhör kunden', async () => {
-    arendeRad.data = {
-      id: 'arende-1',
-      arendenummer: 'NIT-1001',
-      rubrik: 'Wi-Fi',
-      status: 'pagaende',
-      prioritet: 'normal',
-      skapad: '2026-07-29T10:00:00.000Z',
-      uppdaterad: '2026-07-29T10:00:00.000Z',
-      kund_id: 'en-annan-kund',
-    }
+    arendeRad.data = null
 
     const { hamtaKundArende } = await import('./kundarenden-server')
     const resultat = await hamtaKundArende('kund-1', 'arende-1')
 
     expect(resultat).toBeNull()
+    expect(arendeFilterSpy).toHaveBeenCalledWith('id', 'arende-1')
+    expect(arendeFilterSpy).toHaveBeenCalledWith('kund_id', 'kund-1')
   })
 
   it('returnerar null om ärendet inte finns', async () => {
@@ -175,7 +181,7 @@ describe('skapaKundMeddelande', () => {
   })
 
   it('nekar (404) om ärendet tillhör en annan kund', async () => {
-    arendeRad.data = { id: 'arende-1', kund_id: 'en-annan-kund', kund_namn: 'Anna', status: 'pagaende' }
+    arendeRad.data = null
 
     const { skapaKundMeddelande, KundArendeFel } = await import('./kundarenden-server')
     try {
@@ -185,6 +191,8 @@ describe('skapaKundMeddelande', () => {
       expect(fel).toBeInstanceOf(KundArendeFel)
       expect((fel as InstanceType<typeof KundArendeFel>).status).toBe(404)
     }
+    expect(arendeFilterSpy).toHaveBeenCalledWith('id', 'arende-1')
+    expect(arendeFilterSpy).toHaveBeenCalledWith('kund_id', 'kund-1')
   })
 
   it('nekar (409) om ärendet är stängt', async () => {

@@ -113,10 +113,11 @@ export async function hamtaKundArende(
     .from('admin_arenden')
     .select('id, arendenummer, rubrik, status, prioritet, skapad, uppdaterad, kund_id')
     .eq('id', arendeId)
+    .eq('kund_id', adminKundId)
     .maybeSingle()
 
   if (arendeFel) throw new KundArendeFel('Kunde inte hämta ärendet.', 500)
-  if (!arende || String(arende.kund_id) !== adminKundId) return null
+  if (!arende) return null
 
   const { data: meddelanden, error: meddelandeFel } = await supabase
     .from('admin_meddelanden')
@@ -167,10 +168,11 @@ export async function skapaKundMeddelande(uppgifter: {
     .from('admin_arenden')
     .select('id, kund_id, kund_namn, status')
     .eq('id', uppgifter.arendeId)
+    .eq('kund_id', uppgifter.adminKundId)
     .maybeSingle()
 
   if (arendeFel) throw new KundArendeFel('Kunde inte hämta ärendet.', 500)
-  if (!arende || String(arende.kund_id) !== uppgifter.adminKundId) {
+  if (!arende) {
     throw new KundArendeFel('Ärendet hittades inte.', 404)
   }
   if (arende.status === 'stangd') {

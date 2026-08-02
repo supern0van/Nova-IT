@@ -25,7 +25,7 @@ import {
 } from '@/lib/admin/operativa-server'
 import { skickaKlarForUpphamtningSms } from '@/lib/admin/sms-server'
 import { arAdministrator } from '@/lib/auth/roll'
-import { hamtaRollFranDatabasen } from '@/lib/auth/roll-server'
+import { hamtaEgenProfilFranDatabasen, hamtaRollFranDatabasen } from '@/lib/auth/roll-server'
 import { harBehorighet, type Behorighet } from '@/lib/auth/supabase-auth'
 import { hamtaAutentiseradAnvandare } from '@/lib/supabase/route-anvandare'
 import type { Roll } from '@/lib/types'
@@ -80,30 +80,45 @@ export async function POST(request: NextRequest) {
       case 'skapa_kund':
         return NextResponse.json({
           ok: true,
-          kund: await skapaOperativKund(payload.data as unknown as NyOperativKund),
+          kund: await skapaOperativKund({
+            ...(payload.data as unknown as NyOperativKund),
+            forfattare: atkomst.aktorNamn,
+          }),
         }, { status: 201 })
       case 'skapa_arende':
         return NextResponse.json({
           ok: true,
-          arende: await skapaOperativtArende(payload.data as unknown as NyttOperativtArende),
+          arende: await skapaOperativtArende({
+            ...(payload.data as unknown as NyttOperativtArende),
+            aktor: atkomst.aktorNamn,
+          }),
         }, { status: 201 })
       case 'skapa_bokning':
         return NextResponse.json({
           ok: true,
-          bokning: await skapaOperativBokning(payload.data as unknown as NyOperativBokning),
+          bokning: await skapaOperativBokning({
+            ...(payload.data as unknown as NyOperativBokning),
+            aktor: atkomst.aktorNamn,
+          }),
         }, { status: 201 })
       case 'lagg_till_meddelande':
         return NextResponse.json({
           ok: true,
           meddelande: await laggTillOperativtMeddelande(
-            payload.data as unknown as Parameters<typeof laggTillOperativtMeddelande>[0],
+            {
+              ...(payload.data as unknown as Parameters<typeof laggTillOperativtMeddelande>[0]),
+              avsandareNamn: atkomst.aktorNamn,
+            },
           ),
         }, { status: 201 })
       case 'lagg_till_kundanteckning':
         return NextResponse.json({
           ok: true,
           anteckning: await laggTillOperativKundanteckning(
-            payload.data as unknown as Parameters<typeof laggTillOperativKundanteckning>[0],
+            {
+              ...(payload.data as unknown as Parameters<typeof laggTillOperativKundanteckning>[0]),
+              forfattare: atkomst.aktorNamn,
+            },
           ),
         }, { status: 201 })
       default:
@@ -191,7 +206,7 @@ export async function PATCH(request: NextRequest) {
           bokning: await uppdateraOperativBokning(
             payload.data.id,
             payload.data.andringar as unknown as OperativaBokningsandringar,
-            typeof payload.data.aktor === 'string' ? payload.data.aktor : 'Okänd',
+            atkomst.aktorNamn,
           ),
         })
       case 'avboka_bokning':
@@ -200,7 +215,7 @@ export async function PATCH(request: NextRequest) {
           ok: true,
           bokning: await avbokaOperativBokning(
             payload.data.id,
-            typeof payload.data.aktor === 'string' ? payload.data.aktor : 'Okänd',
+            atkomst.aktorNamn,
           ),
         })
       case 'uppdatera_arende':
@@ -220,10 +235,7 @@ export async function PATCH(request: NextRequest) {
             {
               typ: payload.data.aktivitet.typ as 'status' | 'prioritet' | 'tilldelning',
               beskrivning: payload.data.aktivitet.beskrivning,
-              aktor:
-                typeof payload.data.aktivitet.aktor === 'string'
-                  ? payload.data.aktivitet.aktor
-                  : 'Okänd',
+              aktor: atkomst.aktorNamn,
             },
           ),
         })
@@ -249,7 +261,7 @@ export async function PATCH(request: NextRequest) {
           ok: true,
           sms: await skickaKlarForUpphamtningSms(
             payload.data.arendeId,
-            typeof payload.data.aktor === 'string' ? payload.data.aktor : 'Okänd',
+            atkomst.aktorNamn,
           ),
         })
       case 'ta_bort_kund': {
@@ -277,7 +289,12 @@ export async function PATCH(request: NextRequest) {
 }
 
 type OperativAtkomst =
-  | { status: 200; demogast: boolean; harBehorighet: (behorighet: Behorighet) => boolean }
+  | {
+      status: 200
+      aktorNamn: string
+      demogast: boolean
+      harBehorighet: (behorighet: Behorighet) => boolean
+    }
   | { status: 401 | 500 }
 
 /**
@@ -302,16 +319,23 @@ async function verifieraOperativAtkomst(
   if (!anvandare) return { status: 401 }
 
   let systemRoll: Awaited<ReturnType<typeof hamtaRollFranDatabasen>>
+  let profil: Awaited<ReturnType<typeof hamtaEgenProfilFranDatabasen>>
   try {
-    systemRoll = await hamtaRollFranDatabasen(anvandare.id)
+    const profilResultat = await Promise.all([
+      hamtaRollFranDatabasen(anvandare.id),
+      hamtaEgenProfilFranDatabasen(anvandare.id),
+    ])
+    systemRoll = profilResultat[0]
+    profil = profilResultat[1]
   } catch {
     return { status: 500 }
   }
-  if (!systemRoll) return { status: 500 }
+  if (!systemRoll || !profil) return { status: 500 }
 
   const operativRoll: Roll = arAdministrator(systemRoll) ? 'administrator' : 'tekniker'
   return {
     status: 200,
+    aktorNamn: profil.namn.trim(),
     demogast: anvandare.demogast,
     harBehorighet: (behorighet) => harBehorighet(operativRoll, behorighet),
   }
