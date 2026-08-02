@@ -24,7 +24,7 @@ function bytesFromBase64Url(value: string) {
 }
 
 function secretForLease() {
-  const secret = process.env.ADMIN_SESSION_LEASE_SECRET ?? process.env.SUPABASE_SERVICE_ROLE_KEY
+  const secret = process.env.ADMIN_SESSION_LEASE_SECRET
   return secret ? `nova-it-admin-session-lease:${secret}` : null
 }
 
