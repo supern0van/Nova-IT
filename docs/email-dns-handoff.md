@@ -57,3 +57,33 @@ Resend kan krava egna verifieringsposter. De ska laggas till exakt enligt Resend
 - `kontakt@nova-it.se` ar publik kontaktadress i webbplatsen.
 - Kontaktformularet levererar direkt till `kontakt@nova-it.se` utan att oppna besokarens e-postapp.
 - Svar pa formularmeddelanden gar tillbaka till besokarens ifyllda e-postadress.
+
+## Livefynd vid sakerhetsgenomgang 2026-08-03
+
+Detta avsnitt ar en handoff for Cloudflare Dashboard/registrar-steg som inte ska
+gissas in i kod:
+
+- `nova-it.se` svarar med Loopias MX och en enda SPF-post:
+  `v=spf1 include:spf.loopia.se -all`.
+- DMARC finns men ar fortfarande i overvakat lage:
+  `v=DMARC1; p=none; rua=mailto:kontakt@nova-it.se`. Skarp forst till
+  `quarantine` och senare eventuellt `reject` nar in- och utleverans via Loopia
+  och Resend ar verifierad.
+- `resend._domainkey.nova-it.se` har fler an en TXT-post. En DKIM-selector ska
+  normalt peka pa exakt ett public key-varde. Kontrollera Resends aktuella
+  verifieringsvarde och ta bort gammal/duplicerad selector-post i Cloudflare.
+- `nova-it.se` returnerade inget publikt DS-svar vid kontrollen. Om DNSSEC ar
+  aktiverat i Cloudflare ska DS-posten aven laggas hos registrar/Loopia enligt
+  Cloudflares DNSSEC-varde.
+- `novait.se` saknade mailposter vid kontrollen. Om den domanen aldrig ska
+  skicka e-post kan den med fordel fa en explicit skyddspolicy: SPF `v=spf1
+-all` och DMARC `p=reject`, efter beslut.
+
+Koden innehaller ett aterkorbart kontrollkommando:
+
+```bash
+bun run audit:cloudflare-live
+```
+
+Kommandot laser bara publika svar och ar tankt som granskningsstod, inte som
+ersattning for Cloudflare Dashboard.
