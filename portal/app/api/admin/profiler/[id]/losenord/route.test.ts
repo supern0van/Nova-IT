@@ -22,6 +22,7 @@ import { POST } from './route'
 function begaran(url = 'https://admin.nova-it.se/api/admin/profiler/user-2/losenord') {
   return new NextRequest(url, {
     method: 'POST',
+    headers: { origin: new URL(url).origin },
   })
 }
 
@@ -42,6 +43,21 @@ describe('POST /api/admin/profiler/[id]/losenord', () => {
     expect(svar.status).toBe(401)
     expect(await svar.json()).toEqual({ ok: false })
     expect(harAdminAtkomst).not.toHaveBeenCalled()
+  })
+
+  it('nekar återställningslänk från annat origin innan sessionen används', async () => {
+    hamtaAutentiseradAnvandarId.mockResolvedValue('user-1')
+
+    const svar = await POST(
+      new NextRequest('https://admin.nova-it.se/api/admin/profiler/user-2/losenord', {
+        method: 'POST',
+        headers: { origin: 'https://angripare.example' },
+      }),
+      context(),
+    )
+
+    expect(svar.status).toBe(403)
+    expect(hamtaAutentiseradAnvandarId).not.toHaveBeenCalled()
   })
 
   it('nekar medarbetare även med giltig session', async () => {

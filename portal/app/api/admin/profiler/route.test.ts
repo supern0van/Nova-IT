@@ -26,7 +26,10 @@ function begaran(body?: unknown, url = 'https://admin.nova-it.se/api/admin/profi
   return new NextRequest(url, {
     method: body === undefined ? 'GET' : 'POST',
     body: body === undefined ? undefined : JSON.stringify(body),
-    headers: body === undefined ? undefined : { 'Content-Type': 'application/json' },
+    headers: body === undefined ? undefined : {
+      origin: new URL(url).origin,
+      'Content-Type': 'application/json',
+    },
   })
 }
 
@@ -114,6 +117,24 @@ describe('/api/admin/profiler', () => {
     expect(svar.status).toBe(401)
     expect(body).toEqual({ profil: null })
     expect(bjudInPortalProfil).not.toHaveBeenCalled()
+  })
+
+  it('nekar inbjudan från annat origin innan sessionen används', async () => {
+    hamtaAutentiseradAnvandarId.mockResolvedValue('user-1')
+
+    const svar = await POST(
+      new NextRequest('https://admin.nova-it.se/api/admin/profiler', {
+        method: 'POST',
+        headers: {
+          origin: 'https://angripare.example',
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({ namn: 'Ny Admin', epost: 'ny@nova-it.se', roll: 'medarbetare' }),
+      }),
+    )
+
+    expect(svar.status).toBe(403)
+    expect(hamtaAutentiseradAnvandarId).not.toHaveBeenCalled()
   })
 
   it('nekar inbjudan från medarbetare', async () => {

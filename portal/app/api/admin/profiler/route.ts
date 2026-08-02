@@ -7,6 +7,7 @@ import {
   harAdminAtkomst,
   listaProfilerFranDatabasen,
 } from '@/lib/auth/profiler-server'
+import { verifieraBrowserJsonMutation } from '@/lib/route-sakerhet'
 import { hamtaAutentiseradAnvandarId } from '@/lib/supabase/route-anvandare'
 
 export async function GET(request: NextRequest) {
@@ -36,6 +37,11 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  const requestStatus = verifieraBrowserJsonMutation(request)
+  if (requestStatus !== 200) {
+    return NextResponse.json({ profil: null }, { status: requestStatus })
+  }
+
   const anvandareId = await hamtaAutentiseradAnvandarId(request)
 
   if (!anvandareId) {

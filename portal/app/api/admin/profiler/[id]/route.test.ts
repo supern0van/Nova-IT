@@ -25,6 +25,10 @@ import { PATCH } from './route'
 function begaran(body: unknown = { roll: 'medarbetare' }) {
   return new NextRequest('https://admin.nova-it.se/api/admin/profiler/user-2', {
     method: 'PATCH',
+    headers: {
+      origin: 'https://admin.nova-it.se',
+      'content-type': 'application/json',
+    },
     body: JSON.stringify(body),
   })
 }
@@ -46,6 +50,25 @@ describe('PATCH /api/admin/profiler/[id]', () => {
     expect(svar.status).toBe(401)
     expect(await svar.json()).toEqual({ profil: null })
     expect(harAdminAtkomst).not.toHaveBeenCalled()
+  })
+
+  it('nekar rolländring från annat origin innan sessionen används', async () => {
+    hamtaAutentiseradAnvandarId.mockResolvedValue('user-1')
+
+    const svar = await PATCH(
+      new NextRequest('https://admin.nova-it.se/api/admin/profiler/user-2', {
+        method: 'PATCH',
+        headers: {
+          origin: 'https://angripare.example',
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({ roll: 'medarbetare' }),
+      }),
+      context(),
+    )
+
+    expect(svar.status).toBe(403)
+    expect(hamtaAutentiseradAnvandarId).not.toHaveBeenCalled()
   })
 
   it('nekar ändring av den egna rollen', async () => {

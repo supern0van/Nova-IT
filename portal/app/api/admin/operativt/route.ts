@@ -27,6 +27,7 @@ import { skickaKlarForUpphamtningSms } from '@/lib/admin/sms-server'
 import { arAdministrator } from '@/lib/auth/roll'
 import { hamtaEgenProfilFranDatabasen, hamtaRollFranDatabasen } from '@/lib/auth/roll-server'
 import { harBehorighet, type Behorighet } from '@/lib/auth/supabase-auth'
+import { verifieraBrowserJsonMutation } from '@/lib/route-sakerhet'
 import { hamtaAutentiseradAnvandare } from '@/lib/supabase/route-anvandare'
 import type { Roll } from '@/lib/types'
 
@@ -45,6 +46,11 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  const requestStatus = verifieraBrowserJsonMutation(request)
+  if (requestStatus !== 200) {
+    return NextResponse.json({ ok: false }, { status: requestStatus })
+  }
+
   const atkomst = await verifieraOperativAtkomst(request)
 
   if (atkomst.status !== 200) {
@@ -130,6 +136,11 @@ export async function POST(request: NextRequest) {
 }
 
 export async function PATCH(request: NextRequest) {
+  const requestStatus = verifieraBrowserJsonMutation(request)
+  if (requestStatus !== 200) {
+    return NextResponse.json({ ok: false }, { status: requestStatus })
+  }
+
   const atkomst = await verifieraOperativAtkomst(request)
 
   if (atkomst.status !== 200) {
