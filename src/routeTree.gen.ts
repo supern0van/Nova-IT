@@ -9,63 +9,23 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as TjansterRouteImport } from './routes/tjanster'
-import { Route as ProjektAterbrukRouteImport } from './routes/projekt-aterbruk'
-import { Route as PrivatpersonerRouteImport } from './routes/privatpersoner'
-import { Route as OmOssRouteImport } from './routes/om-oss'
-import { Route as KontaktRouteImport } from './routes/kontakt'
-import { Route as ForetagForeningarRouteImport } from './routes/foretag-foreningar'
-import { Route as FaqRouteImport } from './routes/faq'
-import { Route as CaseStudyRouteImport } from './routes/case-study'
-import { Route as AssistentRouteImport } from './routes/assistent'
-import { Route as ArbetssattRouteImport } from './routes/arbetssatt'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ArbetssattRouteImport } from './routes/arbetssatt'
+import { Route as AssistentRouteImport } from './routes/assistent'
+import { Route as CaseStudyRouteImport } from './routes/case-study'
+import { Route as FaqRouteImport } from './routes/faq'
+import { Route as ForetagForeningarRouteImport } from './routes/foretag-foreningar'
+import { Route as KontaktRouteImport } from './routes/kontakt'
+import { Route as OmOssRouteImport } from './routes/om-oss'
+import { Route as PrivatpersonerRouteImport } from './routes/privatpersoner'
+import { Route as ProjektAterbrukRouteImport } from './routes/projekt-aterbruk'
+import { Route as TjansterRouteImport } from './routes/tjanster'
 import { Route as TjansterIndexRouteImport } from './routes/tjanster.index'
 import { Route as TjansterSlugRouteImport } from './routes/tjanster.$slug'
 
-const TjansterRoute = TjansterRouteImport.update({
-  id: '/tjanster',
-  path: '/tjanster',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ProjektAterbrukRoute = ProjektAterbrukRouteImport.update({
-  id: '/projekt-aterbruk',
-  path: '/projekt-aterbruk',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PrivatpersonerRoute = PrivatpersonerRouteImport.update({
-  id: '/privatpersoner',
-  path: '/privatpersoner',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const OmOssRoute = OmOssRouteImport.update({
-  id: '/om-oss',
-  path: '/om-oss',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const KontaktRoute = KontaktRouteImport.update({
-  id: '/kontakt',
-  path: '/kontakt',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ForetagForeningarRoute = ForetagForeningarRouteImport.update({
-  id: '/foretag-foreningar',
-  path: '/foretag-foreningar',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const FaqRoute = FaqRouteImport.update({
-  id: '/faq',
-  path: '/faq',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CaseStudyRoute = CaseStudyRouteImport.update({
-  id: '/case-study',
-  path: '/case-study',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AssistentRoute = AssistentRouteImport.update({
-  id: '/assistent',
-  path: '/assistent',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ArbetssattRoute = ArbetssattRouteImport.update({
@@ -73,9 +33,49 @@ const ArbetssattRoute = ArbetssattRouteImport.update({
   path: '/arbetssatt',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const AssistentRoute = AssistentRouteImport.update({
+  id: '/assistent',
+  path: '/assistent',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CaseStudyRoute = CaseStudyRouteImport.update({
+  id: '/case-study',
+  path: '/case-study',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FaqRoute = FaqRouteImport.update({
+  id: '/faq',
+  path: '/faq',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ForetagForeningarRoute = ForetagForeningarRouteImport.update({
+  id: '/foretag-foreningar',
+  path: '/foretag-foreningar',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const KontaktRoute = KontaktRouteImport.update({
+  id: '/kontakt',
+  path: '/kontakt',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OmOssRoute = OmOssRouteImport.update({
+  id: '/om-oss',
+  path: '/om-oss',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivatpersonerRoute = PrivatpersonerRouteImport.update({
+  id: '/privatpersoner',
+  path: '/privatpersoner',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProjektAterbrukRoute = ProjektAterbrukRouteImport.update({
+  id: '/projekt-aterbruk',
+  path: '/projekt-aterbruk',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TjansterRoute = TjansterRouteImport.update({
+  id: '/tjanster',
+  path: '/tjanster',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TjansterIndexRoute = TjansterIndexRouteImport.update({
@@ -197,67 +197,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/tjanster': {
-      id: '/tjanster'
-      path: '/tjanster'
-      fullPath: '/tjanster'
-      preLoaderRoute: typeof TjansterRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/projekt-aterbruk': {
-      id: '/projekt-aterbruk'
-      path: '/projekt-aterbruk'
-      fullPath: '/projekt-aterbruk'
-      preLoaderRoute: typeof ProjektAterbrukRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/privatpersoner': {
-      id: '/privatpersoner'
-      path: '/privatpersoner'
-      fullPath: '/privatpersoner'
-      preLoaderRoute: typeof PrivatpersonerRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/om-oss': {
-      id: '/om-oss'
-      path: '/om-oss'
-      fullPath: '/om-oss'
-      preLoaderRoute: typeof OmOssRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/kontakt': {
-      id: '/kontakt'
-      path: '/kontakt'
-      fullPath: '/kontakt'
-      preLoaderRoute: typeof KontaktRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/foretag-foreningar': {
-      id: '/foretag-foreningar'
-      path: '/foretag-foreningar'
-      fullPath: '/foretag-foreningar'
-      preLoaderRoute: typeof ForetagForeningarRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/faq': {
-      id: '/faq'
-      path: '/faq'
-      fullPath: '/faq'
-      preLoaderRoute: typeof FaqRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/case-study': {
-      id: '/case-study'
-      path: '/case-study'
-      fullPath: '/case-study'
-      preLoaderRoute: typeof CaseStudyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/assistent': {
-      id: '/assistent'
-      path: '/assistent'
-      fullPath: '/assistent'
-      preLoaderRoute: typeof AssistentRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/arbetssatt': {
@@ -267,11 +211,67 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ArbetssattRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/assistent': {
+      id: '/assistent'
+      path: '/assistent'
+      fullPath: '/assistent'
+      preLoaderRoute: typeof AssistentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/case-study': {
+      id: '/case-study'
+      path: '/case-study'
+      fullPath: '/case-study'
+      preLoaderRoute: typeof CaseStudyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/faq': {
+      id: '/faq'
+      path: '/faq'
+      fullPath: '/faq'
+      preLoaderRoute: typeof FaqRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/foretag-foreningar': {
+      id: '/foretag-foreningar'
+      path: '/foretag-foreningar'
+      fullPath: '/foretag-foreningar'
+      preLoaderRoute: typeof ForetagForeningarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/kontakt': {
+      id: '/kontakt'
+      path: '/kontakt'
+      fullPath: '/kontakt'
+      preLoaderRoute: typeof KontaktRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/om-oss': {
+      id: '/om-oss'
+      path: '/om-oss'
+      fullPath: '/om-oss'
+      preLoaderRoute: typeof OmOssRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privatpersoner': {
+      id: '/privatpersoner'
+      path: '/privatpersoner'
+      fullPath: '/privatpersoner'
+      preLoaderRoute: typeof PrivatpersonerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/projekt-aterbruk': {
+      id: '/projekt-aterbruk'
+      path: '/projekt-aterbruk'
+      fullPath: '/projekt-aterbruk'
+      preLoaderRoute: typeof ProjektAterbrukRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tjanster': {
+      id: '/tjanster'
+      path: '/tjanster'
+      fullPath: '/tjanster'
+      preLoaderRoute: typeof TjansterRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/tjanster/': {

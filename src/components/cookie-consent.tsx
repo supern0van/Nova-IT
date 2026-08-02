@@ -45,6 +45,8 @@ export function CookieConsent() {
   useEffect(() => {
     const stored = readConsent();
     if (stored) {
+      // Browser-only localStorage is read after hydration to avoid an SSR/client mismatch.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setStatistics(stored.statistics);
       setMarketing(stored.marketing);
     } else {
