@@ -2,6 +2,7 @@
 
 import { PlusIcon, ShieldAlertIcon, ShieldCheckIcon, SmartphoneIcon, Trash2Icon } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 
 import { useAuth } from '@/components/auth/auth-provider'
@@ -52,6 +53,7 @@ const FORSLAG_NAMN_NY_ENHET = 'Backup-enhet'
  */
 export function SakerhetVy() {
   const { roll } = useAuth()
+  const router = useRouter()
   const [supabase] = useState(() => skapaSupabaseWebblasarklient())
   const [faktorer, setFaktorer] = useState<TotpFaktor[] | null>(null)
   const [laddar, setLaddar] = useState(true)
@@ -112,6 +114,7 @@ export function SakerhetVy() {
                 index={index}
                 supabase={supabase}
                 vidBorttagen={laddaOm}
+                vidMfaKrav={() => router.replace('/mfa')}
               />
             ))}
           </div>
@@ -151,11 +154,13 @@ function FaktorRad({
   index,
   supabase,
   vidBorttagen,
+  vidMfaKrav,
 }: {
   faktor: TotpFaktor
   index: number
   supabase: ReturnType<typeof skapaSupabaseWebblasarklient>
   vidBorttagen: () => void
+  vidMfaKrav: () => void
 }) {
   const [tarBort, setTarBort] = useState(false)
 
@@ -164,6 +169,10 @@ function FaktorRad({
     try {
       const resultat = await avregistreraFaktor(supabase, faktor.id)
       if (!resultat.ok) {
+        if (resultat.mfaKravd) {
+          vidMfaKrav()
+          return
+        }
         toast.error(resultat.fel)
         return
       }
@@ -252,6 +261,25 @@ export function LaggTillEnhet({
   const startRef = useRef<EnrollmentStart | null>(null)
   const stadatRef = useRef(false)
   const aktiveradRef = useRef(false)
+  const monteradRef = useRef(true)
+  const städningPågårRef = useRef<Promise<{ ok: true } | { ok: false; fel: string }> | null>(null)
+
+  async function städaEnrollment(): Promise<{ ok: true } | { ok: false; fel: string }> {
+    const aktuell = startRef.current
+    if (!aktuell || aktiveradRef.current || stadatRef.current) return { ok: true }
+    if (städningPågårRef.current) return städningPågårRef.current
+
+    const försök = avbrytEnrollment(supabase, aktuell.factorId).then((resultat) => {
+      if (resultat.ok) stadatRef.current = true
+      return resultat
+    })
+    städningPågårRef.current = försök
+    try {
+      return await försök
+    } finally {
+      if (städningPågårRef.current === försök) städningPågårRef.current = null
+    }
+  }
 
   useEffect(() => {
     startRef.current = start
@@ -265,14 +293,10 @@ export function LaggTillEnhet({
   // och är av samma skäl markerat i koden nedan för felsökning.
   useEffect(() => {
     return () => {
-      if (startRef.current && !stadatRef.current && !aktiveradRef.current) {
-        stadatRef.current = true
-        void avbrytEnrollment(supabase, startRef.current.factorId).then((resultat) => {
-          if (!resultat.ok) {
-            console.error('Kunde inte städa bort overifierad MFA-faktor vid avmontering:', resultat.fel)
-          }
-        })
-      }
+      monteradRef.current = false
+      void städaEnrollment().then((resultat) => {
+        if (!resultat.ok) console.error('Kunde inte städa bort overifierad MFA-faktor vid avmontering:', resultat.fel)
+      })
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -287,10 +311,18 @@ export function LaggTillEnhet({
     setFas('registrerar')
     const resultat = await paborjaEnrollment(supabase, namn.trim())
     if (!resultat.ok) {
+      if (!monteradRef.current) return
       setFel(resultat.fel)
       setFas('namn')
       return
     }
+    // Om komponenten avmonterades medan enroll-anropet väntade finns faktorn
+    // ändå skapad i Supabase och måste tas bort med det sena id:t.
+    if (!monteradRef.current) {
+      await avbrytEnrollment(supabase, resultat.factorId)
+      return
+    }
+    startRef.current = resultat
     setStart(resultat)
     setFas('kod')
   }
@@ -317,16 +349,16 @@ export function LaggTillEnhet({
   async function avbryt() {
     setAvbryterEnrollment(true)
     try {
-      if (start && !stadatRef.current) {
-        stadatRef.current = true
-        const resultat = await avbrytEnrollment(supabase, start.factorId)
+      if (start) {
+        const resultat = await städaEnrollment()
         if (!resultat.ok) {
           toast.error(resultat.fel)
+          return
         }
       }
+      vidAvbryt()
     } finally {
       setAvbryterEnrollment(false)
-      vidAvbryt()
     }
   }
 
