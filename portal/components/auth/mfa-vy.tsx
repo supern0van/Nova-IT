@@ -8,7 +8,7 @@ import {
   TriangleAlertIcon,
 } from 'lucide-react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 
 import { NovaMark } from '@/components/nova-mark'
@@ -110,9 +110,15 @@ export function MfaVy() {
       // en backup-enhet läggs istället till senare under `/portal/sakerhet`,
       // där användaren själv väljer ett namn (se `LaggTillEnhet` där).
       const start = await paborjaEnrollment(supabase, STANDARD_NAMN_FORSTA_ENHETEN)
-      if (avbruten) return
       if (!start.ok) {
+        if (avbruten) return
         setLage({ typ: 'fel', meddelande: start.fel })
+        return
+      }
+      // Enrollment kan hinna skapa faktorn precis efter att komponenten
+      // avmonterats. Städa då den sena faktorn direkt.
+      if (avbruten) {
+        void avbrytEnrollment(supabase, start.factorId)
         return
       }
       setLage({ typ: 'enroll', start })
@@ -218,6 +224,18 @@ function EnrollVy({
   const [aktiverar, setAktiverar] = useState(false)
   const [avbryterEnrollment, setAvbryterEnrollment] = useState(false)
   const [fel, setFel] = useState<string | null>(null)
+  const stadadRef = useRef(false)
+  const aktiveradRef = useRef(false)
+  const stadningPagarRef = useRef<Promise<{ ok: true } | { ok: false; fel: string }> | null>(null)
+
+  useEffect(() => {
+    return () => {
+      if (!stadadRef.current && !aktiveradRef.current) {
+        stadadRef.current = true
+        void avbrytEnrollment(supabase, start.factorId)
+      }
+    }
+  }, [start.factorId, supabase])
 
   async function aktivera(e: React.FormEvent) {
     e.preventDefault()
@@ -234,6 +252,7 @@ function EnrollVy({
         setKod('')
         return
       }
+      aktiveradRef.current = true
       vidKlar()
     } finally {
       setAktiverar(false)
@@ -243,17 +262,22 @@ function EnrollVy({
   async function avbryt() {
     setAvbryterEnrollment(true)
     try {
-      const stadning = await avbrytEnrollment(supabase, start.factorId)
+      if (stadadRef.current) return vidAvbryt()
+      const stadning = await (
+        stadningPagarRef.current ??
+        (stadningPagarRef.current = avbrytEnrollment(supabase, start.factorId).finally(() => {
+          stadningPagarRef.current = null
+        }))
+      )
       if (!stadning.ok) {
-        // Informerar användaren, men blockerar INTE utloggningen – MFA är
-        // obligatoriskt, så det finns inget läge där man kan stanna kvar
-        // inloggad utan att ha slutfört eller avbrutit enrollment.
         toast.error(stadning.fel)
+        return
       }
+      stadadRef.current = true
     } finally {
       setAvbryterEnrollment(false)
-      vidAvbryt()
     }
+    vidAvbryt()
   }
 
   return (

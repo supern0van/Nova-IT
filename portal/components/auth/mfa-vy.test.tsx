@@ -220,4 +220,69 @@ describe('MfaVy – enrollment och felstatus', () => {
       expect(replace).toHaveBeenCalledWith('/portal')
     })
   })
+
+  it('städar en faktor som skapas efter att enrollment-vyn redan avmonterats', async () => {
+    hamtaAssuransniva.mockResolvedValue({ currentLevel: 'aal1', nextLevel: 'aal1' })
+    avbrytEnrollment.mockResolvedValue({ ok: true })
+    let slutförEnrollment!: (värde: unknown) => void
+    paborjaEnrollment.mockReturnValue(
+      new Promise((resolve) => {
+        slutförEnrollment = resolve
+      }),
+    )
+
+    const { unmount } = render(<MfaVy />)
+    await waitFor(() => expect(paborjaEnrollment).toHaveBeenCalled())
+    unmount()
+
+    slutförEnrollment({
+      ok: true,
+      factorId: 'sen-faktor',
+      qrKodDataUrl: 'data:image/svg+xml,<svg />',
+      hemlighetForManuellInmatning: 'ABCDEF',
+    })
+
+    await waitFor(() => {
+      expect(avbrytEnrollment).toHaveBeenCalledWith(supabaseStub, 'sen-faktor')
+    })
+  })
+
+  it('städar en visad enrollment-faktor när vyn avmonteras innan verifiering', async () => {
+    hamtaAssuransniva.mockResolvedValue({ currentLevel: 'aal1', nextLevel: 'aal1' })
+    paborjaEnrollment.mockResolvedValue({
+      ok: true,
+      factorId: 'ofardig-faktor',
+      qrKodDataUrl: 'data:image/svg+xml,<svg />',
+      hemlighetForManuellInmatning: 'ABCDEF',
+    })
+    avbrytEnrollment.mockResolvedValue({ ok: true })
+
+    const { unmount } = render(<MfaVy />)
+    expect(await screen.findByText('Sätt upp tvåstegsverifiering')).toBeTruthy()
+    unmount()
+
+    await waitFor(() => {
+      expect(avbrytEnrollment).toHaveBeenCalledWith(supabaseStub, 'ofardig-faktor')
+    })
+  })
+
+  it('städar faktorn vid explicit avbrott och loggar sedan ut', async () => {
+    hamtaAssuransniva.mockResolvedValue({ currentLevel: 'aal1', nextLevel: 'aal1' })
+    paborjaEnrollment.mockResolvedValue({
+      ok: true,
+      factorId: 'avbruten-faktor',
+      qrKodDataUrl: 'data:image/svg+xml,<svg />',
+      hemlighetForManuellInmatning: 'ABCDEF',
+    })
+    avbrytEnrollment.mockResolvedValue({ ok: true })
+    render(<MfaVy />)
+    expect(await screen.findByText('Sätt upp tvåstegsverifiering')).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: 'Avbryt och logga ut' }))
+
+    await waitFor(() => {
+      expect(avbrytEnrollment).toHaveBeenCalledWith(supabaseStub, 'avbruten-faktor')
+      expect(loggaUt).toHaveBeenCalled()
+      expect(replace).toHaveBeenCalledWith('/logga-in')
+    })
+  })
 })

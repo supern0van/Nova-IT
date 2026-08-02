@@ -41,6 +41,8 @@ export interface EnrollmentStart {
 export interface MfaFelResultat {
   ok: false
   fel: string
+  /** Sätts när sessionen inte längre kan betraktas som MFA-verifierad. */
+  mfaKravd?: boolean
 }
 
 export type TotpFaktor = {
@@ -192,6 +194,28 @@ export async function avregistreraFaktor(
 ): Promise<{ ok: true } | MfaFelResultat> {
   const { error } = await supabase.auth.mfa.unenroll({ factorId })
   if (error) return { ok: false, fel: oversattMfaFel(error.message) }
+
+  // Unenroll ändrar Auth-tillståndet. Hämta därför en färsk session innan vi
+  // låter användaren fortsätta i den AAL2-skyddade portalen.
+  const { data: sessionData, error: refreshError } = await supabase.auth.refreshSession()
+  if (refreshError || !sessionData?.session) {
+    return {
+      ok: false,
+      fel: 'Säkerhetssessionen kunde inte uppdateras. Du måste verifiera MFA igen.',
+      mfaKravd: true,
+    }
+  }
+
+  const { data: assurance, error: assuranceError } =
+    await supabase.auth.mfa.getAuthenticatorAssuranceLevel()
+  if (assuranceError || assurance?.currentLevel !== 'aal2') {
+    return {
+      ok: false,
+      fel: 'Säkerhetssessionen är inte längre MFA-verifierad. Verifiera MFA igen.',
+      mfaKravd: true,
+    }
+  }
+
   return { ok: true }
 }
 

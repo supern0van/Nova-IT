@@ -29,6 +29,7 @@ function skapaMockSupabase(overrides: Record<string, unknown> = {}) {
         getAuthenticatorAssuranceLevel: vi.fn(),
         ...overrides,
       },
+      refreshSession: vi.fn().mockResolvedValue({ data: { session: { access_token: 'x' } }, error: null }),
     },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } as any
@@ -206,9 +207,13 @@ describe('avregistreraFaktor', () => {
   it('lyckas', async () => {
     const supabase = skapaMockSupabase({
       unenroll: vi.fn().mockResolvedValue({ data: { id: 'faktor-1' }, error: null }),
+      getAuthenticatorAssuranceLevel: vi.fn().mockResolvedValue({ data: { currentLevel: 'aal2' }, error: null }),
     })
+    supabase.auth.refreshSession = vi.fn().mockResolvedValue({ data: { session: { access_token: 'x' } }, error: null })
     const resultat = await avregistreraFaktor(supabase, 'faktor-1')
     expect(resultat.ok).toBe(true)
+    expect(supabase.auth.refreshSession).toHaveBeenCalledTimes(1)
+    expect(supabase.auth.mfa.getAuthenticatorAssuranceLevel).toHaveBeenCalledTimes(1)
   })
 
   it('returnerar svenskt fel om Supabase nekar (t.ex. ej aal2)', async () => {
@@ -217,6 +222,35 @@ describe('avregistreraFaktor', () => {
     })
     const resultat = await avregistreraFaktor(supabase, 'faktor-1')
     expect(resultat.ok).toBe(false)
+  })
+
+  it('fail-closed och markerar MFA-krav om refreshSession misslyckas', async () => {
+    const supabase = skapaMockSupabase({
+      unenroll: vi.fn().mockResolvedValue({ data: { id: 'faktor-1' }, error: null }),
+    })
+    supabase.auth.refreshSession = vi.fn().mockResolvedValue({ data: { session: null }, error: { message: 'refresh failed' } })
+
+    const resultat = await avregistreraFaktor(supabase, 'faktor-1')
+
+    expect(resultat).toEqual({
+      ok: false,
+      fel: 'Säkerhetssessionen kunde inte uppdateras. Du måste verifiera MFA igen.',
+      mfaKravd: true,
+    })
+    expect(supabase.auth.mfa.getAuthenticatorAssuranceLevel).not.toHaveBeenCalled()
+  })
+
+  it('fail-closed och markerar MFA-krav om sessionen efter refresh inte är AAL2', async () => {
+    const supabase = skapaMockSupabase({
+      unenroll: vi.fn().mockResolvedValue({ data: { id: 'faktor-1' }, error: null }),
+      getAuthenticatorAssuranceLevel: vi.fn().mockResolvedValue({ data: { currentLevel: 'aal1' }, error: null }),
+    })
+    supabase.auth.refreshSession = vi.fn().mockResolvedValue({ data: { session: { access_token: 'x' } }, error: null })
+
+    const resultat = await avregistreraFaktor(supabase, 'faktor-1')
+
+    expect(resultat.ok).toBe(false)
+    expect(resultat).toMatchObject({ mfaKravd: true })
   })
 })
 
