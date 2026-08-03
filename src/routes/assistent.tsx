@@ -6,6 +6,7 @@ const assistentUrl = "https://nova-it.se/assistent";
 const assistentTitle = "Förbered ditt IT-ärende – Nova IT";
 const assistentDescription =
   "Beskriv vad som krånglar och få hjälp att samla rätt underlag innan du kontaktar Nova IT.";
+const socialImageUrl = "https://nova-it.se/nova-it-workspace.png";
 
 export const Route = createFileRoute("/assistent")({
   head: () => ({
@@ -15,6 +16,10 @@ export const Route = createFileRoute("/assistent")({
       { property: "og:title", content: assistentTitle },
       { property: "og:description", content: assistentDescription },
       { property: "og:url", content: assistentUrl },
+      { property: "og:image", content: socialImageUrl },
+      { name: "twitter:title", content: assistentTitle },
+      { name: "twitter:description", content: assistentDescription },
+      { name: "twitter:image", content: socialImageUrl },
     ],
     links: [{ rel: "canonical", href: assistentUrl }],
   }),

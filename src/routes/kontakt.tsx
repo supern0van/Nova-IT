@@ -784,6 +784,12 @@ function ContactPage() {
 function ContactInformation() {
   return (
     <>
+      <JsonLd
+        data={buildBreadcrumbJsonLd([
+          { name: "Hem", url: "https://nova-it.se/" },
+          { name: "Kontakt", url: contactUrl },
+        ])}
+      />
       <section className="nova-page-header">
         <Container className="py-14 lg:py-18">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-sky-300">Kontakt</p>

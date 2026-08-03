@@ -7,6 +7,7 @@ const arbetssattUrl = "https://nova-it.se/arbetssatt";
 const arbetssattTitle = "Arbetssätt – Nova IT";
 const arbetssattDescription =
   "Så arbetar Nova IT från första ärendebeskrivning till felsökning, åtgärd och uppföljning.";
+const socialImageUrl = "https://nova-it.se/nova-it-workspace.png";
 
 export const Route = createFileRoute("/arbetssatt")({
   head: () => ({
@@ -16,6 +17,10 @@ export const Route = createFileRoute("/arbetssatt")({
       { property: "og:title", content: arbetssattTitle },
       { property: "og:description", content: arbetssattDescription },
       { property: "og:url", content: arbetssattUrl },
+      { property: "og:image", content: socialImageUrl },
+      { name: "twitter:title", content: arbetssattTitle },
+      { name: "twitter:description", content: arbetssattDescription },
+      { name: "twitter:image", content: socialImageUrl },
     ],
     links: [{ rel: "canonical", href: arbetssattUrl }],
   }),
