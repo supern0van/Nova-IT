@@ -17,7 +17,7 @@ const REDIRECT_HOSTS = new Set(["novait.se", "www.novait.se", "www.nova-it.se"])
 // tillåtna här, annars blockerar CSP:n dem i webbläsaren trots att de fungerar i test.
 const SECURITY_HEADERS: Record<string, string> = {
   "X-Content-Type-Options": "nosniff",
-  "X-Frame-Options": "SAMEORIGIN",
+  "X-Frame-Options": "DENY",
   "Referrer-Policy": "strict-origin-when-cross-origin",
   "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
   "Strict-Transport-Security": "max-age=15552000; includeSubDomains",
@@ -33,7 +33,7 @@ const SECURITY_HEADERS: Record<string, string> = {
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data:",
     "font-src 'self'",
-    "frame-ancestors 'self'",
+    "frame-ancestors 'none'",
     "base-uri 'self'",
     "form-action 'self'",
   ].join("; "),
