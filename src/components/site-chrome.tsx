@@ -55,7 +55,7 @@ export function SiteHeader() {
             onClick={() => setOpen(false)}
           >
             <span className="grid h-10 w-10 place-items-center overflow-hidden rounded-md shadow-sm shadow-sky-950/15">
-              <img src="/nova-it-mark.svg" alt="" className="h-full w-full" />
+              <img src="/nova-it-mark.svg" alt="Nova IT" className="h-full w-full" />
             </span>
             <span>
               <span className="block text-base font-semibold tracking-normal">Nova IT</span>
@@ -162,7 +162,7 @@ export function SiteFooter() {
             className="flex w-fit items-center gap-3 rounded-md transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
           >
             <span className="grid h-10 w-10 place-items-center overflow-hidden rounded-md border border-sky-200/20 bg-sky-300/10">
-              <img src="/nova-it-mark-inverse.svg" alt="" className="h-full w-full" />
+              <img src="/nova-it-mark-inverse.svg" alt="Nova IT" className="h-full w-full" />
             </span>
             <span>
               <span className="block font-semibold text-white">Nova IT</span>
