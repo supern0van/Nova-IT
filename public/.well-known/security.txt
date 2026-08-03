@@ -1,0 +1,4 @@
+Contact: mailto:webmaster@nova-it.se
+Expires: 2027-02-03T23:00:00Z
+Preferred-Languages: sv, en
+Canonical: https://nova-it.se/.well-known/security.txt
