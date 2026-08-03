@@ -9,9 +9,11 @@ Det här är navet för projektets tekniska och historiska dokumentation.
 3. [Projekthistorik](project-history.md) – den förklarande resan från idé till fungerande webbplats.
 4. [Changelog](CHANGELOG.md) – spårbara förändringar med permanenta `NOVA-xxxx`-ID:n.
 5. [Beslutslogg](DECISIONS.md) – större vägval, alternativ och konsekvenser.
-6. [Arbetsflöde för dokumentation](documentation-workflow.md) – hur framtida uppdateringar fångas.
-7. [Deploy och drift](deployment.md) – bygg, verifiering och publicering.
-8. [Roadmap](roadmap.md) – planerat arbete.
+6. [Säkerhetsdrift och incidentrutin](sakerhetsdrift-runbook.md) – praktisk
+   runbook för incidenter, nyckelrotation, återställning och gallring.
+7. [Arbetsflöde för dokumentation](documentation-workflow.md) – hur framtida uppdateringar fångas.
+8. [Deploy och drift](deployment.md) – bygg, verifiering och publicering.
+9. [Roadmap](roadmap.md) – planerat arbete.
 
 ## Tre nivåer av historik
 
@@ -21,7 +23,7 @@ Det här är navet för projektets tekniska och historiska dokumentation.
 
 ## Dokumentationsprincip
 
-Nova IT dokumenterar inte bara *vad* som ändrades. En större post ska även förklara:
+Nova IT dokumenterar inte bara _vad_ som ändrades. En större post ska även förklara:
 
 - varför förändringen behövdes,
 - vilket problem eller mål den hörde till,
