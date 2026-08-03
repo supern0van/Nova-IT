@@ -26,11 +26,10 @@ export const metadata: Metadata = {
   },
   description:
     'Internt arbetsverktyg för Nova IT. Hantera kundärenden från kontaktformulär, supportassistent och kundportal.',
-  generator: 'v0.app',
   robots: { index: false, follow: false },
   icons: {
-    icon: [{ url: '/icon.svg', type: 'image/svg+xml' }],
-    apple: '/apple-icon.png',
+    icon: [{ url: '/nova-it-mark.svg', type: 'image/svg+xml' }],
+    apple: [{ url: '/nova-it-mark.svg', type: 'image/svg+xml' }],
   },
 }
 
