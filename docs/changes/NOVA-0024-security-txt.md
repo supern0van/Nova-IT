@@ -1,25 +1,31 @@
 ---
 id: NOVA-0024
 date: 2026-08-03
+date_precision: day
 type: security
-area: public-site
+status: completed
+systems:
+  - public-site
 ---
 
-# Security.txt for responsible reporting
+# Security.txt för ansvarsfull rapportering
 
-## Summary
+## Vad ändrades?
 
-Nova IT now publishes `/.well-known/security.txt` with a technical contact,
-expiry date, preferred languages and canonical URL.
+Nova IT publicerar nu `/.well-known/security.txt` med teknisk kontakt,
+giltighetstid, föredragna språk och canonical URL.
 
-## Why
+## Varför?
 
-Cloudflare flags missing `security.txt` as a security recommendation. Publishing
-the file gives researchers and visitors a predictable way to report security
-issues without exposing the admin or customer portals.
+Cloudflare flaggar saknad `security.txt` som en säkerhetsrekommendation. Filen
+ger säkerhetsforskare och besökare en förutsägbar rapporteringsväg utan att
+exponera adminportalen eller kundportalen.
 
-## Verification
+## Resultat
 
-- `/.well-known/security.txt` should be served from the public site.
-- The static metadata headers in `public/_headers` should apply the same
-  restrictive security headers used for `robots.txt` and `sitemap.xml`.
+Säkerhetsrapporter hänvisas till `webmaster@nova-it.se` och filen får samma
+restriktiva statiska headers som `robots.txt` och `sitemap.xml`.
+
+## Dokumentationspåverkan
+
+Ingen.
