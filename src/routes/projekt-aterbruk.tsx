@@ -7,6 +7,7 @@ const projektAterbrukUrl = "https://nova-it.se/projekt-aterbruk";
 const projektAterbrukTitle = "Projekt Återbruk – Nova IT";
 const projektAterbrukDescription =
   "Ett dokumenterat LIA-projekt där 116 datorer inventerades, testades och förbereddes för fortsatt användning.";
+const socialImageUrl = "https://nova-it.se/nova-it-workspace.png";
 
 export const Route = createFileRoute("/projekt-aterbruk")({
   head: () => ({
@@ -16,6 +17,10 @@ export const Route = createFileRoute("/projekt-aterbruk")({
       { property: "og:title", content: projektAterbrukTitle },
       { property: "og:description", content: projektAterbrukDescription },
       { property: "og:url", content: projektAterbrukUrl },
+      { property: "og:image", content: socialImageUrl },
+      { name: "twitter:title", content: projektAterbrukTitle },
+      { name: "twitter:description", content: projektAterbrukDescription },
+      { name: "twitter:image", content: socialImageUrl },
     ],
     links: [{ rel: "canonical", href: projektAterbrukUrl }],
   }),
