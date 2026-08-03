@@ -4,6 +4,10 @@ const targets = [
   "https://nova-it.se/",
   "https://www.nova-it.se/",
   "https://novait.se/",
+  "https://nova-it.se/robots.txt",
+  "https://nova-it.se/sitemap.xml",
+  "https://www.nova-it.se/robots.txt",
+  "https://www.nova-it.se/sitemap.xml",
   "https://admin.nova-it.se/logga-in",
   "https://kundportal.nova-it.se/logga-in",
   "https://portal.nova-it.se/logga-in",
@@ -37,6 +41,7 @@ async function checkHttp(url) {
     server: header(response.headers, "server"),
     hsts: header(response.headers, "strict-transport-security"),
     xFrameOptions: header(response.headers, "x-frame-options"),
+    xContentTypeOptions: header(response.headers, "x-content-type-options"),
     frameAncestorsNone: hasDirective(csp, "frame-ancestors 'none'"),
     objectSrcNone: hasDirective(csp, "object-src 'none'"),
     cacheControl,
@@ -84,6 +89,12 @@ const dns = await Promise.all(domains.map(checkDns));
 const findings = [];
 for (const result of http) {
   if (!result.hsts) findings.push(`${result.url}: saknar HSTS-header`);
+  if (result.xContentTypeOptions.toLowerCase() !== "nosniff") {
+    findings.push(`${result.url}: saknar X-Content-Type-Options: nosniff`);
+  }
+  if (result.xFrameOptions.toUpperCase() !== "DENY") {
+    findings.push(`${result.url}: saknar X-Frame-Options: DENY`);
+  }
   if (result.portalNoStore === false) findings.push(`${result.url}: portalvy saknar no-store`);
   if (!result.frameAncestorsNone) findings.push(`${result.url}: CSP saknar frame-ancestors 'none'`);
 }
