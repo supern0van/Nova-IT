@@ -2,7 +2,7 @@
 id: NOVA-0027
 date: 2026-08-03
 date_precision: day
-type: accessibility
+type: fixed
 status: completed
 systems:
   - public-site
