@@ -23,8 +23,9 @@ exponera adminportalen eller kundportalen.
 
 ## Resultat
 
-Säkerhetsrapporter hänvisas till `webmaster@nova-it.se` och filen får samma
-restriktiva statiska headers som `robots.txt` och `sitemap.xml`.
+Säkerhetsrapporter hänvisas till `webmaster@nova-it.se`,
+`admin@nova-it.se` och `support@nova-it.se`. Filen får samma restriktiva
+statiska headers som `robots.txt` och `sitemap.xml`.
 
 ## Dokumentationspåverkan
 
