@@ -59,8 +59,8 @@ export async function forsokSkickaValkomstmejl(uppgifter: {
     })
 
     if (!svar.ok) {
-      const kropp = await svar.text()
-      console.error('Välkomstmejl kunde inte skickas.', svar.status, kropp)
+      await svar.body?.cancel().catch(() => undefined)
+      console.error('Välkomstmejl kunde inte skickas.', { status: svar.status })
     }
   } catch (fel) {
     console.error('Välkomstmejl kunde inte skickas.', fel)
