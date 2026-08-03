@@ -1,11 +1,12 @@
 import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Menu, X, ArrowUpRight, Mail, LogIn } from "lucide-react";
+import { Menu, X, ArrowUpRight, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Container } from "@/components/design-system";
 import { contactChannels } from "@/lib/nova-data";
 import { LegalDialogTrigger } from "@/components/legal-dialog";
 import { CookiePreferencesButton } from "@/components/cookie-consent";
+import { PortalMeny } from "@/components/portal-meny";
 
 const nav = [
   { to: "/", label: "Hem" },
@@ -25,8 +26,6 @@ const footerServiceColumns = [
 
 const linkClass =
   "whitespace-nowrap rounded-md px-2.5 py-2 text-sm font-medium text-slate-300 transition-colors hover:bg-white/8 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 xl:px-3";
-
-const KUNDPORTAL_URL = "https://kundportal.nova-it.se/logga-in";
 
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
@@ -82,16 +81,7 @@ export function SiteHeader() {
                 Kontakta oss <ArrowUpRight className="h-4 w-4" />
               </Link>
             </Button>
-            <Button
-              asChild
-              variant="outline"
-              size="sm"
-              className="ml-1.5 whitespace-nowrap border-white/20 bg-transparent text-white hover:bg-white/10 hover:text-white"
-            >
-              <a href={KUNDPORTAL_URL} target="_blank" rel="noopener noreferrer">
-                Kundportal <LogIn className="h-4 w-4" />
-              </a>
-            </Button>
+            <PortalMeny className="ml-1.5" />
           </nav>
 
           <button
@@ -135,15 +125,7 @@ export function SiteHeader() {
                   Kontakta oss <ArrowUpRight className="h-4 w-4" />
                 </Link>
               </Button>
-              <Button
-                asChild
-                variant="outline"
-                className="mt-3 border-white/20 bg-transparent text-white hover:bg-white/10 hover:text-white"
-              >
-                <a href={KUNDPORTAL_URL} target="_blank" rel="noopener noreferrer">
-                  Kundportal <LogIn className="h-4 w-4" />
-                </a>
-              </Button>
+              <PortalMeny variant="mobil" className="mt-3" onNavigate={() => setOpen(false)} />
             </nav>
           </Container>
         </div>
