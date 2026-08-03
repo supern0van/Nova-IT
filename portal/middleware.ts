@@ -13,6 +13,7 @@ const SECURITY_HEADERS: Record<string, string> = {
   'Referrer-Policy': 'strict-origin-when-cross-origin',
   'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
   'Strict-Transport-Security': 'max-age=15552000; includeSubDomains',
+  'Cross-Origin-Opener-Policy': 'same-origin',
 }
 
 function skapaContentSecurityPolicy(nonce: string): string {
