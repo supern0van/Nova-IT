@@ -150,7 +150,11 @@ export async function skickaKontaktforfragan(
   } | null;
 
   if (!intakeResponse.ok || !intakeBody?.accepted || !intakeBody.arendenummer) {
-    console.error("Ärendeintaget avvisade förfrågan.", intakeResponse.status, intakeBody);
+    console.error("Ärendeintaget avvisade förfrågan.", {
+      status: intakeResponse.status,
+      accepted: intakeBody?.accepted === true,
+      hasTicketNumber: typeof intakeBody?.arendenummer === "string",
+    });
     throw new Error(
       "Ärendet kunde inte registreras just nu. Försök igen, eller skriv direkt till oss.",
     );
@@ -301,8 +305,8 @@ async function forsokSkickaInternAvisering(
     });
 
     if (!response.ok) {
-      const body = await response.text();
-      console.error("Intern avisering kunde inte skickas.", response.status, body);
+      await response.body?.cancel().catch(() => undefined);
+      console.error("Intern avisering kunde inte skickas.", { status: response.status });
     }
   } catch (error) {
     console.error("Intern avisering kunde inte skickas.", error);
@@ -356,8 +360,8 @@ async function forsokSkickaKundbekraftelse(uppgifter: {
     });
 
     if (!response.ok) {
-      const body = await response.text();
-      console.error("Kundbekräftelse kunde inte skickas.", response.status, body);
+      await response.body?.cancel().catch(() => undefined);
+      console.error("Kundbekräftelse kunde inte skickas.", { status: response.status });
       return false;
     }
 

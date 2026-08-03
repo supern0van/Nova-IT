@@ -57,8 +57,8 @@ export async function forsokAviseraKundOmSvar(uppgifter: {
     })
 
     if (!svar.ok) {
-      const kropp = await svar.text()
-      console.error('Kundavisering kunde inte skickas.', svar.status, kropp)
+      await svar.body?.cancel().catch(() => undefined)
+      console.error('Kundavisering kunde inte skickas.', { status: svar.status })
     }
   } catch (fel) {
     console.error('Kundavisering kunde inte skickas.', fel)

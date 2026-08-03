@@ -55,8 +55,8 @@ export async function skickaKlarForUpphamtningSms(
   }
 
   if (!svar.ok) {
-    const body = await svar.text().catch(() => '')
-    console.error('46elks avvisade SMS-utskicket.', svar.status, body)
+    await svar.body?.cancel().catch(() => undefined)
+    console.error('46elks avvisade SMS-utskicket.', { status: svar.status })
     throw new OperativtAdminFel('SMS kunde inte skickas just nu. Försök igen om en stund.', 502)
   }
 
