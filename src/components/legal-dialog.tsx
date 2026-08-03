@@ -351,7 +351,7 @@ function LegalDocument({ document }: { document: (typeof documents)[LegalDocumen
       <DialogHeader className="border-b border-slate-200 bg-slate-50 px-6 py-5 pr-14 text-left sm:px-8">
         <div className="flex items-center gap-3">
           <span className="grid h-9 w-9 place-items-center overflow-hidden rounded-md bg-sky-600 shadow-sm shadow-sky-950/20">
-            <img src="/nova-it-mark-inverse.svg" alt="" className="h-full w-full" />
+            <img src="/nova-it-mark-inverse.svg" alt="Nova IT" className="h-full w-full" />
           </span>
           <span className="text-sm font-bold tracking-wide text-sky-700">NOVA IT</span>
         </div>

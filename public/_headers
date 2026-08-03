@@ -4,6 +4,7 @@
   Strict-Transport-Security: max-age=15552000; includeSubDomains
   X-Content-Type-Options: nosniff
   X-Frame-Options: DENY
+  Cross-Origin-Opener-Policy: same-origin
 
 /sitemap.xml
   Content-Security-Policy: default-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'
@@ -11,6 +12,7 @@
   Strict-Transport-Security: max-age=15552000; includeSubDomains
   X-Content-Type-Options: nosniff
   X-Frame-Options: DENY
+  Cross-Origin-Opener-Policy: same-origin
 
 /.well-known/security.txt
   Content-Security-Policy: default-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'
@@ -18,3 +20,4 @@
   Strict-Transport-Security: max-age=15552000; includeSubDomains
   X-Content-Type-Options: nosniff
   X-Frame-Options: DENY
+  Cross-Origin-Opener-Policy: same-origin
