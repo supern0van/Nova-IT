@@ -40,6 +40,7 @@ export function PortalMeny({
   const [visaLosenord, setVisaLosenord] = useState(false);
   const behallare = useRef<HTMLDivElement>(null);
   const knapp = useRef<HTMLButtonElement>(null);
+  const arendenummerFalt = useRef<HTMLInputElement>(null);
   const panelId = useId();
   const arendenummerId = useId();
   const losenordId = useId();
@@ -67,6 +68,14 @@ export function PortalMeny({
       document.removeEventListener("keydown", vidTangent);
       document.removeEventListener("mousedown", vidKlickUtanfor);
     };
+  }, [open]);
+
+  // Flyttar tangentbordsfokus direkt till Ärendenummer-fältet när panelen
+  // öppnas, så att både tangentbords- och skärmläsaranvändare hamnar rätt
+  // utan att behöva tabba dit manuellt.
+  useEffect(() => {
+    if (!open) return;
+    arendenummerFalt.current?.focus();
   }, [open]);
 
   const arMobil = variant === "mobil";
@@ -133,6 +142,7 @@ export function PortalMeny({
               aria-hidden="true"
             />
             <input
+              ref={arendenummerFalt}
               id={arendenummerId}
               name="arendenummer"
               type="text"
