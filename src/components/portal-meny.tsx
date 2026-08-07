@@ -1,19 +1,27 @@
 import { useEffect, useId, useRef, useState } from "react";
-import { ArrowRight, ChevronDown, Lock, ShieldCheck } from "lucide-react";
+import { ChevronDown, Eye, EyeOff, Lock, ShieldCheck, Ticket } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
-// Kundportalen ligger på egen origin med eget CSRF- och sessionsskydd.
-// Inloggningen sker därför alltid där, aldrig här - den här panelen är en
-// ingång som förklarar vart man är på väg, inte ett inloggningsformulär.
-// Se docs/changes/NOVA-0028-portal-ingang.md för avvägningen.
+// Inloggningen postas som ett vanligt HTML-formulär (top-level POST) direkt
+// till kundportalens egen origin. Lösenordet passerar därför aldrig
+// nova-it.se:s server, och kundportalen sätter sina egna host-bundna
+// sessionskakor innan den skickar kunden vidare till returvägen nedan.
+// Endpointen har en egen allowlist för nova-it.se-origins och rate limiting;
+// se Nova-IT-Kundportal: app/api/kund/logga-in-form/route.ts.
 const KUNDPORTAL_BAS = "https://kundportal.nova-it.se";
-const KUNDPORTAL_INLOGGNING = `${KUNDPORTAL_BAS}/logga-in`;
+const KUNDPORTAL_LOGGA_IN_FORM = `${KUNDPORTAL_BAS}/api/kund/logga-in-form`;
 const KUNDPORTAL_GLOMT_LOSENORD = `${KUNDPORTAL_BAS}/glomt-losenord`;
+const KUNDPORTAL_SAKERHET = `${KUNDPORTAL_BAS}/sakerhet`;
+
+// Dit kunden landar direkt efter lyckad inloggning - ingen mellanlandning på
+// en inloggningssida. Måste vara en relativ path; kundportalen avvisar allt
+// annat (internReturvag i samma route).
+const RETURVAG_EFTER_INLOGGNING = "/mina-arenden";
 
 /**
- * Portal-ingången i sidhuvudet. Öppnar en panel med kort sammanhang och
- * vidarebefordran till kundportalens egen inloggning.
+ * Portal-ingången i sidhuvudet. Öppnar en panel med inloggning direkt i
+ * headern - ärendenummer, lösenord och "Glömt lösenord?".
  *
  * Interna roller har medvetet ingen synlig ingång här: adminportalen ligger
  * bakom Cloudflare Access på egen subdomän och ska inte exponeras som ett
@@ -29,9 +37,12 @@ export function PortalMeny({
   onNavigate?: () => void;
 }) {
   const [open, setOpen] = useState(false);
+  const [visaLosenord, setVisaLosenord] = useState(false);
   const behallare = useRef<HTMLDivElement>(null);
   const knapp = useRef<HTMLButtonElement>(null);
   const panelId = useId();
+  const arendenummerId = useId();
+  const losenordId = useId();
 
   // Escape stänger och lämnar tillbaka fokus till knappen, så att
   // tangentbordsnavigering inte tappar sin plats i sidhuvudet.
@@ -99,24 +110,79 @@ export function PortalMeny({
           Följ dina ärenden, se status och svara Nova IT direkt i portalen.
         </p>
 
-        <a
-          href={KUNDPORTAL_INLOGGNING}
-          target="_blank"
-          rel="noopener noreferrer"
-          onClick={() => {
+        {/* Inget target-attribut: formuläret navigerar i samma flik, så
+            kunden landar inloggad på sin ärendesida utan att en ny flik
+            öppnas. */}
+        <form
+          action={KUNDPORTAL_LOGGA_IN_FORM}
+          method="POST"
+          onSubmit={() => {
             setOpen(false);
             onNavigate?.();
           }}
-          className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-md bg-sky-500 px-4 text-sm font-semibold text-[#04101c] transition-colors hover:bg-sky-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0c141d]"
+          className="mt-4"
         >
-          Logga in
-          <ArrowRight className="h-4 w-4" aria-hidden="true" />
-        </a>
+          <input type="hidden" name="returnTo" value={RETURVAG_EFTER_INLOGGNING} />
+
+          <label htmlFor={arendenummerId} className="block text-[13px] font-medium text-slate-200">
+            Ärendenummer
+          </label>
+          <div className="relative mt-1.5">
+            <Ticket
+              className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500"
+              aria-hidden="true"
+            />
+            <input
+              id={arendenummerId}
+              name="arendenummer"
+              type="text"
+              required
+              autoComplete="username"
+              className="min-h-11 w-full rounded-md border border-white/15 bg-[#070d14] pl-9 pr-3 text-sm text-white outline-none transition-colors placeholder:text-slate-600 focus-visible:border-sky-300 focus-visible:ring-2 focus-visible:ring-sky-300/30"
+            />
+          </div>
+
+          <label htmlFor={losenordId} className="mt-3 block text-[13px] font-medium text-slate-200">
+            Lösenord
+          </label>
+          <div className="relative mt-1.5">
+            <Lock
+              className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500"
+              aria-hidden="true"
+            />
+            <input
+              id={losenordId}
+              name="losenord"
+              type={visaLosenord ? "text" : "password"}
+              required
+              autoComplete="current-password"
+              className="min-h-11 w-full rounded-md border border-white/15 bg-[#070d14] pl-9 pr-11 text-sm text-white outline-none transition-colors placeholder:text-slate-600 focus-visible:border-sky-300 focus-visible:ring-2 focus-visible:ring-sky-300/30"
+            />
+            <button
+              type="button"
+              onClick={() => setVisaLosenord((value) => !value)}
+              aria-label={visaLosenord ? "Dölj lösenord" : "Visa lösenord"}
+              aria-pressed={visaLosenord}
+              className="absolute right-1 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-md text-slate-500 transition-colors hover:text-slate-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
+            >
+              {visaLosenord ? (
+                <EyeOff className="h-4 w-4" aria-hidden="true" />
+              ) : (
+                <Eye className="h-4 w-4" aria-hidden="true" />
+              )}
+            </button>
+          </div>
+
+          <button
+            type="submit"
+            className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-md bg-sky-500 px-4 text-sm font-semibold text-[#04101c] transition-colors hover:bg-sky-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0c141d]"
+          >
+            Logga in
+          </button>
+        </form>
 
         <a
           href={KUNDPORTAL_GLOMT_LOSENORD}
-          target="_blank"
-          rel="noopener noreferrer"
           onClick={() => {
             setOpen(false);
             onNavigate?.();
@@ -128,7 +194,12 @@ export function PortalMeny({
 
         <p className="mt-4 flex items-center justify-center gap-1.5 border-t border-white/8 pt-3.5 text-[11px] text-slate-500">
           <ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" />
-          Säker anslutning · Nova IT
+          <a
+            href={KUNDPORTAL_SAKERHET}
+            className="underline decoration-dotted underline-offset-2 transition-colors hover:text-slate-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
+          >
+            Säker anslutning · Nova IT
+          </a>
         </p>
       </div>
     </div>
