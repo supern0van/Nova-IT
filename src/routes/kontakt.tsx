@@ -378,7 +378,7 @@ function ContactPage() {
           <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
             {!sent && (
               <div className="flex flex-col items-center gap-3 sm:items-start">
-                <TurnstileWidget onToken={setTurnstileToken} />
+                <TurnstileWidget action="contact" onToken={setTurnstileToken} />
                 <Button onClick={sendContactRequest} disabled={isSending}>
                   {isSending ? "Skickar..." : "Skicka ärendet"}
                 </Button>
