@@ -62,6 +62,10 @@ Den 23 juli 2026 infördes ett sammanhängande dokumentationssystem. Det består
 
 Lösningen är medvetet halvautomatisk. Automation kontrollerar att betydande förändringar har ett fragment, men skriver inte om den mänskliga historiken. På så sätt fångas framtida uppdateringar utan att bakgrund, orsaker och resultat reduceras till oprecisa commit-rubriker.
 
+## Epok 9 – Portal-inloggningen flyttar in i sidhuvudet
+
+En fristående Figma Make-skiss ("Kundinloggning med dropdown") var första gången idén om en inloggning direkt i sidhuvudets Portal-knapp visualiserades. Skissen byggdes aldrig ihop med produktionen - den blev startpunkten för riktningen, inte koden. Den riktiga inloggningen (NOVA-0028–NOVA-0031) implementerades separat, i `Nova-IT` och `Nova-IT-Kundportal`, med kundportalens egna skydd intakta. Skiss-repot (`nova-it-portal-dropdown`) arkiverades 2026-08-07.
+
 ## Fortsatt historisk verifiering
 
 Följande uppgifter bör kompletteras när underlagen finns tillgängliga:
