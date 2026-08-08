@@ -2,6 +2,11 @@ import { useEffect, useId, useRef, useState } from "react";
 import { ChevronDown, Eye, EyeOff, Lock, ShieldCheck, Ticket } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import { TurnstileWidget } from "@/components/turnstile-widget";
+
+// Egen action skiljer den här inloggningen från kontaktformulärets Turnstile-
+// verifiering (samma widget, se Nova-IT-Kundportal: lib/turnstile-server.ts).
+const TURNSTILE_ACTION = "portal_header_logga_in";
 
 // Inloggningen postas som ett vanligt HTML-formulär (top-level POST) direkt
 // till kundportalens egen origin. Lösenordet passerar därför aldrig
@@ -182,6 +187,17 @@ export function PortalMeny({
               )}
             </button>
           </div>
+
+          {/* Renderas bara medan panelen är öppen - dels för att slippa
+              montera widgeten i en dold (hidden) behållare, dels för att
+              slippa ladda Turnstile-scriptet för besökare som aldrig öppnar
+              Portal. Token hamnar automatiskt i ett dolt cf-turnstile-
+              response-fält i formuläret ovan; ingen egen state behövs. */}
+          {open && (
+            <div className="mt-3">
+              <TurnstileWidget action={TURNSTILE_ACTION} onToken={() => {}} />
+            </div>
+          )}
 
           <button
             type="submit"

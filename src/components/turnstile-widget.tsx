@@ -49,7 +49,13 @@ function loadTurnstileScript(): Promise<void> {
  * Wrangler-konfigurerad Site Key fungerar även om den inte fanns vid Vite-
  * builden. Saknas Site Key renderas inget widget för lokal utveckling.
  */
-export function TurnstileWidget({ onToken }: { onToken: (token: string | null) => void }) {
+export function TurnstileWidget({
+  action,
+  onToken,
+}: {
+  action: string;
+  onToken: (token: string | null) => void;
+}) {
   const containerRef = useRef<HTMLDivElement>(null);
   const widgetIdRef = useRef<string | null>(null);
   const callbackName = useId().replace(/[^a-zA-Z0-9]/g, "");
@@ -72,7 +78,7 @@ export function TurnstileWidget({ onToken }: { onToken: (token: string | null) =
         const clearToken = () => onToken(null);
         widgetIdRef.current = window.turnstile.render(containerRef.current, {
           sitekey: siteKey,
-          action: "contact",
+          action,
           callback: (token: string) => onToken(token),
           "error-callback": clearToken,
           "expired-callback": clearToken,
