@@ -1,7 +1,7 @@
 'use client'
 
 import { CalendarPlusIcon, CheckCircle2Icon, LockIcon, SmartphoneIcon } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 
 import { useAuth } from '@/components/auth/auth-provider'
@@ -37,10 +37,12 @@ import { personalNamn, tilldelningsbarPersonal } from '@/lib/personal'
 import {
   andraPrioritet,
   andraStatus,
+  hamtaKundportalStatus,
   markeraSomLost,
   skickaKlarSms,
   skickaNyaInloggningsuppgifter,
   tilldelaArende,
+  type KundportalStatus,
 } from '@/lib/store'
 import type { Anvandare, Arende, ArendeStatus, Kund, Prioritet } from '@/lib/types'
 
@@ -77,6 +79,18 @@ export function ArendeAtgarder({
   // vanligt. Bara ett EXPLICIT `false` (kundens faktiska opt-out) låser den.
   const smsLastAvKund = kund?.kontaktKlartSms === false
   const avslutat = arende.status === 'lost' || arende.status === 'stangd'
+
+  const [kundportalStatus, setKundportalStatus] = useState<KundportalStatus | null>(null)
+  useEffect(() => {
+    if (!kanSkickaInloggningsuppgifter) return
+    let avbruten = false
+    hamtaKundportalStatus(arende.kundId).then((status) => {
+      if (!avbruten) setKundportalStatus(status)
+    })
+    return () => {
+      avbruten = true
+    }
+  }, [kanSkickaInloggningsuppgifter, arende.kundId])
 
   function felmeddelande(error: unknown) {
     return error instanceof Error ? error.message : 'Kunde inte spara ändringen. Försök igen.'
@@ -166,11 +180,26 @@ export function ArendeAtgarder({
           ? 'Nytt lösenord skickat till kunden'
           : 'Kundportalskonto skapat och uppgifter skickade',
       )
+      // Optimistisk uppdatering i stället för ett nytt nätverksanrop -
+      // vi vet redan det nya läget från svaret ovan.
+      setKundportalStatus({ kontoFinns: true, masteBytaLosenord: true, senastInloggad: null })
     } catch (error) {
       toast.error('Kunde inte skicka inloggningsuppgifter', { description: felmeddelande(error) })
     } finally {
       setSparar(null)
     }
+  }
+
+  function kundportalStatusText(): string | null {
+    if (!kundportalStatus) return null
+    if (!kundportalStatus.kontoFinns) return 'Kundportal: inget konto ännu'
+    if (kundportalStatus.senastInloggad) {
+      return `Kundportal: inloggad senast ${new Date(kundportalStatus.senastInloggad).toLocaleDateString('sv-SE')}`
+    }
+    if (kundportalStatus.masteBytaLosenord) {
+      return 'Kundportal: uppgifter skickade, väntar på första inloggning'
+    }
+    return 'Kundportal: konto finns, ännu inte inloggad'
   }
 
   const ansvarigVarden: Record<string, string> = {
@@ -326,6 +355,11 @@ export function ArendeAtgarder({
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
+        )}
+        {kanSkickaInloggningsuppgifter && kundportalStatusText() && (
+          <span className="text-xs text-muted" data-testid="kundportal-status">
+            {kundportalStatusText()}
+          </span>
         )}
         {kanSkickaInloggningsuppgifter && (
           <AlertDialog>

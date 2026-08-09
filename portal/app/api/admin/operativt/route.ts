@@ -24,6 +24,7 @@ import {
   uppdateraOperativtArende,
 } from '@/lib/admin/operativa-server'
 import { skickaNyaInloggningsuppgifterForArende } from '@/lib/admin/kundinloggning-server'
+import { forsokHamtaKundkontoStatus } from '@/lib/admin/kundportal-konto-client'
 import { skickaKlarForUpphamtningSms } from '@/lib/admin/sms-server'
 import { arAdministrator } from '@/lib/auth/roll'
 import { hamtaEgenProfilFranDatabasen, hamtaRollFranDatabasen } from '@/lib/auth/roll-server'
@@ -37,6 +38,20 @@ export async function GET(request: NextRequest) {
 
   if (atkomst.status !== 200) {
     return NextResponse.json(tomtOperativtSvar(), { status: atkomst.status })
+  }
+
+  // Kundportalens statusvisning - egen liten gren i stället för en ny
+  // route, för att slippa duplicera verifieraOperativAtkomst. Läses en
+  // kund i taget (på begäran, från ärendesidan) - INTE bakat in i den
+  // stora hamtaOperativAdminData-hämtningen, det vore en nätverksanrop
+  // till kundportalen per kund i hela listan varje gång.
+  const kundportalStatusFor = request.nextUrl.searchParams.get('kundportalStatus')
+  if (kundportalStatusFor) {
+    const status = await forsokHamtaKundkontoStatus(kundportalStatusFor)
+    if (!status) {
+      return NextResponse.json({ ok: false }, { status: 502 })
+    }
+    return NextResponse.json({ ok: true, ...status })
   }
 
   try {

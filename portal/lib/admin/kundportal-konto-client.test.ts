@@ -98,3 +98,56 @@ describe('forsokSkapaKundportalKonto', () => {
     expect(sedSignal).toBeInstanceOf(AbortSignal)
   })
 })
+
+describe('forsokHamtaKundkontoStatus', () => {
+  it('returnerar undefined (soft-fail) om KUNDPORTAL_URL eller KUNDPORTAL_INTAG_SECRET saknas', async () => {
+    delete process.env.KUNDPORTAL_URL
+    delete process.env.KUNDPORTAL_INTAG_SECRET
+
+    const { forsokHamtaKundkontoStatus } = await import('./kundportal-konto-client')
+    const resultat = await forsokHamtaKundkontoStatus('kund-1')
+
+    expect(resultat).toBeUndefined()
+  })
+
+  it('returnerar statusen vid lyckat anrop', async () => {
+    process.env.KUNDPORTAL_URL = 'https://kundportal.nova-it.se'
+    process.env.KUNDPORTAL_INTAG_SECRET = 'test-hemlighet'
+    globalThis.fetch = (async () =>
+      jsonResponse({
+        ok: true,
+        kontoFinns: true,
+        masteBytaLosenord: false,
+        senastInloggad: '2026-08-01T10:00:00.000Z',
+      })) as unknown as typeof fetch
+
+    const { forsokHamtaKundkontoStatus } = await import('./kundportal-konto-client')
+    const resultat = await forsokHamtaKundkontoStatus('kund-1')
+
+    expect(resultat).toEqual({
+      kontoFinns: true,
+      masteBytaLosenord: false,
+      senastInloggad: '2026-08-01T10:00:00.000Z',
+    })
+  })
+
+  it('returnerar undefined om kundportalen svarar med fel', async () => {
+    process.env.KUNDPORTAL_URL = 'https://kundportal.nova-it.se'
+    process.env.KUNDPORTAL_INTAG_SECRET = 'test-hemlighet'
+    globalThis.fetch = (async () => jsonResponse({ ok: false }, 500)) as unknown as typeof fetch
+
+    const { forsokHamtaKundkontoStatus } = await import('./kundportal-konto-client')
+    await expect(forsokHamtaKundkontoStatus('kund-1')).resolves.toBeUndefined()
+  })
+
+  it('returnerar undefined om kundportalen inte kan nås', async () => {
+    process.env.KUNDPORTAL_URL = 'https://kundportal.nova-it.se'
+    process.env.KUNDPORTAL_INTAG_SECRET = 'test-hemlighet'
+    globalThis.fetch = (async () => {
+      throw new Error('connection refused')
+    }) as unknown as typeof fetch
+
+    const { forsokHamtaKundkontoStatus } = await import('./kundportal-konto-client')
+    await expect(forsokHamtaKundkontoStatus('kund-1')).resolves.toBeUndefined()
+  })
+})
