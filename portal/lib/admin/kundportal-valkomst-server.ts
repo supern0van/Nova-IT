@@ -43,6 +43,8 @@ export async function forsokSkickaValkomstmejl(uppgifter: {
 
   const fornamn = uppgifter.kundNamn.split(' ')[0] || uppgifter.kundNamn
   const arendenummer = optionalText(uppgifter.arendenummer)
+  const kundportalUrl = process.env.KUNDPORTAL_URL ?? 'https://kundportal.nova-it.se'
+  const loginUrl = `${kundportalUrl.replace(/\/$/, '')}/logga-in`
 
   const subject = uppgifter.atersallt
     ? 'Nytt lösenord till Nova IT:s kundportal'
@@ -61,6 +63,8 @@ export async function forsokSkickaValkomstmejl(uppgifter: {
         `Ärendenummer: ${arendenummer}`,
         `Lösenord: ${uppgifter.tillfalligtLosenord}`,
         '',
+        `Logga in i Kundportalen: ${loginUrl}`,
+        '',
         'Hälsningar,',
         'Nova IT',
       ].join('\n')
@@ -73,6 +77,8 @@ export async function forsokSkickaValkomstmejl(uppgifter: {
         'tillsammans med lösenordet nedan.',
         '',
         `Lösenord: ${uppgifter.tillfalligtLosenord}`,
+        '',
+        `Logga in i Kundportalen: ${loginUrl}`,
         '',
         'Hälsningar,',
         'Nova IT',
