@@ -21,6 +21,7 @@ import {
   uppdateraOperativtArende,
 } from '@/lib/admin/operativa-server'
 import { skickaNyaInloggningsuppgifterForArende } from '@/lib/admin/kundinloggning-server'
+import { forsokHamtaKundkontoStatus } from '@/lib/admin/kundportal-konto-client'
 import { skickaKlarForUpphamtningSms } from '@/lib/admin/sms-server'
 import { hamtaAutentiseradAnvandarId } from '@/lib/supabase/route-anvandare'
 
@@ -64,6 +65,9 @@ vi.mock('@/lib/admin/sms-server', () => ({
 vi.mock('@/lib/admin/kundinloggning-server', () => ({
   skickaNyaInloggningsuppgifterForArende: vi.fn(),
 }))
+vi.mock('@/lib/admin/kundportal-konto-client', () => ({
+  forsokHamtaKundkontoStatus: vi.fn(),
+}))
 
 const hamtaAutentiseradAnvandarIdMock = vi.mocked(hamtaAutentiseradAnvandarId)
 const hamtaEgenProfilFranDatabasenMock = vi.mocked(hamtaEgenProfilFranDatabasen)
@@ -84,9 +88,16 @@ const uppdateraOperativKundanteckningMock = vi.mocked(uppdateraOperativKundantec
 const uppdateraOperativtArendeMock = vi.mocked(uppdateraOperativtArende)
 const skickaKlarForUpphamtningSmsMock = vi.mocked(skickaKlarForUpphamtningSms)
 const skickaNyaInloggningsuppgifterForArendeMock = vi.mocked(skickaNyaInloggningsuppgifterForArende)
+const forsokHamtaKundkontoStatusMock = vi.mocked(forsokHamtaKundkontoStatus)
 
 function request() {
   return new NextRequest('https://admin.nova-it.se/api/admin/operativt')
+}
+
+function statusRequest(adminKundId: string) {
+  return new NextRequest(
+    `https://admin.nova-it.se/api/admin/operativt?kundportalStatus=${encodeURIComponent(adminKundId)}`,
+  )
 }
 
 function postRequest(body: unknown) {
@@ -165,6 +176,47 @@ describe('/api/admin/operativt', () => {
 
     expect(svar.status).toBe(200)
     expect(await svar.json()).toEqual(tomtOperativtSvar)
+  })
+
+  it('returnerar kundportalstatus via kundportalStatus-parametern, utan att hämta operativ data', async () => {
+    hamtaAutentiseradAnvandarIdMock.mockResolvedValue('user-1')
+    hamtaRollFranDatabasenMock.mockResolvedValue('medarbetare')
+    forsokHamtaKundkontoStatusMock.mockResolvedValue({
+      kontoFinns: true,
+      masteBytaLosenord: false,
+      senastInloggad: '2026-08-01T10:00:00.000Z',
+    })
+
+    const svar = await GET(statusRequest('kund-1'))
+
+    expect(svar.status).toBe(200)
+    expect(await svar.json()).toEqual({
+      ok: true,
+      kontoFinns: true,
+      masteBytaLosenord: false,
+      senastInloggad: '2026-08-01T10:00:00.000Z',
+    })
+    expect(forsokHamtaKundkontoStatusMock).toHaveBeenCalledWith('kund-1')
+    expect(hamtaOperativAdminDataMock).not.toHaveBeenCalled()
+  })
+
+  it('returnerar 502 för kundportalStatus om kundportalen inte kan nås', async () => {
+    hamtaAutentiseradAnvandarIdMock.mockResolvedValue('user-1')
+    hamtaRollFranDatabasenMock.mockResolvedValue('medarbetare')
+    forsokHamtaKundkontoStatusMock.mockResolvedValue(undefined)
+
+    const svar = await GET(statusRequest('kund-1'))
+
+    expect(svar.status).toBe(502)
+  })
+
+  it('kräver fortfarande giltig session för kundportalStatus', async () => {
+    hamtaAutentiseradAnvandarIdMock.mockResolvedValue(null)
+
+    const svar = await GET(statusRequest('kund-1'))
+
+    expect(svar.status).toBe(401)
+    expect(forsokHamtaKundkontoStatusMock).not.toHaveBeenCalled()
   })
 
   it('returnerar operativ data för administrator', async () => {

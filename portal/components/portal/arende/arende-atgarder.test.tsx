@@ -31,6 +31,7 @@ vi.mock('sonner', () => ({
 }))
 
 const skickaNyaInloggningsuppgifter = vi.fn()
+const hamtaKundportalStatus = vi.fn().mockResolvedValue(null)
 
 vi.mock('@/lib/store', () => ({
   andraStatus,
@@ -38,6 +39,7 @@ vi.mock('@/lib/store', () => ({
   tilldelaArende,
   markeraSomLost,
   skickaNyaInloggningsuppgifter,
+  hamtaKundportalStatus,
 }))
 
 let ArendeAtgarder: typeof import('@/components/portal/arende/arende-atgarder').ArendeAtgarder
@@ -87,6 +89,7 @@ describe('ArendeAtgarder – SMS-knapp och kontaktpreferenser', () => {
   afterEach(() => {
     vi.clearAllMocks()
     kan.mockReturnValue(true)
+    hamtaKundportalStatus.mockResolvedValue(null)
     cleanup()
   })
 
@@ -150,12 +153,44 @@ describe('ArendeAtgarder – SMS-knapp och kontaktpreferenser', () => {
     expect(skickaNyaInloggningsuppgifter).toHaveBeenCalledWith('arende-1', 'Admin Nova')
     expect(toast.success).toHaveBeenCalledWith('Nytt lösenord skickat till kunden')
   })
+
+  it('visar kundportalstatus när den hämtats ("inget konto ännu")', async () => {
+    hamtaKundportalStatus.mockResolvedValue({
+      kontoFinns: false,
+      masteBytaLosenord: null,
+      senastInloggad: null,
+    })
+    render(<ArendeAtgarder arende={arende} personal={[]} kund={kund} vidBoka={vi.fn()} />)
+
+    expect(hamtaKundportalStatus).toHaveBeenCalledWith('kund-1')
+    expect(await screen.findByText('Kundportal: inget konto ännu')).toBeTruthy()
+  })
+
+  it('visar senaste inloggningsdatum när kunden loggat in', async () => {
+    hamtaKundportalStatus.mockResolvedValue({
+      kontoFinns: true,
+      masteBytaLosenord: false,
+      senastInloggad: '2026-08-01T10:00:00.000Z',
+    })
+    render(<ArendeAtgarder arende={arende} personal={[]} kund={kund} vidBoka={vi.fn()} />)
+
+    expect(await screen.findByText(/Kundportal: inloggad senast/)).toBeTruthy()
+  })
+
+  it('visar ingen statusrad utan redigera_kund', () => {
+    kan.mockImplementation((behorighet: string) => behorighet !== 'redigera_kund')
+    render(<ArendeAtgarder arende={arende} personal={[]} kund={kund} vidBoka={vi.fn()} />)
+
+    expect(hamtaKundportalStatus).not.toHaveBeenCalled()
+    expect(screen.queryByTestId('kundportal-status')).toBeNull()
+  })
 })
 
 describe('ArendeAtgarder – felhantering och dubbelklicksskydd', () => {
   afterEach(() => {
     vi.clearAllMocks()
     kan.mockReturnValue(true)
+    hamtaKundportalStatus.mockResolvedValue(null)
     cleanup()
   })
 

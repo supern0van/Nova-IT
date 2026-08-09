@@ -136,6 +136,65 @@ export async function forsokSkickaNyaInloggningsuppgifter(
 }
 
 /**
+ * Skrivskyddad statusläsning för adminportalens statusvisning - "har
+ * inloggningsuppgifter skickats", "måste kunden byta lösenord", "har
+ * kunden loggat in". Anropar kundportalens `GET /api/internal/kundkonto`.
+ * Läser ALDRIG ut lösenord - se hamtaKundkontoStatus i kundportalrepot.
+ *
+ * Soft-fail: returnerar `undefined` om kundportalen inte kan nås, i
+ * stället för att kasta - en trasig statuskoll ska aldrig blockera
+ * resten av ärendesidan från att visas.
+ */
+export interface KundkontoStatus {
+  kontoFinns: boolean
+  masteBytaLosenord: boolean | null
+  senastInloggad: string | null
+}
+
+export async function forsokHamtaKundkontoStatus(
+  adminKundId: string,
+): Promise<KundkontoStatus | undefined> {
+  const kundportalUrl = process.env.KUNDPORTAL_URL
+  const hemlighet = process.env.KUNDPORTAL_INTAG_SECRET
+
+  if (!kundportalUrl || !hemlighet) {
+    console.error('Kundkontostatus kunde inte läsas - KUNDPORTAL_URL eller KUNDPORTAL_INTAG_SECRET saknas.')
+    return undefined
+  }
+
+  try {
+    const svar = await fetch(
+      `${kundportalUrl}/api/internal/kundkonto?adminKundId=${encodeURIComponent(adminKundId)}`,
+      {
+        headers: { 'x-kundportal-intag-secret': hemlighet },
+        signal: AbortSignal.timeout(8000),
+      },
+    )
+
+    const kropp = (await svar.json().catch(() => null)) as {
+      ok?: boolean
+      kontoFinns?: boolean
+      masteBytaLosenord?: boolean | null
+      senastInloggad?: string | null
+    } | null
+
+    if (!svar.ok || !kropp?.ok) {
+      console.error('Kundportalen avvisade statusläsningen.', svar.status, { ok: kropp?.ok })
+      return undefined
+    }
+
+    return {
+      kontoFinns: kropp.kontoFinns === true,
+      masteBytaLosenord: kropp.masteBytaLosenord ?? null,
+      senastInloggad: kropp.senastInloggad ?? null,
+    }
+  } catch (fel) {
+    console.error('Kunde inte nå kundportalen för statusläsning.', fel)
+    return undefined
+  }
+}
+
+/**
  * Tar bort kundens kundportalskonto när kunden raderas i adminportalen (se
  * taBortOperativKund). Soft-fail av samma skäl som ovan: en oåtkomlig
  * kundportal ska aldrig blockera personal från att radera en kund här -

@@ -547,6 +547,37 @@ export async function skickaNyaInloggningsuppgifter(
   return resultat
 }
 
+export interface KundportalStatus {
+  kontoFinns: boolean
+  masteBytaLosenord: boolean | null
+  senastInloggad: string | null
+}
+
+/**
+ * Läser kundens kundportalstatus (för statusraden bredvid "Skicka nya
+ * inloggningsuppgifter"). Skrivskyddat, en kund i taget - hämtas på
+ * begäran när ärendesidan visas, inte i den stora databashämtningen.
+ * Returnerar `null` (inte ett kastat fel) om anropet misslyckas - en
+ * trasig statuskoll ska aldrig blockera resten av sidan från att visas.
+ */
+export async function hamtaKundportalStatus(kundId: string): Promise<KundportalStatus | null> {
+  if (!isBrowser()) return null
+
+  try {
+    const svar = await fetch(`/api/admin/operativt?kundportalStatus=${encodeURIComponent(kundId)}`)
+    if (!svar.ok) return null
+    const json = (await svar.json()) as { ok?: boolean } & Partial<KundportalStatus>
+    if (json.ok !== true) return null
+    return {
+      kontoFinns: json.kontoFinns === true,
+      masteBytaLosenord: json.masteBytaLosenord ?? null,
+      senastInloggad: json.senastInloggad ?? null,
+    }
+  } catch {
+    return null
+  }
+}
+
 /**
  * Nästa lediga ärendenummer, beräknat från aktuell data (inte hårdkodat).
  * Följer samma `NIT-<nummer>`-mönster som seed-datan.

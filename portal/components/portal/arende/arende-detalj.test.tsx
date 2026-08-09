@@ -32,6 +32,15 @@ vi.mock('@/lib/store', () => ({
   bokningTyper: ['hembesok', 'distanssupport', 'verkstadsbesok', 'telefonkontakt'],
   skapaBokning: vi.fn(),
   uppdateraBokning: vi.fn(),
+  // ArendeAtgarder (renderas av ArendeDetalj) läser kundportalstatus vid
+  // montering - måste finnas här också, annars kraschar effekten.
+  hamtaKundportalStatus: vi.fn().mockResolvedValue(null),
+  skickaNyaInloggningsuppgifter: vi.fn(),
+  skickaKlarSms: vi.fn(),
+  andraStatus: vi.fn(),
+  andraPrioritet: vi.fn(),
+  tilldelaArende: vi.fn(),
+  markeraSomLost: vi.fn(),
 }))
 
 const kund: Kund = {
