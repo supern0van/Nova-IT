@@ -32,13 +32,13 @@ export async function forsokSkickaValkomstmejl(uppgifter: {
   tillfalligtLosenord: string
   arendenummer?: string
   atersallt?: boolean
-}): Promise<void> {
+}): Promise<boolean> {
   const apiKey = process.env.RESEND_API_KEY
   const from = process.env.ARENDE_AVISERING_FROM
 
   if (!apiKey || !from) {
     console.error('Välkomstmejl kunde inte skickas - RESEND_API_KEY eller ARENDE_AVISERING_FROM saknas.')
-    return
+    return false
   }
 
   const fornamn = uppgifter.kundNamn.split(' ')[0] || uppgifter.kundNamn
@@ -92,8 +92,11 @@ export async function forsokSkickaValkomstmejl(uppgifter: {
     if (!svar.ok) {
       await svar.body?.cancel().catch(() => undefined)
       console.error('Välkomstmejl kunde inte skickas.', { status: svar.status })
+      return false
     }
+    return true
   } catch (fel) {
     console.error('Välkomstmejl kunde inte skickas.', fel)
+    return false
   }
 }

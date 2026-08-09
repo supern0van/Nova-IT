@@ -2,6 +2,7 @@
 
 import {
   ArrowLeftIcon,
+  ArrowRightIcon,
   BuildingIcon,
   CalendarClockIcon,
   CalendarPlusIcon,
@@ -56,6 +57,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Spinner } from '@/components/ui/spinner'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { useOperativAdminData } from '@/hooks/use-operativ-admin-data'
+import { adminNastaSteg } from '@/lib/admin/nasta-steg'
 import { personalNamn } from '@/lib/personal'
 import {
   bokningTypLabel,
@@ -160,6 +162,7 @@ export function ArendeDetalj({ arendeId }: { arendeId: string }) {
   ]
     .filter(Boolean)
     .join('\n')
+  const nastaSteg = adminNastaSteg(arende.status, Boolean(arende.ansvarigId))
 
   async function avboka(bokning: Bokning) {
     if (avbokarId) return
@@ -233,6 +236,19 @@ export function ArendeDetalj({ arendeId }: { arendeId: string }) {
           visuellt, styrs av statusdropdownen ovan i ArendeAtgarder. */}
       <Yta className="p-4">
         <Framstegssparning status={arende.status} />
+      </Yta>
+
+      <Yta className="flex items-start gap-3 border-info/25 bg-info/5 p-4">
+        <span className="mt-0.5 grid size-8 shrink-0 place-items-center rounded-lg bg-info/12 text-info">
+          <ArrowRightIcon className="size-4" aria-hidden />
+        </span>
+        <div className="min-w-0">
+          <Sektionsrubrik>Nästa steg</Sektionsrubrik>
+          <p className="mt-1 text-[13px] font-medium text-foreground">{nastaSteg.rubrik}</p>
+          <p className="mt-1 text-[12px] leading-relaxed text-text-secondary">
+            {nastaSteg.beskrivning}
+          </p>
+        </div>
       </Yta>
 
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">

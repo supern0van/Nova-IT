@@ -22,7 +22,7 @@ vi.mock('@/lib/admin/kundportal-konto-client', () => ({
     forsokSkickaNyaInloggningsuppgifterMock(...args),
 }))
 
-const forsokSkickaValkomstmejlMock = vi.fn().mockResolvedValue(undefined)
+const forsokSkickaValkomstmejlMock = vi.fn().mockResolvedValue(true)
 vi.mock('@/lib/admin/kundportal-valkomst-server', () => ({
   forsokSkickaValkomstmejl: (...args: unknown[]) => forsokSkickaValkomstmejlMock(...args),
 }))
@@ -45,7 +45,7 @@ beforeEach(() => {
   vi.clearAllMocks()
   arendeSingle.mockResolvedValue({ data: arendeRad, error: null })
   aktivitetInsert.mockResolvedValue({ error: null })
-  forsokSkickaValkomstmejlMock.mockResolvedValue(undefined)
+  forsokSkickaValkomstmejlMock.mockResolvedValue(true)
 })
 
 describe('skickaNyaInloggningsuppgifterForArende', () => {
@@ -84,7 +84,7 @@ describe('skickaNyaInloggningsuppgifterForArende', () => {
 
     const resultat = await skickaNyaInloggningsuppgifterForArende('arende-1', 'Admin Nova')
 
-    expect(resultat).toEqual({ kontoSkapat: true, kontoAterstallt: false })
+    expect(resultat).toEqual({ kontoSkapat: true, kontoAterstallt: false, utskickSkickat: true })
     expect(forsokSkickaNyaInloggningsuppgifterMock).toHaveBeenCalledWith(
       'kund-1',
       'birgitta@exempel.se',
@@ -110,7 +110,7 @@ describe('skickaNyaInloggningsuppgifterForArende', () => {
 
     const resultat = await skickaNyaInloggningsuppgifterForArende('arende-1', 'Admin Nova')
 
-    expect(resultat).toEqual({ kontoSkapat: false, kontoAterstallt: true })
+    expect(resultat).toEqual({ kontoSkapat: false, kontoAterstallt: true, utskickSkickat: true })
     expect(forsokSkickaValkomstmejlMock).toHaveBeenCalledWith(
       expect.objectContaining({ atersallt: true }),
     )
@@ -118,6 +118,22 @@ describe('skickaNyaInloggningsuppgifterForArende', () => {
       expect.objectContaining({
         beskrivning: expect.stringContaining('Nya inloggningsuppgifter'),
       }),
+    )
+  })
+
+  it('redovisar ett misslyckat mejlutskick utan att låtsas att det skickades', async () => {
+    forsokSkickaNyaInloggningsuppgifterMock.mockResolvedValue({
+      kontoSkapat: false,
+      kontoAterstallt: true,
+      tillfalligtLosenord: 'ett-nytt-losenord',
+    })
+    forsokSkickaValkomstmejlMock.mockResolvedValue(false)
+
+    const resultat = await skickaNyaInloggningsuppgifterForArende('arende-1', 'Admin Nova')
+
+    expect(resultat.utskickSkickat).toBe(false)
+    expect(aktivitetInsert).toHaveBeenCalledWith(
+      expect.objectContaining({ beskrivning: expect.stringContaining('kunde inte skickas') }),
     )
   })
 })

@@ -144,7 +144,11 @@ describe('ArendeAtgarder – SMS-knapp och kontaktpreferenser', () => {
 
   it('skickar nya inloggningsuppgifter efter bekräftelse', async () => {
     const user = userEvent.setup()
-    skickaNyaInloggningsuppgifter.mockResolvedValue({ kontoSkapat: false, kontoAterstallt: true })
+    skickaNyaInloggningsuppgifter.mockResolvedValue({
+      kontoSkapat: false,
+      kontoAterstallt: true,
+      utskickSkickat: true,
+    })
     render(<ArendeAtgarder arende={arende} personal={[]} kund={kund} vidBoka={vi.fn()} />)
 
     await user.click(screen.getByRole('button', { name: 'Skicka nya inloggningsuppgifter' }))

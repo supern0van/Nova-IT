@@ -175,11 +175,17 @@ export function ArendeAtgarder({
     setSparar('inloggningsuppgifter')
     try {
       const resultat = await skickaNyaInloggningsuppgifter(arende.id, aktor)
-      toast.success(
-        resultat.kontoAterstallt
-          ? 'Nytt lösenord skickat till kunden'
-          : 'Kundportalskonto skapat och uppgifter skickade',
-      )
+      if (resultat.utskickSkickat) {
+        toast.success(
+          resultat.kontoAterstallt
+            ? 'Nytt lösenord skickat till kunden'
+            : 'Kundportalskonto skapat och uppgifter skickade',
+        )
+      } else {
+        toast.warning('Lösenordet ändrades men mejlet kunde inte skickas', {
+          description: 'Försök igen när e-postutskicket fungerar.',
+        })
+      }
       // Optimistisk uppdatering i stället för ett nytt nätverksanrop -
       // vi vet redan det nya läget från svaret ovan.
       setKundportalStatus({ kontoFinns: true, masteBytaLosenord: true, senastInloggad: null })

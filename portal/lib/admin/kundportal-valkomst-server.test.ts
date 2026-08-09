@@ -34,7 +34,7 @@ describe('forsokSkickaValkomstmejl', () => {
     }) as unknown as typeof fetch
 
     const { forsokSkickaValkomstmejl } = await import('./kundportal-valkomst-server')
-    await expect(forsokSkickaValkomstmejl(uppgifter)).resolves.toBeUndefined()
+    await expect(forsokSkickaValkomstmejl(uppgifter)).resolves.toBe(false)
     expect(fetchAnropad).toBe(false)
   })
 
@@ -48,7 +48,7 @@ describe('forsokSkickaValkomstmejl', () => {
     }) as unknown as typeof fetch
 
     const { forsokSkickaValkomstmejl } = await import('./kundportal-valkomst-server')
-    await forsokSkickaValkomstmejl(uppgifter)
+    await expect(forsokSkickaValkomstmejl(uppgifter)).resolves.toBe(true)
 
     expect(anrop[0]?.url).toBe('https://api.resend.com/emails')
     const body = JSON.parse(String(anrop[0]?.init?.body))
@@ -85,6 +85,6 @@ describe('forsokSkickaValkomstmejl', () => {
     }) as unknown as typeof fetch
 
     const { forsokSkickaValkomstmejl } = await import('./kundportal-valkomst-server')
-    await expect(forsokSkickaValkomstmejl(uppgifter)).resolves.toBeUndefined()
+    await expect(forsokSkickaValkomstmejl(uppgifter)).resolves.toBe(false)
   })
 })

@@ -762,6 +762,7 @@ describe('/api/admin/operativt', () => {
     skickaNyaInloggningsuppgifterForArendeMock.mockResolvedValue({
       kontoSkapat: false,
       kontoAterstallt: true,
+      utskickSkickat: true,
     })
 
     const svar = await PATCH(
@@ -774,7 +775,7 @@ describe('/api/admin/operativt', () => {
     expect(svar.status).toBe(200)
     expect(await svar.json()).toEqual({
       ok: true,
-      resultat: { kontoSkapat: false, kontoAterstallt: true },
+      resultat: { kontoSkapat: false, kontoAterstallt: true, utskickSkickat: true },
     })
     expect(skickaNyaInloggningsuppgifterForArendeMock).toHaveBeenCalledWith(
       'arende-1',

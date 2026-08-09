@@ -537,8 +537,12 @@ export async function skickaKlarSms(
 export async function skickaNyaInloggningsuppgifter(
   arendeId: string,
   aktor: string,
-): Promise<{ kontoSkapat: boolean; kontoAterstallt: boolean }> {
-  const resultat = await andraViaOperativApi<{ kontoSkapat: boolean; kontoAterstallt: boolean }>(
+): Promise<{ kontoSkapat: boolean; kontoAterstallt: boolean; utskickSkickat: boolean }> {
+  const resultat = await andraViaOperativApi<{
+    kontoSkapat: boolean
+    kontoAterstallt: boolean
+    utskickSkickat: boolean
+  }>(
     'skicka_inloggningsuppgifter',
     { arendeId, aktor },
     'resultat',

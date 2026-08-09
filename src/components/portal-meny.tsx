@@ -1,5 +1,5 @@
 import { useEffect, useId, useRef, useState } from "react";
-import { ChevronDown, Eye, EyeOff, Lock, ShieldCheck, Ticket } from "lucide-react";
+import { ChevronDown, Eye, EyeOff, LoaderCircle, Lock, Ticket } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { TurnstileWidget } from "@/components/turnstile-widget";
@@ -17,7 +17,6 @@ const TURNSTILE_ACTION = "portal_header_logga_in";
 const KUNDPORTAL_BAS = "https://kundportal.nova-it.se";
 const KUNDPORTAL_LOGGA_IN_FORM = `${KUNDPORTAL_BAS}/api/kund/logga-in-form`;
 const KUNDPORTAL_GLOMT_LOSENORD = `${KUNDPORTAL_BAS}/glomt-losenord`;
-const KUNDPORTAL_SAKERHET = `${KUNDPORTAL_BAS}/sakerhet`;
 
 // Dit kunden landar direkt efter lyckad inloggning - ingen mellanlandning på
 // en inloggningssida. Måste vara en relativ path; kundportalen avvisar allt
@@ -43,6 +42,7 @@ export function PortalMeny({
 }) {
   const [open, setOpen] = useState(false);
   const [visaLosenord, setVisaLosenord] = useState(false);
+  const [skickar, setSkickar] = useState(false);
   const behallare = useRef<HTMLDivElement>(null);
   const knapp = useRef<HTMLButtonElement>(null);
   const arendenummerFalt = useRef<HTMLInputElement>(null);
@@ -131,8 +131,7 @@ export function PortalMeny({
           action={KUNDPORTAL_LOGGA_IN_FORM}
           method="POST"
           onSubmit={() => {
-            setOpen(false);
-            onNavigate?.();
+            setSkickar(true);
           }}
           className="mt-4"
         >
@@ -188,45 +187,38 @@ export function PortalMeny({
             </button>
           </div>
 
+          <button
+            type="submit"
+            disabled={skickar}
+            aria-busy={skickar}
+            className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-md bg-sky-500 px-4 text-sm font-semibold text-[#04101c] transition-colors hover:bg-sky-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0c141d] disabled:cursor-wait disabled:opacity-75"
+          >
+            {skickar && <LoaderCircle className="h-4 w-4 animate-spin" aria-hidden="true" />}
+            {skickar ? "Loggar in…" : "Logga in"}
+          </button>
+
+          <a
+            href={KUNDPORTAL_GLOMT_LOSENORD}
+            onClick={() => {
+              setOpen(false);
+              onNavigate?.();
+            }}
+            className="mt-1 flex min-h-11 items-center justify-center rounded-md text-[13px] font-medium text-sky-300 transition-colors hover:text-sky-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
+          >
+            Glömt lösenord?
+          </a>
+
           {/* Renderas bara medan panelen är öppen - dels för att slippa
               montera widgeten i en dold (hidden) behållare, dels för att
               slippa ladda Turnstile-scriptet för besökare som aldrig öppnar
               Portal. Token hamnar automatiskt i ett dolt cf-turnstile-
               response-fält i formuläret ovan; ingen egen state behövs. */}
           {open && (
-            <div className="mt-3">
-              <TurnstileWidget action={TURNSTILE_ACTION} onToken={() => {}} />
+            <div className="mt-1 border-t border-white/8 pt-2 opacity-75">
+              <TurnstileWidget action={TURNSTILE_ACTION} onToken={() => {}} diskret />
             </div>
           )}
-
-          <button
-            type="submit"
-            className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-md bg-sky-500 px-4 text-sm font-semibold text-[#04101c] transition-colors hover:bg-sky-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0c141d]"
-          >
-            Logga in
-          </button>
         </form>
-
-        <a
-          href={KUNDPORTAL_GLOMT_LOSENORD}
-          onClick={() => {
-            setOpen(false);
-            onNavigate?.();
-          }}
-          className="mt-1 flex min-h-11 items-center justify-center rounded-md text-[13px] font-medium text-sky-300 transition-colors hover:text-sky-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
-        >
-          Glömt lösenord?
-        </a>
-
-        <p className="mt-4 flex items-center justify-center gap-1.5 border-t border-white/8 pt-3.5 text-[11px] text-slate-500">
-          <ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" />
-          <a
-            href={KUNDPORTAL_SAKERHET}
-            className="underline decoration-dotted underline-offset-2 transition-colors hover:text-slate-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
-          >
-            Säker anslutning · Nova IT
-          </a>
-        </p>
       </div>
     </div>
   );
