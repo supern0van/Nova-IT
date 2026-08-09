@@ -31,7 +31,7 @@ describe('smoke-worker', () => {
 
     await expect(
       checkDomainRedirect('admin.nova-it.se', { fetchRunner, logger }),
-    ).resolves.toBe(true)
+    ).resolves.toBe('ok')
     expect(fetchRunner).toHaveBeenCalledWith(
       'https://admin.nova-it.se',
       expect.objectContaining({ redirect: 'manual' }),
@@ -45,10 +45,21 @@ describe('smoke-worker', () => {
 
     await expect(
       checkDomainRedirect('admin.nova-it.se', { fetchRunner, logger }),
-    ).resolves.toBe(false)
+    ).resolves.toBe('fail')
     expect(logger.error).toHaveBeenCalledWith(
       '✗ https://admin.nova-it.se gav 200 med Location: <saknas>',
     )
+  })
+
+  it('nedgraderar en ren 403 (ingen omdirigering) till varning, inte fel', async () => {
+    const logger = { log: vi.fn(), error: vi.fn() }
+    const fetchRunner = vi.fn().mockResolvedValue(createResponse(403, null, ''))
+
+    await expect(
+      checkDomainRedirect('admin.nova-it.se', { fetchRunner, logger }),
+    ).resolves.toBe('warn')
+    expect(logger.error).not.toHaveBeenCalled()
+    expect(logger.log).toHaveBeenCalledWith(expect.stringContaining('⚠'))
   })
 
   it('godkänner fail-closed API-svar', async () => {
@@ -61,7 +72,7 @@ describe('smoke-worker', () => {
         { path: '/api/roll', expectedStatus: 401, expectedBody: { roll: null } },
         { fetchRunner, logger },
       ),
-    ).resolves.toBe(true)
+    ).resolves.toBe('ok')
     expect(logger.error).not.toHaveBeenCalled()
   })
 
@@ -77,10 +88,37 @@ describe('smoke-worker', () => {
         { path: '/api/roll', expectedStatus: 401, expectedBody: { roll: null } },
         { fetchRunner, logger },
       ),
-    ).resolves.toBe(false)
+    ).resolves.toBe('fail')
     expect(logger.error).toHaveBeenCalledWith(
       '✗ https://admin.nova-it.se/api/roll gav 200 {"roll":"administrator"}; förväntade 401 {"roll":null}',
     )
+  })
+
+  it('nedgraderar en API-403 utan JSON-kropp till varning, inte fel', async () => {
+    const logger = { log: vi.fn(), error: vi.fn() }
+    const fetchRunner = vi.fn().mockResolvedValue(createResponse(403, null))
+
+    await expect(
+      checkApi(
+        'admin.nova-it.se',
+        { path: '/api/roll', expectedStatus: 401, expectedBody: { roll: null } },
+        { fetchRunner, logger },
+      ),
+    ).resolves.toBe('warn')
+    expect(logger.error).not.toHaveBeenCalled()
+  })
+
+  it('underkänner en API-403 som ändå har en kropp (inte kantblockeringens signatur)', async () => {
+    const logger = { log: vi.fn(), error: vi.fn() }
+    const fetchRunner = vi.fn().mockResolvedValue(createResponse(403, { fel: 'nekad' }))
+
+    await expect(
+      checkApi(
+        'admin.nova-it.se',
+        { path: '/api/roll', expectedStatus: 401, expectedBody: { roll: null } },
+        { fetchRunner, logger },
+      ),
+    ).resolves.toBe('fail')
   })
 
   it('samlar domänkontroller för alla aliases men API-kontroller bara för huvuddomänen', async () => {
@@ -130,5 +168,44 @@ describe('smoke-worker', () => {
       'https://portal.nova-it.se/api/roll',
       expect.objectContaining({ redirect: 'manual' }),
     )
+  })
+
+  it('passerar totalt sett med en tydlig varningsrad om alla brister är kantblockeringar (403)', async () => {
+    const logger = { log: vi.fn(), error: vi.fn() }
+    const fetchRunner = vi
+      .fn()
+      .mockResolvedValueOnce(createResponse(403, null, ''))
+      .mockResolvedValueOnce(createResponse(401, { roll: null }))
+
+    await expect(
+      runSmokeWorker({
+        domains: ['admin.nova-it.se'],
+        apiDomains: ['admin.nova-it.se'],
+        checks: [{ path: '/api/roll', expectedStatus: 401, expectedBody: { roll: null } }],
+        fetchRunner,
+        logger,
+      }),
+    ).resolves.toBe(true)
+    expect(logger.error).not.toHaveBeenCalled()
+    expect(logger.log).toHaveBeenLastCalledWith(expect.stringContaining('med varningar'))
+  })
+
+  it('misslyckas totalt sett om minst en riktig avvikelse finns, även med varningar bland de andra', async () => {
+    const logger = { log: vi.fn(), error: vi.fn() }
+    const fetchRunner = vi
+      .fn()
+      .mockResolvedValueOnce(createResponse(403, null, ''))
+      .mockResolvedValueOnce(createResponse(200, { roll: 'administrator' }))
+
+    await expect(
+      runSmokeWorker({
+        domains: ['admin.nova-it.se'],
+        apiDomains: ['admin.nova-it.se'],
+        checks: [{ path: '/api/roll', expectedStatus: 401, expectedBody: { roll: null } }],
+        fetchRunner,
+        logger,
+      }),
+    ).resolves.toBe(false)
+    expect(logger.error).toHaveBeenCalled()
   })
 })
