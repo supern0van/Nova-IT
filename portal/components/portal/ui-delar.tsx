@@ -17,6 +17,7 @@ import {
   statusDot,
   statusLabel,
 } from '@/lib/labels'
+import type { KundportalStatus } from '@/lib/store'
 import type { ArendeStatus, BokningStatus, Kundtyp, Prioritet } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
@@ -150,6 +151,48 @@ export function KundtypChip({ kundtyp }: { kundtyp: Kundtyp }) {
       )}
     >
       {kundtypLabel[kundtyp]}
+    </span>
+  )
+}
+
+/**
+ * Kundportalstatus som diskret chip - lika snabbläst som StatusChip/
+ * PrioritetChip. `status` är `null` medan den (en kund i taget, se
+ * hamtaKundportalStatus) fortfarande hämtas, eller om anropet misslyckades -
+ * chipen visas då inte alls i stället för att flimra fram fel information.
+ */
+export function KundportalStatusChip({ status }: { status: KundportalStatus | null }) {
+  if (!status) return null
+
+  if (!status.kontoFinns) {
+    return (
+      <span className="inline-flex shrink-0 items-center rounded-md bg-muted px-2 py-0.5 text-[11px] font-medium leading-5 whitespace-nowrap text-muted-foreground">
+        Kundportal: inget konto
+      </span>
+    )
+  }
+
+  if (status.senastInloggad) {
+    return (
+      <span className="inline-flex shrink-0 items-center gap-1.5 rounded-md bg-success/12 px-2 py-0.5 text-[11px] font-medium leading-5 whitespace-nowrap text-success">
+        <span className="size-1.5 shrink-0 rounded-full bg-success" />
+        Kundportal: inloggad
+      </span>
+    )
+  }
+
+  if (status.masteBytaLosenord) {
+    return (
+      <span className="inline-flex shrink-0 items-center gap-1.5 rounded-md bg-warning/12 px-2 py-0.5 text-[11px] font-medium leading-5 whitespace-nowrap text-warning">
+        <span className="size-1.5 shrink-0 rounded-full bg-warning" />
+        Kundportal: väntar på inloggning
+      </span>
+    )
+  }
+
+  return (
+    <span className="inline-flex shrink-0 items-center rounded-md bg-muted px-2 py-0.5 text-[11px] font-medium leading-5 whitespace-nowrap text-muted-foreground">
+      Kundportal: konto skapat
     </span>
   )
 }
