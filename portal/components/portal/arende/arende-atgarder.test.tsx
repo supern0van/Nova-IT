@@ -30,11 +30,14 @@ vi.mock('sonner', () => ({
   toast: { success: vi.fn(), error: vi.fn() },
 }))
 
+const skickaNyaInloggningsuppgifter = vi.fn()
+
 vi.mock('@/lib/store', () => ({
   andraStatus,
   andraPrioritet,
   tilldelaArende,
   markeraSomLost,
+  skickaNyaInloggningsuppgifter,
 }))
 
 let ArendeAtgarder: typeof import('@/components/portal/arende/arende-atgarder').ArendeAtgarder
@@ -117,6 +120,35 @@ describe('ArendeAtgarder – SMS-knapp och kontaktpreferenser', () => {
 
     const knapp = screen.getByRole('button', { name: /SMS: klart för upphämtning/ })
     expect((knapp as HTMLButtonElement).disabled).toBe(false)
+  })
+
+  it('visar "Skicka nya inloggningsuppgifter" för konton med redigera_kund', () => {
+    render(<ArendeAtgarder arende={arende} personal={[]} kund={kund} vidBoka={vi.fn()} />)
+
+    expect(
+      screen.getByRole('button', { name: 'Skicka nya inloggningsuppgifter' }),
+    ).toBeTruthy()
+  })
+
+  it('döljer "Skicka nya inloggningsuppgifter" utan redigera_kund', () => {
+    kan.mockImplementation((behorighet: string) => behorighet !== 'redigera_kund')
+    render(<ArendeAtgarder arende={arende} personal={[]} kund={kund} vidBoka={vi.fn()} />)
+
+    expect(
+      screen.queryByRole('button', { name: 'Skicka nya inloggningsuppgifter' }),
+    ).toBeNull()
+  })
+
+  it('skickar nya inloggningsuppgifter efter bekräftelse', async () => {
+    const user = userEvent.setup()
+    skickaNyaInloggningsuppgifter.mockResolvedValue({ kontoSkapat: false, kontoAterstallt: true })
+    render(<ArendeAtgarder arende={arende} personal={[]} kund={kund} vidBoka={vi.fn()} />)
+
+    await user.click(screen.getByRole('button', { name: 'Skicka nya inloggningsuppgifter' }))
+    await user.click(screen.getByRole('button', { name: 'Skicka' }))
+
+    expect(skickaNyaInloggningsuppgifter).toHaveBeenCalledWith('arende-1', 'Admin Nova')
+    expect(toast.success).toHaveBeenCalledWith('Nytt lösenord skickat till kunden')
   })
 })
 

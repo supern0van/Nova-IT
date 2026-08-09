@@ -23,6 +23,7 @@ import {
   uppdateraOperativKundanteckning,
   uppdateraOperativtArende,
 } from '@/lib/admin/operativa-server'
+import { skickaNyaInloggningsuppgifterForArende } from '@/lib/admin/kundinloggning-server'
 import { skickaKlarForUpphamtningSms } from '@/lib/admin/sms-server'
 import { arAdministrator } from '@/lib/auth/roll'
 import { hamtaEgenProfilFranDatabasen, hamtaRollFranDatabasen } from '@/lib/auth/roll-server'
@@ -189,6 +190,16 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ ok: false }, { status: 403 })
   }
 
+  // Att skicka nya inloggningsuppgifter rör kundens kontoåtkomst (nytt
+  // lösenord) - samma behörighet som skapa_kund ovan, strängare än ren
+  // kundkommunikation som svara_kund/skicka_sms.
+  if (
+    payload.typ === 'skicka_inloggningsuppgifter' &&
+    !atkomst.harBehorighet('redigera_kund')
+  ) {
+    return NextResponse.json({ ok: false }, { status: 403 })
+  }
+
   // Permanent borttagning är administratörsbehörigheter, medvetet
   // strängare än redigera_kund/tilldela_arende - en tekniker ska aldrig
   // kunna radera data permanent.
@@ -271,6 +282,17 @@ export async function PATCH(request: NextRequest) {
         return NextResponse.json({
           ok: true,
           sms: await skickaKlarForUpphamtningSms(
+            payload.data.arendeId,
+            atkomst.aktorNamn,
+          ),
+        })
+      case 'skicka_inloggningsuppgifter':
+        if (typeof payload.data.arendeId !== 'string') {
+          return NextResponse.json({ ok: false }, { status: 400 })
+        }
+        return NextResponse.json({
+          ok: true,
+          resultat: await skickaNyaInloggningsuppgifterForArende(
             payload.data.arendeId,
             atkomst.aktorNamn,
           ),

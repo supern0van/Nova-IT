@@ -16,15 +16,22 @@ import { optionalText } from '@/lib/admin/validering'
  * ärende kan kunden ännu inte logga in - texten anpassas efter om ett
  * ärendenummer finns när mejlet skickas eller inte.
  *
+ * `atersallt`: satt av "Skicka nya inloggningsuppgifter"-åtgärden när
+ * kunden redan hade ett konto och fått ett HELT NYTT lösenord (aldrig
+ * samma som tidigare, se skickaNyaInloggningsuppgifter i
+ * kundportalrepot). Ändrar bara formuleringen - "kontot förberetts" vore
+ * missvisande när kontot redan fanns sedan innan.
+ *
  * Soft-fail (samma princip som forsokAviseraKundOmSvar): kontot är redan
- * skapat oavsett om mejlet går fram - att inte nå Resend ska aldrig
- * blockera kund- eller ärendeskapandet.
+ * skapat/uppdaterat oavsett om mejlet går fram - att inte nå Resend ska
+ * aldrig blockera kund-, ärende- eller återställningsflödet.
  */
 export async function forsokSkickaValkomstmejl(uppgifter: {
   epost: string
   kundNamn: string
   tillfalligtLosenord: string
   arendenummer?: string
+  atersallt?: boolean
 }): Promise<void> {
   const apiKey = process.env.RESEND_API_KEY
   const from = process.env.ARENDE_AVISERING_FROM
@@ -37,12 +44,19 @@ export async function forsokSkickaValkomstmejl(uppgifter: {
   const fornamn = uppgifter.kundNamn.split(' ')[0] || uppgifter.kundNamn
   const arendenummer = optionalText(uppgifter.arendenummer)
 
-  const subject = 'Ditt konto hos Nova IT:s kundportal'
+  const subject = uppgifter.atersallt
+    ? 'Nytt lösenord till Nova IT:s kundportal'
+    : 'Ditt konto hos Nova IT:s kundportal'
+
+  const inledning = uppgifter.atersallt
+    ? 'Vi har skickat nya inloggningsuppgifter till dig för Nova IT:s kundportal.'
+    : 'Ett konto har förberetts åt dig i Nova IT:s kundportal, där du kan följa dina ärenden.'
+
   const text = arendenummer
     ? [
         `Hej ${fornamn},`,
         '',
-        'Ett konto har förberetts åt dig i Nova IT:s kundportal, där du kan följa dina ärenden.',
+        inledning,
         '',
         `Ärendenummer: ${arendenummer}`,
         `Lösenord: ${uppgifter.tillfalligtLosenord}`,
@@ -53,7 +67,7 @@ export async function forsokSkickaValkomstmejl(uppgifter: {
     : [
         `Hej ${fornamn},`,
         '',
-        'Ett konto har förberetts åt dig i Nova IT:s kundportal, där du kan följa dina ärenden.',
+        inledning,
         '',
         'Så snart ditt första ärende registreras hos oss får du ett ärendenummer att logga in med,',
         'tillsammans med lösenordet nedan.',
