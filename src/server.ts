@@ -22,28 +22,34 @@ const SECURITY_HEADERS: Record<string, string> = {
   "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
   "Strict-Transport-Security": "max-age=15552000; includeSubDomains",
   "Cross-Origin-Opener-Policy": "same-origin",
-  "Content-Security-Policy": [
-    "default-src 'self'",
-    // TanStack Start serialiserar bootstrap-/router-state som inline-scripts i
-    // SSR-svaret. Utan inline-stöd blockeras state-hydreringen av CSP och
-    // klienten kraschar efter första paint med "Invariant failed".
-    // TODO: byt till nonce-baserad CSP när server-renderingen har nonce-stöd.
-    "script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com https://static.cloudflareinsights.com",
-    "frame-src https://challenges.cloudflare.com",
-    "connect-src 'self' https://challenges.cloudflare.com https://cloudflareinsights.com https://static.cloudflareinsights.com",
-    "style-src 'self' 'unsafe-inline'",
-    "img-src 'self' data:",
-    "font-src 'self'",
-    "frame-ancestors 'none'",
-    "base-uri 'self'",
-    "form-action 'self'",
-  ].join("; "),
 };
+
+// SSR-renderade sidor får sin CSP från src/routes/__root.tsx:s `headers()`
+// (nonce-baserad script-src, se src/router.tsx). Den här är bara en reserv
+// för svar som aldrig går genom root-routen - redirects och det egna
+// felsidefallet nedan - så de aldrig blir helt utan CSP.
+const FALLBACK_CSP = [
+  "default-src 'self'",
+  "script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com https://static.cloudflareinsights.com",
+  "frame-src https://challenges.cloudflare.com",
+  "connect-src 'self' https://challenges.cloudflare.com https://cloudflareinsights.com https://static.cloudflareinsights.com",
+  "style-src 'self' 'unsafe-inline'",
+  "img-src 'self' data:",
+  "font-src 'self'",
+  "frame-ancestors 'none'",
+  "base-uri 'self'",
+  "form-action 'self'",
+].join("; ");
 
 function withSecurityHeaders(response: Response): Response {
   const headers = new Headers(response.headers);
   for (const [name, value] of Object.entries(SECURITY_HEADERS)) {
     headers.set(name, value);
+  }
+  // Sätt aldrig över en redan satt CSP - annars skrivs root-routens
+  // nonce-baserade header ut av den här reservpolicyn på varje SSR-svar.
+  if (!headers.has("Content-Security-Policy")) {
+    headers.set("Content-Security-Policy", FALLBACK_CSP);
   }
   return new Response(response.body, {
     status: response.status,
