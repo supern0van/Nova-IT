@@ -33,6 +33,7 @@ vi.mock('@/lib/store', () => ({
   skapaKund: vi.fn(),
   uppdateraKund: vi.fn(),
   taBortKund,
+  hamtaKundportalStatus: vi.fn().mockResolvedValue(null),
 }))
 
 const kund: Kund = {

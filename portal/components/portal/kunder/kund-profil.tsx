@@ -18,7 +18,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 
 import { useAuth } from '@/components/auth/auth-provider'
@@ -31,6 +31,7 @@ import {
   DriftFelBanner,
   Faltrad,
   KopieraKnapp,
+  KundportalStatusChip,
   KundtypChip,
   PrioritetChip,
   Sektionsrubrik,
@@ -54,7 +55,7 @@ import { Button } from '@/components/ui/button'
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useOperativAdminData } from '@/hooks/use-operativ-admin-data'
-import { taBortKund } from '@/lib/store'
+import { hamtaKundportalStatus, taBortKund, type KundportalStatus } from '@/lib/store'
 import { personalNamn } from '@/lib/personal'
 import {
   bokningTypLabel,
@@ -82,6 +83,20 @@ export function KundProfil({ kundId }: { kundId: string }) {
   const [tarBort, setTarBort] = useState(false)
 
   const kund = db?.kunder.find((k) => k.id === kundId)
+
+  const kanSeKundportalStatus = kan('redigera_kund')
+  const [kundportalStatus, setKundportalStatus] = useState<KundportalStatus | null>(null)
+  useEffect(() => {
+    setKundportalStatus(null)
+    if (!kanSeKundportalStatus || !kund) return
+    let avbruten = false
+    hamtaKundportalStatus(kundId).then((status) => {
+      if (!avbruten) setKundportalStatus(status)
+    })
+    return () => {
+      avbruten = true
+    }
+  }, [kanSeKundportalStatus, kund, kundId])
 
   // Nyast först, så den senaste noteringen syns direkt.
   const anteckningar = useMemo(() => {
@@ -194,6 +209,7 @@ export function KundProfil({ kundId }: { kundId: string }) {
               </h1>
               <div className="flex flex-wrap items-center gap-2">
                 <KundtypChip kundtyp={kund.kundtyp} />
+                {kanSeKundportalStatus && <KundportalStatusChip status={kundportalStatus} />}
                 {kund.organisation && (
                   <span className="text-[12px] text-muted-foreground">{kund.organisation}</span>
                 )}
