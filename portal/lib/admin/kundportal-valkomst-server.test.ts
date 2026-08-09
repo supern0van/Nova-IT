@@ -60,6 +60,23 @@ describe('forsokSkickaValkomstmejl', () => {
     expect(body.text).not.toContain('E-post:')
   })
 
+  it('inkluderar ärendenummer i mejlet när det anges (manuellt skapat ärende)', async () => {
+    process.env.RESEND_API_KEY = 'test-nyckel'
+    process.env.ARENDE_AVISERING_FROM = 'Nova IT <no-reply@nova-it.se>'
+    const anrop: { url: string; init?: RequestInit }[] = []
+    globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
+      anrop.push({ url: String(input), init })
+      return new Response(JSON.stringify({}), { status: 200 })
+    }) as unknown as typeof fetch
+
+    const { forsokSkickaValkomstmejl } = await import('./kundportal-valkomst-server')
+    await forsokSkickaValkomstmejl({ ...uppgifter, arendenummer: 'NIT-2026-0042' })
+
+    const body = JSON.parse(String(anrop[0]?.init?.body))
+    expect(body.text).toContain('NIT-2026-0042')
+    expect(body.text).toContain('ett-tillfalligt-losenord')
+  })
+
   it('soft-failar (kastar aldrig) om Resend svarar med fel eller inte kan nås', async () => {
     process.env.RESEND_API_KEY = 'test-nyckel'
     process.env.ARENDE_AVISERING_FROM = 'Nova IT <no-reply@nova-it.se>'

@@ -1,26 +1,30 @@
+import { optionalText } from '@/lib/admin/validering'
+
 /**
- * Skickar ett välkomstmejl när en NY kund skapas manuellt av personal
- * (skapaOperativKund i operativa-server.ts) och ett kundportalskonto
- * lyckades skapas åt hen (se kundportal-konto-client.ts). Speglar samma
- * mönster som det publika kontaktformulärets egen kundbekräftelse
- * (formatCustomerConfirmationEmail i huvudrepots
- * src/features/contact/contact-submission.ts), men UTAN inloggnings-
- * instruktioner: kundportalen loggar in med ärendenummer (se
- * lib/supabase/kund-konto-grindar.ts i kundportalrepot), och en manuellt
- * skapad kund har inte nödvändigtvis något ärende kopplat till just
- * kontoskapandet - det tillfälliga lösenordet finns redan (satt här), men
- * kunden kan inte logga in förrän ett ärende finns och gett dem ett
- * ärendenummer att logga in med. Det mejlet (formatCustomerConfirmationEmail)
- * innehåller de faktiska inloggningsuppgifterna.
+ * Skickar ett välkomstmejl när ett NYTT kundportalskonto skapas åt en kund
+ * (se kundportal-konto-client.ts) - antingen när personal skapar en ny kund
+ * manuellt (skapaOperativKund) eller när personal registrerar ett ärende
+ * manuellt åt en kund som ännu inte har något konto (skapaOperativtArende).
+ * Speglar samma mönster som det publika kontaktformulärets egen
+ * kundbekräftelse (formatCustomerConfirmationEmail i huvudrepots
+ * src/features/contact/contact-submission.ts), men den funktionen går inte
+ * att återanvända här - `portal/` är en egen, fristående Next.js-app i
+ * samma repo, inte samma körtid som huvudsajten.
+ *
+ * `arendenummer` är valfritt: kundportalen loggar in med ärendenummer (se
+ * lib/supabase/kund-konto-grindar.ts i kundportalrepot), så utan ett
+ * ärende kan kunden ännu inte logga in - texten anpassas efter om ett
+ * ärendenummer finns när mejlet skickas eller inte.
  *
  * Soft-fail (samma princip som forsokAviseraKundOmSvar): kontot är redan
  * skapat oavsett om mejlet går fram - att inte nå Resend ska aldrig
- * blockera kundskapandet.
+ * blockera kund- eller ärendeskapandet.
  */
 export async function forsokSkickaValkomstmejl(uppgifter: {
   epost: string
   kundNamn: string
   tillfalligtLosenord: string
+  arendenummer?: string
 }): Promise<void> {
   const apiKey = process.env.RESEND_API_KEY
   const from = process.env.ARENDE_AVISERING_FROM
@@ -31,21 +35,34 @@ export async function forsokSkickaValkomstmejl(uppgifter: {
   }
 
   const fornamn = uppgifter.kundNamn.split(' ')[0] || uppgifter.kundNamn
+  const arendenummer = optionalText(uppgifter.arendenummer)
 
   const subject = 'Ditt konto hos Nova IT:s kundportal'
-  const text = [
-    `Hej ${fornamn},`,
-    '',
-    'Ett konto har förberetts åt dig i Nova IT:s kundportal, där du kan följa dina ärenden.',
-    '',
-    'Så snart ditt första ärende registreras hos oss får du ett ärendenummer att logga in med,',
-    'tillsammans med lösenordet nedan.',
-    '',
-    `Lösenord: ${uppgifter.tillfalligtLosenord}`,
-    '',
-    'Hälsningar,',
-    'Nova IT',
-  ].join('\n')
+  const text = arendenummer
+    ? [
+        `Hej ${fornamn},`,
+        '',
+        'Ett konto har förberetts åt dig i Nova IT:s kundportal, där du kan följa dina ärenden.',
+        '',
+        `Ärendenummer: ${arendenummer}`,
+        `Lösenord: ${uppgifter.tillfalligtLosenord}`,
+        '',
+        'Hälsningar,',
+        'Nova IT',
+      ].join('\n')
+    : [
+        `Hej ${fornamn},`,
+        '',
+        'Ett konto har förberetts åt dig i Nova IT:s kundportal, där du kan följa dina ärenden.',
+        '',
+        'Så snart ditt första ärende registreras hos oss får du ett ärendenummer att logga in med,',
+        'tillsammans med lösenordet nedan.',
+        '',
+        `Lösenord: ${uppgifter.tillfalligtLosenord}`,
+        '',
+        'Hälsningar,',
+        'Nova IT',
+      ].join('\n')
 
   try {
     const svar = await fetch('https://api.resend.com/emails', {

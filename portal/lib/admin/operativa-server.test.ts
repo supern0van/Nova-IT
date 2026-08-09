@@ -36,6 +36,21 @@ vi.mock('@/lib/supabase/service', () => ({
   skapaSupabaseServiceklient: () => ({ from, rpc }),
 }))
 
+const forsokSkapaKundportalKontoMock = vi.fn()
+vi.mock('@/lib/admin/kundportal-konto-client', () => ({
+  forsokSkapaKundportalKonto: (...args: unknown[]) => forsokSkapaKundportalKontoMock(...args),
+  forsokTaBortKundportalKonto: vi.fn(),
+}))
+
+const forsokSkickaValkomstmejlMock = vi.fn()
+vi.mock('@/lib/admin/kundportal-valkomst-server', () => ({
+  forsokSkickaValkomstmejl: (...args: unknown[]) => forsokSkickaValkomstmejlMock(...args),
+}))
+
+vi.mock('@/lib/admin/arende-avisering-server', () => ({
+  forsokAviseraKundOmSvar: vi.fn(),
+}))
+
 let skapaOperativtArende: typeof import('@/lib/admin/operativa-server').skapaOperativtArende
 let OperativtAdminFel: typeof import('@/lib/admin/operativa-server').OperativtAdminFel
 
@@ -158,5 +173,56 @@ describe('skapaOperativtArende – ärendenummer-race', () => {
 
     await expect(skapaOperativtArende(giltigaUppgifter)).rejects.toThrow('Kunde inte skapa ärende.')
     expect(arendeInsert).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('skapaOperativtArende – kundportalskonto och välkomstmejl', () => {
+  afterEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it('skickar välkomstmejl med ärendenummer när ett NYTT kundportalskonto skapas', async () => {
+    kundSingle.mockResolvedValue({ data: kundRad, error: null })
+    rpc.mockResolvedValue({ data: 'NIT-2501', error: null })
+    insertSingle.mockResolvedValueOnce({ data: arendeRad('NIT-2501'), error: null })
+    forsokSkapaKundportalKontoMock.mockResolvedValue({
+      kontoSkapat: true,
+      tillfalligtLosenord: 'ett-tillfalligt-losenord',
+    })
+
+    const arende = await skapaOperativtArende(giltigaUppgifter)
+
+    expect(arende.arendenummer).toBe('NIT-2501')
+    expect(forsokSkapaKundportalKontoMock).toHaveBeenCalledWith('kund-1', 'birgitta@exempel.se')
+    expect(forsokSkickaValkomstmejlMock).toHaveBeenCalledWith({
+      epost: 'birgitta@exempel.se',
+      kundNamn: 'Birgitta Sandell',
+      tillfalligtLosenord: 'ett-tillfalligt-losenord',
+      arendenummer: 'NIT-2501',
+    })
+  })
+
+  it('skickar inget mejl när kunden redan hade ett kundportalskonto', async () => {
+    kundSingle.mockResolvedValue({ data: kundRad, error: null })
+    rpc.mockResolvedValue({ data: 'NIT-2501', error: null })
+    insertSingle.mockResolvedValueOnce({ data: arendeRad('NIT-2501'), error: null })
+    forsokSkapaKundportalKontoMock.mockResolvedValue({ kontoSkapat: false })
+
+    await skapaOperativtArende(giltigaUppgifter)
+
+    expect(forsokSkapaKundportalKontoMock).toHaveBeenCalledTimes(1)
+    expect(forsokSkickaValkomstmejlMock).not.toHaveBeenCalled()
+  })
+
+  it('ärendet skapas ändå om kundportalskontot inte kan nås (soft-fail)', async () => {
+    kundSingle.mockResolvedValue({ data: kundRad, error: null })
+    rpc.mockResolvedValue({ data: 'NIT-2501', error: null })
+    insertSingle.mockResolvedValueOnce({ data: arendeRad('NIT-2501'), error: null })
+    forsokSkapaKundportalKontoMock.mockResolvedValue(undefined)
+
+    const arende = await skapaOperativtArende(giltigaUppgifter)
+
+    expect(arende.arendenummer).toBe('NIT-2501')
+    expect(forsokSkickaValkomstmejlMock).not.toHaveBeenCalled()
   })
 })
