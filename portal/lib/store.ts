@@ -190,6 +190,7 @@ async function andraViaOperativApi<T>(
     | 'uppdatera_kundanteckning'
     | 'ta_bort_kundanteckning'
     | 'skicka_sms'
+    | 'skicka_inloggningsuppgifter'
     | 'ta_bort_kund'
     | 'ta_bort_arenden',
   data: Record<string, unknown>,
@@ -524,6 +525,25 @@ export async function skickaKlarSms(
     'sms',
   )
   if (!resultat) throw new Error('SMS-tjänsten kunde inte nås just nu.')
+  return resultat
+}
+
+/**
+ * Skickar nya inloggningsuppgifter till kunden (skapar kontot om det
+ * saknas, annars ett helt nytt tillfälligt lösenord - aldrig samma som
+ * tidigare). Samma resonemang som skickaKlarSms ovan: inget meningsfullt
+ * lokalt demolägesfall, ett null-svar kastas som ett tydligt fel.
+ */
+export async function skickaNyaInloggningsuppgifter(
+  arendeId: string,
+  aktor: string,
+): Promise<{ kontoSkapat: boolean; kontoAterstallt: boolean }> {
+  const resultat = await andraViaOperativApi<{ kontoSkapat: boolean; kontoAterstallt: boolean }>(
+    'skicka_inloggningsuppgifter',
+    { arendeId, aktor },
+    'resultat',
+  )
+  if (!resultat) throw new Error('Kundportalen kunde inte nås just nu.')
   return resultat
 }
 

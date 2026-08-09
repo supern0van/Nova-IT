@@ -39,6 +39,7 @@ import {
   andraStatus,
   markeraSomLost,
   skickaKlarSms,
+  skickaNyaInloggningsuppgifter,
   tilldelaArende,
 } from '@/lib/store'
 import type { Anvandare, Arende, ArendeStatus, Kund, Prioritet } from '@/lib/types'
@@ -69,6 +70,7 @@ export function ArendeAtgarder({
 
   const kanTilldela = kan('tilldela_arende')
   const kanSkickaSms = kan('svara_kund')
+  const kanSkickaInloggningsuppgifter = kan('redigera_kund')
   // Fail-open: `kund` saknas i det korta ögonblicket innan `db.kunder`
   // hunnit läsas in, och `kontaktKlartSms` saknas i äldre testdata/demodata
   // som föregår det här fältet - i båda fallen ska SMS-knappen fungera som
@@ -149,6 +151,23 @@ export function ArendeAtgarder({
       toast.success(`SMS skickat till ${resultat.till}`)
     } catch (error) {
       toast.error('Kunde inte skicka SMS', { description: felmeddelande(error) })
+    } finally {
+      setSparar(null)
+    }
+  }
+
+  async function skickaInloggningsuppgifter() {
+    if (sparar) return
+    setSparar('inloggningsuppgifter')
+    try {
+      const resultat = await skickaNyaInloggningsuppgifter(arende.id, aktor)
+      toast.success(
+        resultat.kontoAterstallt
+          ? 'Nytt lösenord skickat till kunden'
+          : 'Kundportalskonto skapat och uppgifter skickade',
+      )
+    } catch (error) {
+      toast.error('Kunde inte skicka inloggningsuppgifter', { description: felmeddelande(error) })
     } finally {
       setSparar(null)
     }
@@ -304,6 +323,41 @@ export function ArendeAtgarder({
               <AlertDialogFooter>
                 <AlertDialogCancel>Avbryt</AlertDialogCancel>
                 <AlertDialogAction onClick={skickaSms}>Skicka SMS</AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        )}
+        {kanSkickaInloggningsuppgifter && (
+          <AlertDialog>
+            <AlertDialogTrigger
+              render={
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={sparar === 'inloggningsuppgifter'}
+                >
+                  <LockIcon data-icon="inline-start" />
+                  Skicka nya inloggningsuppgifter
+                </Button>
+              }
+            />
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogMedia>
+                  <LockIcon />
+                </AlertDialogMedia>
+                <AlertDialogTitle>Skicka nya inloggningsuppgifter?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Kunden får ett nytt tillfälligt lösenord till Nova IT:s kundportal, till{' '}
+                  {arende.epost}. Har kunden redan ett konto ersätts det gamla lösenordet - det
+                  går aldrig att skicka om.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Avbryt</AlertDialogCancel>
+                <AlertDialogAction onClick={skickaInloggningsuppgifter}>
+                  Skicka
+                </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>

@@ -67,6 +67,75 @@ export async function forsokSkapaKundportalKonto(
 }
 
 /**
+ * "Skicka nya inloggningsuppgifter" - en explicit admin-åtgärd för en kund
+ * som tappat bort sitt första mejl eller aldrig loggat in. Anropar
+ * kundportalens `PATCH /api/internal/kundkonto`, skild från POST ovan
+ * (som aldrig rör ett befintligt lösenord). Skickar ALDRIG om samma
+ * lösenord - kundportalen skapar kontot om det saknas, annars genererar
+ * den ett helt nytt tillfälligt lösenord.
+ *
+ * Soft-fail av samma skäl som forsokSkapaKundportalKonto: om kundportalen
+ * inte kan nås returneras `undefined` i stället för att kasta, och
+ * anroparen (lib/admin/kundinloggning-server.ts) omvandlar det till ett
+ * tydligt fel för personalen i stället för en tyst krasch.
+ */
+export interface NyaInloggningsuppgifterResultat {
+  kontoSkapat: boolean
+  kontoAterstallt: boolean
+  tillfalligtLosenord?: string
+}
+
+export async function forsokSkickaNyaInloggningsuppgifter(
+  adminKundId: string,
+  epost: string,
+): Promise<NyaInloggningsuppgifterResultat | undefined> {
+  const kundportalUrl = process.env.KUNDPORTAL_URL
+  const hemlighet = process.env.KUNDPORTAL_INTAG_SECRET
+
+  if (!kundportalUrl || !hemlighet) {
+    console.error(
+      'Nya inloggningsuppgifter kunde inte skickas - KUNDPORTAL_URL eller KUNDPORTAL_INTAG_SECRET saknas.',
+    )
+    return undefined
+  }
+
+  try {
+    const svar = await fetch(`${kundportalUrl}/api/internal/kundkonto`, {
+      method: 'PATCH',
+      headers: {
+        'content-type': 'application/json',
+        'x-kundportal-intag-secret': hemlighet,
+      },
+      body: JSON.stringify({ adminKundId, epost }),
+      signal: AbortSignal.timeout(8000),
+    })
+
+    const kropp = (await svar.json().catch(() => null)) as {
+      ok?: boolean
+      kontoSkapat?: boolean
+      kontoAterstallt?: boolean
+      tillfalligtLosenord?: string
+    } | null
+
+    if (!svar.ok || !kropp?.ok) {
+      // Logga ALDRIG hela kropp-objektet - se samma anmärkning ovan.
+      console.error('Kundportalen avvisade återställningen.', svar.status, { ok: kropp?.ok })
+      return undefined
+    }
+
+    return {
+      kontoSkapat: kropp.kontoSkapat === true,
+      kontoAterstallt: kropp.kontoAterstallt === true,
+      tillfalligtLosenord:
+        typeof kropp.tillfalligtLosenord === 'string' ? kropp.tillfalligtLosenord : undefined,
+    }
+  } catch (fel) {
+    console.error('Kunde inte nå kundportalen för att skicka nya inloggningsuppgifter.', fel)
+    return undefined
+  }
+}
+
+/**
  * Tar bort kundens kundportalskonto när kunden raderas i adminportalen (se
  * taBortOperativKund). Soft-fail av samma skäl som ovan: en oåtkomlig
  * kundportal ska aldrig blockera personal från att radera en kund här -

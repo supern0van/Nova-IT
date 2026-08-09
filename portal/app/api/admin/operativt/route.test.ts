@@ -20,6 +20,7 @@ import {
   uppdateraOperativKundanteckning,
   uppdateraOperativtArende,
 } from '@/lib/admin/operativa-server'
+import { skickaNyaInloggningsuppgifterForArende } from '@/lib/admin/kundinloggning-server'
 import { skickaKlarForUpphamtningSms } from '@/lib/admin/sms-server'
 import { hamtaAutentiseradAnvandarId } from '@/lib/supabase/route-anvandare'
 
@@ -60,6 +61,9 @@ vi.mock('@/lib/admin/operativa-server', () => ({
 vi.mock('@/lib/admin/sms-server', () => ({
   skickaKlarForUpphamtningSms: vi.fn(),
 }))
+vi.mock('@/lib/admin/kundinloggning-server', () => ({
+  skickaNyaInloggningsuppgifterForArende: vi.fn(),
+}))
 
 const hamtaAutentiseradAnvandarIdMock = vi.mocked(hamtaAutentiseradAnvandarId)
 const hamtaEgenProfilFranDatabasenMock = vi.mocked(hamtaEgenProfilFranDatabasen)
@@ -79,6 +83,7 @@ const uppdateraOperativKundMock = vi.mocked(uppdateraOperativKund)
 const uppdateraOperativKundanteckningMock = vi.mocked(uppdateraOperativKundanteckning)
 const uppdateraOperativtArendeMock = vi.mocked(uppdateraOperativtArende)
 const skickaKlarForUpphamtningSmsMock = vi.mocked(skickaKlarForUpphamtningSms)
+const skickaNyaInloggningsuppgifterForArendeMock = vi.mocked(skickaNyaInloggningsuppgifterForArende)
 
 function request() {
   return new NextRequest('https://admin.nova-it.se/api/admin/operativt')
@@ -697,6 +702,44 @@ describe('/api/admin/operativt', () => {
       'arende-1',
       'Verifierad Admin',
     )
+  })
+
+  it('skickar nya inloggningsuppgifter för admin, med verifierat profilnamn', async () => {
+    hamtaAutentiseradAnvandarIdMock.mockResolvedValue('user-1')
+    hamtaRollFranDatabasenMock.mockResolvedValue('administrator')
+    skickaNyaInloggningsuppgifterForArendeMock.mockResolvedValue({
+      kontoSkapat: false,
+      kontoAterstallt: true,
+    })
+
+    const svar = await PATCH(
+      patchRequest({
+        typ: 'skicka_inloggningsuppgifter',
+        data: { arendeId: 'arende-1', aktor: 'Förfalskat namn' },
+      }),
+    )
+
+    expect(svar.status).toBe(200)
+    expect(await svar.json()).toEqual({
+      ok: true,
+      resultat: { kontoSkapat: false, kontoAterstallt: true },
+    })
+    expect(skickaNyaInloggningsuppgifterForArendeMock).toHaveBeenCalledWith(
+      'arende-1',
+      'Verifierad Admin',
+    )
+  })
+
+  it('nekar skicka_inloggningsuppgifter för medarbetare (saknar redigera_kund)', async () => {
+    hamtaAutentiseradAnvandarIdMock.mockResolvedValue('user-1')
+    hamtaRollFranDatabasenMock.mockResolvedValue('medarbetare')
+
+    const svar = await PATCH(
+      patchRequest({ typ: 'skicka_inloggningsuppgifter', data: { arendeId: 'arende-1', aktor: 'Tekniker' } }),
+    )
+
+    expect(svar.status).toBe(403)
+    expect(skickaNyaInloggningsuppgifterForArendeMock).not.toHaveBeenCalled()
   })
 
   it('uppdaterar och tar bort kundanteckning för admin', async () => {
