@@ -337,6 +337,24 @@ export async function skapaOperativtArende(uppgifter: NyttOperativtArende): Prom
       }),
     ])
 
+    // Samma resonemang som skapaOperativKund: kunden ska ha kundportalåtkomst
+    // oavsett väg in. Till skillnad från där finns nu ett ärendenummer -
+    // om kontot är NYTT (kunden saknade ett sedan innan) skickas det med i
+    // mejlet så kunden faktiskt kan logga in direkt. En kund som redan har
+    // ett konto (vanligast: andra eller senare ärendet) får inget mejl här -
+    // forsokSkapaKundportalKonto är idempotent och genererar då inget nytt
+    // lösenord att skicka. Soft-fail genomgående: ärendet är redan skapat
+    // ovan oavsett vad som händer nedan.
+    const kundportalKonto = await forsokSkapaKundportalKonto(kund.id, kund.epost)
+    if (kundportalKonto?.tillfalligtLosenord) {
+      await forsokSkickaValkomstmejl({
+        epost: kund.epost,
+        kundNamn: kund.namn,
+        tillfalligtLosenord: kundportalKonto.tillfalligtLosenord,
+        arendenummer: arende.arendenummer,
+      })
+    }
+
     return arende
   }
 
