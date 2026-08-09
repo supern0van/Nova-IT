@@ -11,6 +11,8 @@ declare global {
         options: {
           sitekey: string;
           action?: string;
+          appearance?: "always" | "execute" | "interaction-only";
+          size?: "normal" | "compact" | "flexible";
           callback: (token: string) => void;
           "error-callback"?: (errorCode?: string) => void;
           "expired-callback"?: () => void;
@@ -52,9 +54,11 @@ function loadTurnstileScript(): Promise<void> {
 export function TurnstileWidget({
   action,
   onToken,
+  diskret = false,
 }: {
   action: string;
   onToken: (token: string | null) => void;
+  diskret?: boolean;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const widgetIdRef = useRef<string | null>(null);
@@ -79,6 +83,9 @@ export function TurnstileWidget({
         widgetIdRef.current = window.turnstile.render(containerRef.current, {
           sitekey: siteKey,
           action,
+          ...(diskret
+            ? { appearance: "interaction-only" as const, size: "flexible" as const }
+            : {}),
           callback: (token: string) => onToken(token),
           "error-callback": clearToken,
           "expired-callback": clearToken,
@@ -96,5 +103,11 @@ export function TurnstileWidget({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  return <div ref={containerRef} data-testid={`turnstile-${callbackName}`} className="mt-2" />;
+  return (
+    <div
+      ref={containerRef}
+      data-testid={`turnstile-${callbackName}`}
+      className={diskret ? "min-h-0 overflow-hidden" : "mt-2"}
+    />
+  );
 }

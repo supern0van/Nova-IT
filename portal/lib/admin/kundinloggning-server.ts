@@ -6,6 +6,7 @@ import { skapaSupabaseServiceklient } from '@/lib/supabase/service'
 export interface SkickaNyaInloggningsuppgifterResultat {
   kontoSkapat: boolean
   kontoAterstallt: boolean
+  utskickSkickat: boolean
 }
 
 /**
@@ -38,7 +39,7 @@ export async function skickaNyaInloggningsuppgifterForArende(
     throw new OperativtAdminFel('Kundportalen kunde inte nås just nu. Försök igen om en stund.', 502)
   }
 
-  await forsokSkickaValkomstmejl({
+  const utskickSkickat = await forsokSkickaValkomstmejl({
     epost: String(data.epost),
     kundNamn: String(data.kund_namn),
     tillfalligtLosenord: resultat.tillfalligtLosenord,
@@ -49,11 +50,17 @@ export async function skickaNyaInloggningsuppgifterForArende(
   await supabase.from('admin_aktiviteter').insert({
     arende_id: arendeId,
     typ: 'kundinloggning',
-    beskrivning: resultat.kontoAterstallt
-      ? 'Nya inloggningsuppgifter (nytt lösenord) skickade till kunden'
-      : 'Kundportalskonto skapat och inloggningsuppgifter skickade till kunden',
+    beskrivning: utskickSkickat
+      ? resultat.kontoAterstallt
+        ? 'Nya inloggningsuppgifter (nytt lösenord) skickade till kunden'
+        : 'Kundportalskonto skapat och inloggningsuppgifter skickade till kunden'
+      : 'Lösenordet uppdaterades, men inloggningsmejlet kunde inte skickas',
     aktor: aktor || 'Okänd',
   })
 
-  return { kontoSkapat: resultat.kontoSkapat, kontoAterstallt: resultat.kontoAterstallt }
+  return {
+    kontoSkapat: resultat.kontoSkapat,
+    kontoAterstallt: resultat.kontoAterstallt,
+    utskickSkickat,
+  }
 }
