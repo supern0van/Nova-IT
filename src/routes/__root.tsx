@@ -82,7 +82,31 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   );
 }
 
+// Cloudflare injicerar sin egen Web Analytics-beacon (static.cloudflareinsights.com)
+// och Turnstile-widgeten laddas från challenges.cloudflare.com - båda måste vara
+// tillåtna här, annars blockerar CSP:n dem i webbläsaren trots att de fungerar i test.
+// Måste spegla src/server.ts:s SECURITY_HEADERS för allt utom script-src (nonce
+// sätts bara här, där request-specifika ssr.nonce faktiskt finns tillgängligt).
+function contentSecurityPolicy(nonce: string): string {
+  return [
+    "default-src 'self'",
+    `script-src 'self' 'nonce-${nonce}' https://challenges.cloudflare.com https://static.cloudflareinsights.com`,
+    "frame-src https://challenges.cloudflare.com",
+    "connect-src 'self' https://challenges.cloudflare.com https://cloudflareinsights.com https://static.cloudflareinsights.com",
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' data:",
+    "font-src 'self'",
+    "frame-ancestors 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+  ].join("; ");
+}
+
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
+  headers: ({ ssr }) => {
+    if (!ssr?.nonce) return undefined;
+    return { "Content-Security-Policy": contentSecurityPolicy(ssr.nonce) };
+  },
   head: () => ({
     meta: [
       { charSet: "utf-8" },
