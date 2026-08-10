@@ -62,6 +62,8 @@ bun run ci
 - [Arbetsflöde](docs/workflow.md)
 - [E-post och DNS-handoff](docs/email-dns-handoff.md)
 - [Portalens startläge](docs/portal-readiness.md)
+
+Portalkoden ligger numera i det privata repot `supern0van/Nova-IT-Portaler`.
 - [Roadmap](docs/roadmap.md)
 - [Lovable-integrationen](docs/integrations/lovable.md)
 - [Design-QA](docs/quality/design-qa-premium-service-system.md)
