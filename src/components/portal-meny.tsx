@@ -4,6 +4,7 @@ import { ChevronDown, Eye, EyeOff, LoaderCircle, Lock, Ticket } from "lucide-rea
 import { cn } from "@/lib/utils";
 import { KUNDPORTAL_ORIGIN } from "@/lib/security-policy";
 import { TurnstileWidget } from "@/components/turnstile-widget";
+import { getKundportalTurnstileSiteKey } from "@/features/portal/portal-turnstile-server";
 
 // Egen action skiljer den här inloggningen från kontaktformulärets Turnstile-
 // verifiering (samma widget, se Nova-IT-Kundportal: lib/turnstile-server.ts).
@@ -249,6 +250,7 @@ export function PortalMeny({
             <div className="mt-1 border-t border-white/8 pt-2 opacity-75">
               <TurnstileWidget
                 action={TURNSTILE_ACTION}
+                getSiteKey={getKundportalTurnstileSiteKey}
                 onToken={(token) => {
                   setTurnstileToken(token);
                   if (token) setInloggningsfel(null);
