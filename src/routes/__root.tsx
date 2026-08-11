@@ -18,6 +18,7 @@ import { LegalDialogProvider } from "../components/legal-dialog";
 import { CookieConsent } from "../components/cookie-consent";
 import { JsonLd } from "../components/json-ld";
 import { buildWebSiteJsonLd } from "../lib/structured-data";
+import { FORM_ACTION_DIRECTIVE } from "../lib/security-policy";
 
 const siteUrl = "https://nova-it.se";
 const socialImageUrl = `${siteUrl}/nova-it-workspace.png`;
@@ -98,7 +99,7 @@ function contentSecurityPolicy(nonce: string): string {
     "font-src 'self'",
     "frame-ancestors 'none'",
     "base-uri 'self'",
-    "form-action 'self'",
+    FORM_ACTION_DIRECTIVE,
   ].join("; ");
 }
 
