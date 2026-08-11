@@ -55,10 +55,12 @@ export function TurnstileWidget({
   action,
   onToken,
   diskret = false,
+  getSiteKey = getTurnstileSiteKey,
 }: {
   action: string;
   onToken: (token: string | null) => void;
   diskret?: boolean;
+  getSiteKey?: () => Promise<string | null>;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const widgetIdRef = useRef<string | null>(null);
@@ -67,7 +69,7 @@ export function TurnstileWidget({
   useEffect(() => {
     let cancelled = false;
 
-    getTurnstileSiteKey()
+    getSiteKey()
       .then((siteKey) => {
         if (!siteKey || cancelled || !containerRef.current) {
           onToken(null);
@@ -100,6 +102,8 @@ export function TurnstileWidget({
         window.turnstile.remove(widgetIdRef.current);
       }
     };
+    // Widgeten ska monteras en gang per oppning. `onToken` ar ofta inline
+    // och skulle annars kunna skapa en reset-loop nar token uppdateras.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
