@@ -1,7 +1,8 @@
-import { useEffect, useId, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { ChevronDown, Eye, EyeOff, LoaderCircle, Lock, Ticket } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import { KUNDPORTAL_ORIGIN } from "@/lib/security-policy";
 import { TurnstileWidget } from "@/components/turnstile-widget";
 
 // Egen action skiljer den här inloggningen från kontaktformulärets Turnstile-
@@ -14,7 +15,7 @@ const TURNSTILE_ACTION = "portal_header_logga_in";
 // sessionskakor innan den skickar kunden vidare till returvägen nedan.
 // Endpointen har en egen allowlist för nova-it.se-origins och rate limiting;
 // se Nova-IT-Kundportal: app/api/kund/logga-in-form/route.ts.
-const KUNDPORTAL_BAS = "https://kundportal.nova-it.se";
+const KUNDPORTAL_BAS = KUNDPORTAL_ORIGIN;
 const KUNDPORTAL_LOGGA_IN_FORM = `${KUNDPORTAL_BAS}/api/kund/logga-in-form`;
 const KUNDPORTAL_GLOMT_LOSENORD = `${KUNDPORTAL_BAS}/glomt-losenord`;
 
@@ -43,12 +44,21 @@ export function PortalMeny({
   const [open, setOpen] = useState(false);
   const [visaLosenord, setVisaLosenord] = useState(false);
   const [skickar, setSkickar] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const [inloggningsfel, setInloggningsfel] = useState<string | null>(null);
   const behallare = useRef<HTMLDivElement>(null);
   const knapp = useRef<HTMLButtonElement>(null);
   const arendenummerFalt = useRef<HTMLInputElement>(null);
   const panelId = useId();
   const arendenummerId = useId();
   const losenordId = useId();
+
+  const stangPortal = useCallback(() => {
+    setOpen(false);
+    setTurnstileToken(null);
+    setInloggningsfel(null);
+    setSkickar(false);
+  }, []);
 
   // Escape stänger och lämnar tillbaka fokus till knappen, så att
   // tangentbordsnavigering inte tappar sin plats i sidhuvudet.
@@ -57,13 +67,13 @@ export function PortalMeny({
 
     const vidTangent = (event: KeyboardEvent) => {
       if (event.key !== "Escape") return;
-      setOpen(false);
+      stangPortal();
       knapp.current?.focus();
     };
 
     const vidKlickUtanfor = (event: MouseEvent) => {
       if (behallare.current?.contains(event.target as Node)) return;
-      setOpen(false);
+      stangPortal();
     };
 
     document.addEventListener("keydown", vidTangent);
@@ -73,7 +83,7 @@ export function PortalMeny({
       document.removeEventListener("keydown", vidTangent);
       document.removeEventListener("mousedown", vidKlickUtanfor);
     };
-  }, [open]);
+  }, [open, stangPortal]);
 
   // Flyttar tangentbordsfokus direkt till Ärendenummer-fältet när panelen
   // öppnas, så att både tangentbords- och skärmläsaranvändare hamnar rätt
@@ -90,7 +100,13 @@ export function PortalMeny({
       <button
         ref={knapp}
         type="button"
-        onClick={() => setOpen((value) => !value)}
+        onClick={() => {
+          if (open) {
+            stangPortal();
+          } else {
+            setOpen(true);
+          }
+        }}
         aria-expanded={open}
         aria-controls={panelId}
         className={cn(
@@ -130,7 +146,15 @@ export function PortalMeny({
         <form
           action={KUNDPORTAL_LOGGA_IN_FORM}
           method="POST"
-          onSubmit={() => {
+          onSubmit={(event) => {
+            if (!turnstileToken) {
+              event.preventDefault();
+              setInloggningsfel(
+                "Säkerhetskontrollen är inte klar ännu. Vänta ett ögonblick och försök igen.",
+              );
+              return;
+            }
+            setInloggningsfel(null);
             setSkickar(true);
           }}
           className="mt-4"
@@ -197,10 +221,16 @@ export function PortalMeny({
             {skickar ? "Loggar in…" : "Logga in"}
           </button>
 
+          {inloggningsfel && (
+            <p role="alert" className="mt-2 text-[13px] leading-5 text-rose-300">
+              {inloggningsfel}
+            </p>
+          )}
+
           <a
             href={KUNDPORTAL_GLOMT_LOSENORD}
             onClick={() => {
-              setOpen(false);
+              stangPortal();
               onNavigate?.();
             }}
             className="mt-1 flex min-h-11 items-center justify-center rounded-md text-[13px] font-medium text-sky-300 transition-colors hover:text-sky-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
@@ -212,10 +242,19 @@ export function PortalMeny({
               montera widgeten i en dold (hidden) behållare, dels för att
               slippa ladda Turnstile-scriptet för besökare som aldrig öppnar
               Portal. Token hamnar automatiskt i ett dolt cf-turnstile-
-              response-fält i formuläret ovan; ingen egen state behövs. */}
+              response-fält i formuläret ovan. Token hålls även i state så
+              att formuläret aldrig kan fastna i laddningsläge innan
+              säkerhetskontrollen är klar. */}
           {open && (
             <div className="mt-1 border-t border-white/8 pt-2 opacity-75">
-              <TurnstileWidget action={TURNSTILE_ACTION} onToken={() => {}} diskret />
+              <TurnstileWidget
+                action={TURNSTILE_ACTION}
+                onToken={(token) => {
+                  setTurnstileToken(token);
+                  if (token) setInloggningsfel(null);
+                }}
+                diskret
+              />
             </div>
           )}
         </form>

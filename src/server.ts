@@ -2,6 +2,7 @@ import "./lib/error-capture";
 
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
+import { FORM_ACTION_DIRECTIVE } from "./lib/security-policy";
 
 type ServerEntry = {
   fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
@@ -38,7 +39,7 @@ const FALLBACK_CSP = [
   "font-src 'self'",
   "frame-ancestors 'none'",
   "base-uri 'self'",
-  "form-action 'self'",
+  FORM_ACTION_DIRECTIVE,
 ].join("; ");
 
 function withSecurityHeaders(response: Response): Response {
