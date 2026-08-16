@@ -65,8 +65,8 @@ Kunden ansvarar för att:
 - ha rätt att låta Nova IT arbeta med den utrustning och de konton som berörs,
 - **säkerhetskopiera sin data innan utrustning lämnas in eller service
   påbörjas**, och
-- informera Nova IT om känd befintlig skada, tidigare ingrepp eller data som
-  är särskilt viktig.
+- informera Nova IT om känd befintlig skada, tidigare ingrepp eller information
+  på utrustningen som är särskilt viktig.
 
 **Säkerhetskopiering.** Nova IT rekommenderar alltid att Kunden gör en egen
 säkerhetskopia innan service. Nova IT kan mot överenskommelse utföra
@@ -95,8 +95,8 @@ opålitliga: en disk som redan är på väg att haverera kan sluta fungera helt
 under en åtgärd, oavsett hur arbetet utförs.
 
 **Kundens säkerhetskopia.** Kunden ansvarar för att ha en egen säkerhetskopia
-av data som är viktig, om inte säkerhetskopiering uttryckligen beställts av
-Nova IT som del av uppdraget.
+av sådan information som är viktig för Kunden, om inte säkerhetskopiering
+uttryckligen beställts av Nova IT som del av uppdraget.
 
 **Nova IT:s ansvar.** Nova IT ansvarar för skada som orsakats genom
 vårdslöshet vid utförandet av tjänsten. Nova IT ansvarar inte för dataförlust
@@ -108,8 +108,8 @@ som beror på:
 
 **Ansvarsbegränsning mot näringsidkare.** Är Kunden näringsidkare är Nova IT:s
 sammanlagda ansvar för ett uppdrag begränsat till det belopp Kunden erlagt för
-uppdraget. Nova IT ansvarar inte för indirekt skada, såsom utebliven vinst,
-produktionsbortfall eller förlorad data utöver vad som anges ovan.
+uppdraget. Utöver vad som anges ovan ansvarar Nova IT inte för indirekt skada,
+såsom utebliven vinst, produktionsbortfall eller förlorad data.
 
 **Mot konsument** gäller konsumenttjänstlagens ansvarsregler. Begränsningarna
 ovan tillämpas inte i den mån de skulle inskränka konsumentens rätt enligt
@@ -176,13 +176,16 @@ rätt till ersättning för påminnelse- och inkassokostnader enligt lag.
 **Retentionsrätt.** Nova IT har rätt att hålla kvar utrustning till dess att
 förfallen betalning för arbetet på den utrustningen erlagts.
 
-**Ej avhämtad utrustning.** Utrustning som inte hämtas inom tre månader efter
-att Kunden underrättats om att arbetet är slutfört kan Nova IT sälja eller
-skrota enligt lagen (1985:982) om näringsidkares rätt att sälja saker som inte
-har hämtats. Kunden underrättas skriftligen innan så sker.
+**Ej avhämtad utrustning.** Nova IT kan sälja eller skrota utrustning som
+Kunden inte hämtar, enligt lagen (1985:982) om näringsidkares rätt att sälja
+saker som inte har hämtats. Kunden anmanas skriftligen att hämta utrustningen
+innan så sker.
 
-**[JURIST]** Reglerna om ej avhämtad egendom har formkrav på underrättelsen och
-tidsfrister som behöver stämmas av mot lagtexten.
+**[JURIST]** Tidsfristerna är medvetet inte utskrivna här. Lagen ställer upp
+både en kvalifikationstid från det att uppdraget slutfördes och en frist efter
+skriftlig anmaning, och den har dessutom formkrav på anmaningens innehåll.
+Skriv in de exakta fristerna först efter avstämning mot lagtexten — ett villkor
+som anger fel frist blir verkningslöst och kan göra en försäljning otillåten.
 
 ## 10. Avbokning och ombokning
 
