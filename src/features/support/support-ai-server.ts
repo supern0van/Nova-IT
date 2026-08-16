@@ -1,7 +1,13 @@
 import { createServerFn, createServerOnlyFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { supportFlows } from "./support-data";
-import { AI_MAX_INDATA, byggAnvandarPrompt, byggSystemPrompt, tolkaAiSvar } from "./support-ai";
+import {
+  AI_MAX_INDATA,
+  byggAnvandarPrompt,
+  byggSystemPrompt,
+  extraheraModellsvar,
+  tolkaAiSvar,
+} from "./support-ai";
 import type { AiForslag } from "./support-ai";
 
 /**
@@ -153,8 +159,8 @@ export async function klassificeraViaBindning(
       }),
     );
 
-    const ratext = (svar as { response?: unknown } | null)?.response;
-    if (typeof ratext !== "string") return null;
+    const ratext = extraheraModellsvar(svar);
+    if (ratext === null) return null;
 
     console.log("Supportassistentens AI svarade.", { kalla: "bindning" });
     return tolkaAiSvar(ratext, supportFlows);
@@ -205,12 +211,10 @@ async function klassificeraViaRest(fraga: string, modell: string): Promise<AiKla
       return null;
     }
 
-    const kropp = (await svar.json().catch(() => null)) as {
-      result?: { response?: unknown };
-    } | null;
+    const kropp = (await svar.json().catch(() => null)) as { result?: unknown } | null;
 
-    const ratext = kropp?.result?.response;
-    if (typeof ratext !== "string") return null;
+    const ratext = extraheraModellsvar(kropp?.result);
+    if (ratext === null) return null;
 
     console.log("Supportassistentens AI svarade.", { kalla: "rest" });
     return tolkaAiSvar(ratext, supportFlows);
