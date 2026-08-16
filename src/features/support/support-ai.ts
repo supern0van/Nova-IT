@@ -68,6 +68,54 @@ export function byggAnvandarPrompt(fraga: string): string {
 }
 
 /**
+ * Plockar ut modellens textsvar ur Workers AI:s resultatform - vare sig den
+ * kommer via den native bindningen (`env.AI.run()`) eller REST-API:ets
+ * `result`-fält, som strukturellt är samma objekt.
+ *
+ * Formen har visat sig skilja sig mellan modeller/versioner, verifierat med
+ * riktiga anrop mot skarp Workers AI 2026-08-16:
+ *
+ * - `response` kan vara en STRÄNG med modellens råa textsvar (äldre/enklare
+ *   modellformat), eller
+ * - `response` kan vara ett REDAN UPPACKAT objekt, när Workers AI själv tolkat
+ *   modellens JSON-svar åt oss (chat-completions-format).
+ * - `choices[0].message.content` finns i chat-completions-formatet och är
+ *   ALLTID en sträng, oavsett vilket av ovanstående som gäller för `response`.
+ *
+ * En kod som bara litar på att `response` är en sträng missar hela den andra
+ * grenen och returnerar tyst null även när modellen svarat helt korrekt -
+ * det var precis så AI-stödet fungerade första skarpa dagen (se
+ * NOVA-0044-arbetsordern/motsvarande ändringslogg).
+ */
+export function extraheraModellsvar(resultat: unknown): string | null {
+  if (typeof resultat !== "object" || resultat === null) return null;
+  const r = resultat as {
+    response?: unknown;
+    choices?: Array<{ message?: { content?: unknown } }>;
+  };
+
+  if (typeof r.response === "string") return r.response;
+
+  // choices[].message.content är den mest tillförlitliga källan när den
+  // finns - garanterat en sträng i chat-completions-formatet, oavsett hur
+  // `response` råkar vara format den här gången.
+  const innehall = r.choices?.[0]?.message?.content;
+  if (typeof innehall === "string") return innehall;
+
+  // Sista utväg: `response` är redan ett uppackat objekt. Stränglägg det så
+  // att samma JSON-tolkning i tolkaAiSvar() kan användas oförändrad.
+  if (r.response && typeof r.response === "object") {
+    try {
+      return JSON.stringify(r.response);
+    } catch {
+      return null;
+    }
+  }
+
+  return null;
+}
+
+/**
  * Tolkar och VALIDERAR modellens svar. Returnerar null så snart något inte
  * stämmer - anropande kod ska då falla tillbaka på regelmotorn.
  */

@@ -1,6 +1,12 @@
 import { describe, expect, test } from "bun:test";
 import { supportFlows } from "./support-data";
-import { AI_MAX_INDATA, byggAnvandarPrompt, byggSystemPrompt, tolkaAiSvar } from "./support-ai";
+import {
+  AI_MAX_INDATA,
+  byggAnvandarPrompt,
+  byggSystemPrompt,
+  extraheraModellsvar,
+  tolkaAiSvar,
+} from "./support-ai";
 
 describe("AI-promptbygge", () => {
   test("listar bara kategorier som finns i kunskapsbasen", () => {
@@ -81,5 +87,58 @@ describe("tolkning av AI-svar", () => {
       supportFlows,
     );
     expect(forslag?.tolkning.length).toBe(300);
+  });
+});
+
+describe("extrahering av modellsvar ur Workers AI:s resultatform", () => {
+  // Regression för det verkliga skarpa felet 2026-08-16: AI-stödet
+  // aktiverades i produktion men gav alltid null, trots att modellen
+  // svarade helt korrekt. Orsaken var att `response` ibland är ett redan
+  // uppackat objekt, inte en sträng - verifierat med riktiga anrop mot
+  // Workers AI samma dag.
+  test("plockar strängen när response är en sträng (äldre modellform)", () => {
+    expect(extraheraModellsvar({ response: '{"flowId":"wifi"}' })).toBe('{"flowId":"wifi"}');
+  });
+
+  test("stränglägger response när den är ett redan uppackat objekt", () => {
+    const text = extraheraModellsvar({
+      response: { flowId: "slow-computer", urgency: "standard", tolkning: "Långsam dator." },
+    });
+    expect(text).not.toBeNull();
+    expect(JSON.parse(text!)).toEqual({
+      flowId: "slow-computer",
+      urgency: "standard",
+      tolkning: "Långsam dator.",
+    });
+  });
+
+  test("föredrar choices[0].message.content framför ett uppackat response-objekt", () => {
+    const text = extraheraModellsvar({
+      response: { flowId: "fel-som-inte-borde-anvandas" },
+      choices: [{ message: { content: '{"flowId":"wifi"}' } }],
+    });
+    expect(text).toBe('{"flowId":"wifi"}');
+  });
+
+  test("hela vägen: ett verkligt uppackat objektsvar går att klassificera", () => {
+    const ratext = extraheraModellsvar({
+      response: { flowId: "wifi", urgency: "priority", tolkning: "Nätet bryts under möten." },
+    });
+    expect(ratext).not.toBeNull();
+    const forslag = tolkaAiSvar(ratext!, supportFlows);
+    expect(forslag).toEqual({
+      flowId: "wifi",
+      urgency: "priority",
+      tolkning: "Nätet bryts under möten.",
+    });
+  });
+
+  test("returnerar null för resultat utan användbart textinnehåll", () => {
+    expect(extraheraModellsvar(null)).toBeNull();
+    expect(extraheraModellsvar(undefined)).toBeNull();
+    expect(extraheraModellsvar("bara text")).toBeNull();
+    expect(extraheraModellsvar({})).toBeNull();
+    expect(extraheraModellsvar({ response: 42 })).toBeNull();
+    expect(extraheraModellsvar({ choices: [] })).toBeNull();
   });
 });

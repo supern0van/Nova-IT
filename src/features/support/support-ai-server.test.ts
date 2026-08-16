@@ -15,6 +15,16 @@ function svaraMed(text: string, status = 200) {
     })) as unknown as typeof fetch;
 }
 
+// Formen Workers AI faktiskt skickade i produktion 2026-08-16: `response`
+// redan uppackat till ett objekt, inte en JSON-sträng. Se NOVA-0044.
+function svaraMedUppackatObjekt(objekt: unknown, status = 200) {
+  globalThis.fetch = (async () =>
+    new Response(JSON.stringify({ result: { response: objekt } }), {
+      status,
+      headers: { "content-type": "application/json" },
+    })) as unknown as typeof fetch;
+}
+
 beforeEach(() => {
   process.env.SUPPORT_AI_LAGE = "pa";
   process.env.CLOUDFLARE_ACCOUNT_ID = "konto123";
@@ -88,6 +98,24 @@ describe("klassificering via Workers AI", () => {
     expect(await klassificeraMedAiInternt("wifi krånglar")).toBeNull();
   });
 
+  // Regression för det verkliga skarpa felet 2026-08-16: AI-stödet
+  // aktiverades i produktion men gav alltid null, trots att Workers AI
+  // svarade helt korrekt - modellens svar var redan uppackat till ett
+  // objekt i stället för en JSON-sträng. Se NOVA-0044.
+  test("klassificerar korrekt även när Workers AI redan packat upp response till ett objekt", async () => {
+    svaraMedUppackatObjekt({
+      flowId: "slow-computer",
+      urgency: "standard",
+      tolkning: "Datorn är seg med många flikar öppna.",
+    });
+    const forslag = await klassificeraMedAiInternt("datorn kraschar med massa flikar öppna");
+    expect(forslag).toEqual({
+      flowId: "slow-computer",
+      urgency: "standard",
+      tolkning: "Datorn är seg med många flikar öppna.",
+    });
+  });
+
   test("skickar aldrig API-token till någon annan värd än Cloudflare", async () => {
     let anropadUrl = "";
     let hadeToken = false;
@@ -124,6 +152,20 @@ describe("klassificering via den native bindningen", () => {
     const forslag = await klassificeraViaBindning(fejkBindning, "wifi krånglar", "modell-x");
     expect(forslag).toEqual({ flowId: "wifi", urgency: "standard", tolkning: "x" });
     expect(fetchAnropad).toBe(false);
+  });
+
+  test("klassificerar korrekt när bindningen redan packat upp response till ett objekt", async () => {
+    const fejkBindning = {
+      run: async () => ({
+        response: { flowId: "wifi", urgency: "priority", tolkning: "Nätet bryts under möten." },
+      }),
+    };
+    const forslag = await klassificeraViaBindning(fejkBindning, "wifi krånglar", "modell-x");
+    expect(forslag).toEqual({
+      flowId: "wifi",
+      urgency: "priority",
+      tolkning: "Nätet bryts under möten.",
+    });
   });
 
   test("faller tillbaka till null när bindningen kastar", async () => {
