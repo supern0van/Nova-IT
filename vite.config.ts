@@ -59,7 +59,10 @@ export default defineConfig({
      * Wrappern satte det bara i sin egen sandbox-gren; cloudflare-module-
      * presetet sätter redan nodejs_compat och genererar wrangler.json.
      */
-    nitro({ defaultPreset: "cloudflare-module" }),
+    nitro({
+      defaultPreset: "cloudflare-module",
+      cloudflare: { wrangler: { ai: { binding: "AI" } } },
+    }),
     viteReact(),
   ],
 });

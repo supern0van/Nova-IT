@@ -1,11 +1,25 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { aiArPaslaget, klassificeraMedAiInternt } from "./support-ai-server";
+import {
+  aiArPaslaget,
+  klassificeraMedAiInternt,
+  klassificeraViaBindning,
+} from "./support-ai-server";
 
 const originalFetch = globalThis.fetch;
 
 function svaraMed(text: string, status = 200) {
   globalThis.fetch = (async () =>
     new Response(JSON.stringify({ result: { response: text } }), {
+      status,
+      headers: { "content-type": "application/json" },
+    })) as unknown as typeof fetch;
+}
+
+// Formen Workers AI faktiskt skickade i produktion 2026-08-16: `response`
+// redan uppackat till ett objekt, inte en JSON-sträng. Se NOVA-0044.
+function svaraMedUppackatObjekt(objekt: unknown, status = 200) {
+  globalThis.fetch = (async () =>
+    new Response(JSON.stringify({ result: { response: objekt } }), {
       status,
       headers: { "content-type": "application/json" },
     })) as unknown as typeof fetch;
@@ -84,6 +98,24 @@ describe("klassificering via Workers AI", () => {
     expect(await klassificeraMedAiInternt("wifi krånglar")).toBeNull();
   });
 
+  // Regression för det verkliga skarpa felet 2026-08-16: AI-stödet
+  // aktiverades i produktion men gav alltid null, trots att Workers AI
+  // svarade helt korrekt - modellens svar var redan uppackat till ett
+  // objekt i stället för en JSON-sträng. Se NOVA-0044.
+  test("klassificerar korrekt även när Workers AI redan packat upp response till ett objekt", async () => {
+    svaraMedUppackatObjekt({
+      flowId: "slow-computer",
+      urgency: "standard",
+      tolkning: "Datorn är seg med många flikar öppna.",
+    });
+    const forslag = await klassificeraMedAiInternt("datorn kraschar med massa flikar öppna");
+    expect(forslag).toEqual({
+      flowId: "slow-computer",
+      urgency: "standard",
+      tolkning: "Datorn är seg med många flikar öppna.",
+    });
+  });
+
   test("skickar aldrig API-token till någon annan värd än Cloudflare", async () => {
     let anropadUrl = "";
     let hadeToken = false;
@@ -102,5 +134,61 @@ describe("klassificering via Workers AI", () => {
       true,
     );
     expect(hadeToken).toBe(true);
+  });
+});
+
+describe("klassificering via den native bindningen", () => {
+  test("returnerar ett validerat förslag och kallar aldrig fetch", async () => {
+    let fetchAnropad = false;
+    globalThis.fetch = (async () => {
+      fetchAnropad = true;
+      throw new Error("ska inte anropas");
+    }) as unknown as typeof fetch;
+
+    const fejkBindning = {
+      run: async () => ({ response: '{"flowId":"wifi","urgency":"standard","tolkning":"x"}' }),
+    };
+
+    const forslag = await klassificeraViaBindning(fejkBindning, "wifi krånglar", "modell-x");
+    expect(forslag).toEqual({ flowId: "wifi", urgency: "standard", tolkning: "x" });
+    expect(fetchAnropad).toBe(false);
+  });
+
+  test("klassificerar korrekt när bindningen redan packat upp response till ett objekt", async () => {
+    const fejkBindning = {
+      run: async () => ({
+        response: { flowId: "wifi", urgency: "priority", tolkning: "Nätet bryts under möten." },
+      }),
+    };
+    const forslag = await klassificeraViaBindning(fejkBindning, "wifi krånglar", "modell-x");
+    expect(forslag).toEqual({
+      flowId: "wifi",
+      urgency: "priority",
+      tolkning: "Nätet bryts under möten.",
+    });
+  });
+
+  test("faller tillbaka till null när bindningen kastar", async () => {
+    const fejkBindning = {
+      run: async () => {
+        throw new Error("Workers AI internal error");
+      },
+    };
+    expect(await klassificeraViaBindning(fejkBindning, "wifi krånglar", "modell-x")).toBeNull();
+  });
+
+  test("faller tillbaka till null vid ett ogiltigt svar från bindningen", async () => {
+    const fejkBindning = { run: async () => ({ response: 42 }) };
+    expect(await klassificeraViaBindning(fejkBindning, "wifi krånglar", "modell-x")).toBeNull();
+  });
+
+  test("respekterar timeouten även för bindningsvägen", async () => {
+    const fejkBindning = {
+      run: () => new Promise(() => {}), // löser sig aldrig
+    };
+    const start = Date.now();
+    const forslag = await klassificeraViaBindning(fejkBindning, "wifi krånglar", "modell-x");
+    expect(forslag).toBeNull();
+    expect(Date.now() - start).toBeLessThan(4500);
   });
 });
