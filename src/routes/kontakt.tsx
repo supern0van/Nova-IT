@@ -192,6 +192,7 @@ function ContactPage() {
       contactReason: handoff.contactReason,
       context: handoff.context,
       guidance: handoff.guidance,
+      transcript: handoff.transcript,
     });
     setAssistantHandoffApplied(true);
   }, ["form" in search ? search.form : undefined]);

@@ -2,21 +2,22 @@ import { Link } from "@tanstack/react-router";
 import { useMemo, useReducer, type MouseEvent, type ReactNode } from "react";
 import {
   ArrowRight,
-  Bot,
   Check,
   Clipboard,
-  Info,
   LockKeyhole,
   RotateCcw,
-  Search,
+  Send,
   ShieldAlert,
-  UserRound,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { getServiceBySlug } from "@/lib/nova-data";
-import { classifySupportQuery, createSupportSummary } from "./support-engine";
+import {
+  classifySupportQuery,
+  createSupportSummary,
+  createSupportTranscript,
+} from "./support-engine";
 import { createSupportHandoff, saveSupportHandoff } from "./support-handoff";
 import { supportFlows, supportImpactOptions, supportTimingOptions } from "./support-data";
 import type {
@@ -159,6 +160,7 @@ export function SupportGuide({ compact = false, onNavigate }: SupportGuideProps)
     : "";
   const contactContext = [state.impact?.label, state.timing?.label].filter(Boolean).join(" · ");
   const contactGuidance = "Beskriv vad som händer, när det började och vad det påverkar.";
+  const isComplete = Boolean(state.option && state.impact && state.timing);
 
   function selectFlow(flow: SupportFlow, query = "", match: SupportMatch | null = null) {
     dispatch({ type: "select-flow", flow, query, match });
@@ -202,6 +204,14 @@ export function SupportGuide({ compact = false, onNavigate }: SupportGuideProps)
         context: contactContext,
         customerDescription: state.query,
         guidance: contactGuidance,
+        transcript: createSupportTranscript({
+          flow: state.flow,
+          impact: state.impact?.label,
+          option: state.option,
+          query: state.query,
+          timing: state.timing?.label,
+          urgency,
+        }),
         serviceSlug: state.flow.serviceSlug,
         urgency,
       }),
@@ -223,22 +233,20 @@ export function SupportGuide({ compact = false, onNavigate }: SupportGuideProps)
         "flex min-h-0 flex-col",
         compact
           ? "h-full"
-          : "mx-auto w-full max-w-5xl rounded-xl border border-white/10 bg-[#0a1118]",
+          : "mx-auto w-full max-w-4xl rounded-lg border border-white/10 bg-[#0a1118]",
       )}
     >
       {!compact && (
-        <div className="border-b border-white/10 px-5 py-5 sm:px-7">
-          <div className="flex items-start justify-between gap-5">
+        <div className="border-b border-white/10 px-6 py-6 sm:px-8">
+          <div className="flex items-start justify-between gap-6">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-sky-300">
-                Förbered ditt ärende
-              </p>
-              <h2 className="mt-2 text-2xl font-semibold text-white">
-                Beskriv problemet med rätt underlag.
+              <p className="eyebrow">Ärendeguide</p>
+              <h2 className="mt-2.5 text-2xl font-semibold tracking-[-0.02em] text-white">
+                Beskriv problemet en gång. Vi tar det därifrån.
               </h2>
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-300">
-                Beskriv vad du märker. Guiden hjälper dig att välja rätt ärendetyp och samla det
-                Nova IT behöver för att kunna hjälpa dig vidare.
+              <p className="mt-2.5 max-w-2xl text-sm leading-6 text-slate-400">
+                Guiden sorterar ditt ärende och samlar det Nova IT behöver veta, så att första
+                svaret du får redan är konkret.
               </p>
             </div>
             {(state.flow || state.query) && (
@@ -259,51 +267,46 @@ export function SupportGuide({ compact = false, onNavigate }: SupportGuideProps)
         role="log"
         aria-live="polite"
         aria-relevant="additions text"
-        className={cn("min-h-0 flex-1 space-y-4 overflow-y-auto", compact ? "p-4" : "p-5 sm:p-7")}
+        className={cn(
+          "min-h-0 flex-1 overflow-y-auto",
+          compact ? "space-y-3.5 p-4" : "space-y-5 p-6 sm:p-8",
+        )}
       >
-        <Message role="assistant" compact={compact}>
-          <p className="font-semibold text-white">Automatisk ärendeguide</p>
-          <p className="mt-1 leading-5 text-slate-400">
-            Jag hjälper dig välja kontaktorsak och samla ett tydligare underlag till Nova IT.
-          </p>
-        </Message>
-
         {!state.flow && (
-          <div className="ml-9 rounded-lg border border-white/10 bg-white/[0.035] p-4">
-            <p className="text-xs font-semibold uppercase tracking-[0.15em] text-slate-400">
-              Vanliga områden
-            </p>
-            <div className="mt-3 grid gap-2 min-[420px]:grid-cols-2">
-              {visibleTopics.map((flow) => (
-                <button
-                  key={flow.id}
-                  type="button"
-                  onClick={() => selectFlow(flow)}
-                  className="min-h-11 rounded-md border border-slate-700 bg-[#0b131c] px-3 py-2.5 text-left text-sm font-medium text-slate-200 transition-colors hover:border-sky-300/55 hover:bg-sky-300/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
-                >
-                  {flow.label}
-                </button>
-              ))}
-            </div>
-            {supportFlows.length > visibleTopics.length && (
-              <button
-                type="button"
-                onClick={() => dispatch({ type: "toggle-topics" })}
-                className="mt-3 text-xs font-semibold uppercase tracking-[0.14em] text-sky-300 hover:text-sky-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
-              >
-                Visa alla områden
-              </button>
-            )}
-            {state.showAllTopics && (
-              <button
-                type="button"
-                onClick={() => dispatch({ type: "toggle-topics" })}
-                className="mt-3 text-xs font-semibold uppercase tracking-[0.14em] text-sky-300 hover:text-sky-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
-              >
-                Visa färre områden
-              </button>
-            )}
-          </div>
+          <>
+            <Message role="assistant" compact={compact}>
+              <p className="leading-6 text-slate-200">
+                Berätta vad som krånglar med egna ord, eller välj ett område nedan. Du behöver inte
+                veta vad felet beror på.
+              </p>
+            </Message>
+
+            <Card className="ml-10">
+              <CardLabel>Vanliga områden</CardLabel>
+              <div className="mt-3.5 grid gap-2 min-[420px]:grid-cols-2">
+                {visibleTopics.map((flow) => (
+                  <button
+                    key={flow.id}
+                    type="button"
+                    onClick={() => selectFlow(flow)}
+                    className="min-h-11 rounded-md border border-white/10 bg-white/[0.02] px-3.5 py-2.5 text-left text-sm font-medium text-slate-200 transition-colors hover:border-sky-300/50 hover:bg-sky-300/[0.06] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
+                  >
+                    {flow.label}
+                  </button>
+                ))}
+              </div>
+              {supportFlows.length > visibleTopics.length && (
+                <TextButton onClick={() => dispatch({ type: "toggle-topics" })}>
+                  Visa alla {supportFlows.length} områden
+                </TextButton>
+              )}
+              {state.showAllTopics && (
+                <TextButton onClick={() => dispatch({ type: "toggle-topics" })}>
+                  Visa färre områden
+                </TextButton>
+              )}
+            </Card>
+          </>
         )}
 
         {(state.query || state.flow) && (
@@ -313,107 +316,84 @@ export function SupportGuide({ compact = false, onNavigate }: SupportGuideProps)
         )}
 
         {needsClarification && state.match ? (
-          <Message role="assistant" compact={compact}>
-            <p className="font-semibold text-white">Jag vill inte gissa fel.</p>
-            <p className="mt-1 leading-6 text-slate-300">
-              Vilket av områdena ligger närmast det du menar?
-            </p>
-            <div className="mt-3 grid gap-2">
-              {state.match.alternatives.map((flow) => (
+          <>
+            <Message role="assistant" compact={compact}>
+              <p className="leading-6 text-slate-200">
+                Jag vill inte gissa fel på det här. Vilket ligger närmast?
+              </p>
+            </Message>
+            <Card className="ml-10">
+              <div className="grid gap-2">
+                {state.match.alternatives.map((flow) => (
+                  <button
+                    key={flow.id}
+                    type="button"
+                    onClick={() => selectFlow(flow, state.query)}
+                    className="min-h-11 rounded-md border border-white/10 bg-white/[0.02] px-3.5 py-2.5 text-left text-sm font-medium text-slate-200 transition-colors hover:border-sky-300/50 hover:bg-sky-300/[0.06] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
+                  >
+                    {flow.label}
+                  </button>
+                ))}
                 <button
-                  key={flow.id}
                   type="button"
-                  onClick={() => selectFlow(flow, state.query)}
-                  className="min-h-11 rounded-md border border-slate-600 px-3 py-2 text-left text-sm font-medium text-slate-100 hover:border-sky-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
+                  onClick={() => selectFlow(supportFlows[supportFlows.length - 1], state.query)}
+                  className="min-h-11 rounded-md border border-white/10 px-3.5 py-2.5 text-left text-sm font-medium text-slate-400 transition-colors hover:border-white/25 hover:text-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
                 >
-                  {flow.label}
+                  Inget av dessa
                 </button>
-              ))}
-              <button
-                type="button"
-                onClick={() => selectFlow(supportFlows[supportFlows.length - 1], state.query)}
-                className="min-h-11 rounded-md border border-slate-600 px-3 py-2 text-left text-sm font-medium text-slate-100 hover:border-sky-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
-              >
-                Något annat
-              </button>
-            </div>
-          </Message>
+              </div>
+            </Card>
+          </>
         ) : state.flow ? (
           <>
             <Message role="assistant" compact={compact}>
-              <div className="flex items-center justify-between gap-3">
-                <p className="font-semibold text-white">
-                  Det här passar bäst som {state.flow.title.toLocaleLowerCase("sv")}.
-                </p>
-                {state.match && (
-                  <span className="shrink-0 rounded-full bg-sky-300/10 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-sky-200">
-                    Trolig matchning
-                  </span>
-                )}
-              </div>
-              <p className="mt-2 leading-6 text-slate-300">{state.flow.intro}</p>
-              <p className="mt-3 text-xs leading-5 text-slate-400">
-                Guiden ger inga reparationssteg. Nova IT gör den tekniska bedömningen.
+              <p className="leading-6 text-slate-200">
+                Det här hanterar vi som{" "}
+                <span className="font-semibold text-white">
+                  {state.flow.title.toLocaleLowerCase("sv")}
+                </span>
+                . {state.flow.intro}
               </p>
-              <Link
-                to="/kontakt"
-                search={{ form: "request", service: state.flow.serviceSlug }}
-                onClick={prepareHandoff}
-                className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-sky-200 underline decoration-sky-300/35 underline-offset-4 hover:text-sky-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
-              >
-                Skicka ärendet med det vi har <ArrowRight className="h-3.5 w-3.5" />
-              </Link>
             </Message>
 
-            {state.match?.urgency === "urgent" && (
-              <div className="ml-9 rounded-lg border border-rose-300/30 bg-rose-300/10 p-4 text-rose-50">
-                <p className="flex items-center gap-2 font-semibold">
-                  <ShieldAlert className="h-4 w-4" /> Kontakta support så snart som möjligt
+            {urgency === "urgent" && (
+              <Notice tone="critical" icon={<ShieldAlert className="h-4 w-4" />}>
+                <p className="font-semibold">Hör av dig så snart du kan</p>
+                <p className="mt-1.5 leading-6 opacity-90">
+                  Fortsätt inte klicka, logga in eller göra större ändringar på den berörda enheten
+                  under tiden.
                 </p>
-                <p className="mt-2 text-sm leading-6 text-rose-100/85">
-                  Fortsätt inte klicka, logga in eller göra större ändringar på den berörda enheten.
-                </p>
-              </div>
+              </Notice>
             )}
 
-            <div className="ml-9 overflow-hidden rounded-lg border border-white/10 bg-white/[0.035]">
-              <div className="p-4">
-                <p className="text-xs font-semibold uppercase tracking-[0.15em] text-slate-400">
-                  Börja med att samla detta
-                </p>
-                <ol className="mt-3 space-y-3">
-                  {state.flow.firstSteps.map((step, index) => (
-                    <li key={step} className="flex gap-3 text-sm leading-6 text-slate-200">
-                      <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-sky-300/10 text-xs font-semibold text-sky-200">
-                        {index + 1}
-                      </span>
-                      {step}
-                    </li>
-                  ))}
-                </ol>
-              </div>
-              <div className="border-t border-white/10 p-4">
-                <p className="text-sm font-semibold text-white">{state.flow.question}</p>
-                <div className="mt-3 grid gap-2 min-[420px]:grid-cols-2">
-                  {state.flow.options.map((option) => (
-                    <button
-                      key={option.id}
-                      type="button"
-                      aria-pressed={state.option?.id === option.id}
-                      onClick={() => dispatch({ type: "select-option", option })}
-                      className={cn(
-                        "min-h-11 rounded-md border px-3 py-2 text-left text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300",
-                        state.option?.id === option.id
-                          ? "border-sky-300 bg-sky-300 text-slate-950"
-                          : "border-slate-700 text-slate-200 hover:border-sky-300/60",
-                      )}
-                    >
-                      {option.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
+            <Card className="ml-10">
+              <CardLabel>Ta fram det här</CardLabel>
+              <ol className="mt-3.5 space-y-3">
+                {state.flow.firstSteps.map((step, index) => (
+                  <li key={step} className="flex gap-3 text-sm leading-6 text-slate-300">
+                    <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full border border-white/12 text-[11px] font-semibold text-slate-400">
+                      {index + 1}
+                    </span>
+                    {step}
+                  </li>
+                ))}
+              </ol>
+            </Card>
+
+            <Card className="ml-10">
+              <p className="text-sm font-semibold text-white">{state.flow.question}</p>
+              <ChoiceGrid>
+                {state.flow.options.map((option) => (
+                  <Choice
+                    key={option.id}
+                    selected={state.option?.id === option.id}
+                    onClick={() => dispatch({ type: "select-option", option })}
+                  >
+                    {option.label}
+                  </Choice>
+                ))}
+              </ChoiceGrid>
+            </Card>
 
             {state.option && (
               <>
@@ -421,110 +401,89 @@ export function SupportGuide({ compact = false, onNavigate }: SupportGuideProps)
                   {state.option.label}
                 </Message>
                 <Message role="assistant" compact={compact}>
-                  <p className="flex items-center gap-2 font-semibold text-white">
-                    <Check className="h-4 w-4 text-sky-300" /> Bra, då vet vi mer.
+                  <p className="flex items-start gap-2 leading-6 text-slate-200">
+                    <Check className="mt-1 h-4 w-4 shrink-0 text-sky-300" />
+                    <span>{state.option.reply}</span>
                   </p>
-                  <p className="mt-2 leading-6 text-slate-300">{state.option.reply}</p>
                 </Message>
-                <div className="ml-9 overflow-hidden rounded-lg border border-white/10 bg-white/[0.035]">
-                  <div className="p-4">
-                    <p className="text-sm font-semibold text-white">Hur stor är påverkan?</p>
-                    <div className="mt-3 grid gap-2 min-[420px]:grid-cols-2">
-                      {supportImpactOptions.map((impact) => (
-                        <button
-                          key={impact.id}
-                          type="button"
-                          aria-pressed={state.impact?.id === impact.id}
-                          onClick={() => dispatch({ type: "select-impact", impact })}
-                          className={cn(
-                            "min-h-11 rounded-md border px-3 py-2 text-left text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300",
-                            state.impact?.id === impact.id
-                              ? "border-sky-300 bg-sky-300 text-slate-950"
-                              : "border-slate-700 text-slate-200 hover:border-sky-300/60",
-                          )}
-                        >
-                          {impact.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="border-t border-white/10 p-4">
+
+                <Card className="ml-10">
+                  <p className="text-sm font-semibold text-white">Hur stor är påverkan?</p>
+                  <ChoiceGrid>
+                    {supportImpactOptions.map((impact) => (
+                      <Choice
+                        key={impact.id}
+                        selected={state.impact?.id === impact.id}
+                        onClick={() => dispatch({ type: "select-impact", impact })}
+                      >
+                        {impact.label}
+                      </Choice>
+                    ))}
+                  </ChoiceGrid>
+
+                  <div className="mt-5 border-t border-white/8 pt-5">
                     <p className="text-sm font-semibold text-white">När märktes problemet?</p>
-                    <div className="mt-3 grid gap-2 min-[420px]:grid-cols-2">
+                    <ChoiceGrid>
                       {supportTimingOptions.map((timing) => (
-                        <button
+                        <Choice
                           key={timing.id}
-                          type="button"
-                          aria-pressed={state.timing?.id === timing.id}
+                          selected={state.timing?.id === timing.id}
                           onClick={() => dispatch({ type: "select-timing", timing })}
-                          className={cn(
-                            "min-h-11 rounded-md border px-3 py-2 text-left text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300",
-                            state.timing?.id === timing.id
-                              ? "border-sky-300 bg-sky-300 text-slate-950"
-                              : "border-slate-700 text-slate-200 hover:border-sky-300/60",
-                          )}
                         >
                           {timing.label}
-                        </button>
+                        </Choice>
                       ))}
-                    </div>
+                    </ChoiceGrid>
                   </div>
-                </div>
-                {state.impact && state.timing && (
-                  <Message role="assistant" compact={compact}>
-                    <p className="font-semibold text-white">Tack, nu är ärendet tydligare.</p>
-                    <p className="mt-1 leading-6 text-slate-300">
-                      Nova IT får både symptom, omfattning och tidsbild i sammanfattningen.
-                    </p>
-                  </Message>
-                )}
+                </Card>
               </>
             )}
 
-            {state.choiceHistory.length > 0 && (
-              <div className="ml-9 rounded-md border border-white/10 bg-[#081018]/70 px-4 py-3">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">
-                  Dina val i ordning
+            <Notice tone="caution" icon={<ShieldAlert className="h-4 w-4" />}>
+              <p className="font-semibold">När det är läge att höra av sig</p>
+              <p className="mt-1.5 leading-6 opacity-90">{state.flow.escalation}</p>
+              {service && (
+                <p className="mt-2.5 text-sm opacity-75">
+                  Det här landar hos: <span className="font-medium">{service.title}</span>
                 </p>
-                <ol className="mt-2 space-y-1.5 text-xs leading-5 text-slate-400">
+              )}
+            </Notice>
+
+            <div className="ml-10 rounded-lg border border-sky-300/25 bg-sky-300/[0.06] p-5">
+              <p className="font-semibold text-white">
+                {isComplete
+                  ? "Underlaget är komplett."
+                  : "Du kan skicka redan nu – eller svara på frågorna ovan först."}
+              </p>
+              <p className="mt-1.5 text-sm leading-6 text-slate-300">
+                {isComplete
+                  ? "Symptom, omfattning och tidsbild följer med ärendet, så vi slipper fråga om grunderna."
+                  : "Ju mer som är ifyllt, desto snabbare kan vi svara konkret istället för att ställa motfrågor."}
+              </p>
+
+              {state.choiceHistory.length > 0 && (
+                <ul className="mt-4 flex flex-wrap gap-1.5">
                   {state.choiceHistory.map((choice, index) => (
-                    <li key={`${choice}-${index}`} className="flex gap-2">
-                      <span className="text-slate-400">{index + 1}.</span>
-                      <span>{choice}</span>
+                    <li
+                      key={`${choice}-${index}`}
+                      className="rounded-md border border-white/10 bg-white/[0.03] px-2.5 py-1 text-xs text-slate-300"
+                    >
+                      {choice}
                     </li>
                   ))}
-                </ol>
-              </div>
-            )}
-
-            <div className="ml-9 rounded-lg border border-amber-300/20 bg-amber-300/[0.06] p-4">
-              <p className="flex items-center gap-2 text-sm font-semibold text-amber-100">
-                <ShieldAlert className="h-4 w-4" /> När du bör gå vidare
-              </p>
-              <p className="mt-2 text-sm leading-6 text-slate-300">{state.flow.escalation}</p>
-              {service && (
-                <p className="mt-3 text-sm font-medium text-sky-200">Förslag: {service.title}</p>
+                </ul>
               )}
-            </div>
 
-            <div className="ml-9 rounded-lg border border-sky-300/25 bg-sky-300/[0.07] p-4">
-              <p className="font-semibold text-white">
-                {state.option && state.impact && state.timing
-                  ? "Ditt underlag är tydligt och redo för Nova IT."
-                  : "Underlaget kan redan skickas till Nova IT."}
-              </p>
-              <p className="mt-1 text-sm leading-6 text-slate-300">
-                Kontrollera vad som följer med innan du öppnar kontaktformuläret.
-              </p>
-              <details className="mt-3 rounded-md border border-white/10 bg-[#081018]">
-                <summary className="cursor-pointer px-3 py-2 text-sm font-medium text-sky-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300">
-                  Visa sammanfattningen
+              <details className="group mt-4 rounded-md border border-white/10 bg-[#070e16]">
+                <summary className="cursor-pointer list-none px-3.5 py-2.5 text-sm font-medium text-sky-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300">
+                  Visa exakt vad som skickas
                 </summary>
-                <pre className="max-h-56 overflow-auto whitespace-pre-wrap border-t border-white/10 p-3 font-sans text-xs leading-5 text-slate-300">
+                <pre className="max-h-56 overflow-auto whitespace-pre-wrap border-t border-white/10 p-3.5 font-sans text-xs leading-5 text-slate-400">
                   {summary}
                 </pre>
               </details>
-              <div className={cn("mt-4 flex gap-2", compact ? "flex-col" : "flex-wrap")}>
+
+              <div className={cn("mt-5 flex gap-2", compact ? "flex-col" : "flex-wrap")}>
                 <Button asChild>
                   <Link
                     to="/kontakt"
@@ -541,7 +500,7 @@ export function SupportGuide({ compact = false, onNavigate }: SupportGuideProps)
                   <RotateCcw className="h-4 w-4" /> Börja om
                 </Button>
               </div>
-              <p className="mt-2 min-h-5 text-xs text-slate-400" role="status">
+              <p className="mt-2.5 min-h-5 text-xs text-slate-400" role="status">
                 {state.copyState === "copied" && "Sammanfattningen är kopierad."}
                 {state.copyState === "error" &&
                   "Kopiering misslyckades. Sammanfattningen visas ovan."}
@@ -555,8 +514,8 @@ export function SupportGuide({ compact = false, onNavigate }: SupportGuideProps)
 
       <form
         className={cn(
-          "border-t border-white/10 bg-[#0a1118]",
-          compact ? "p-4" : "rounded-b-xl px-5 py-4 sm:px-7",
+          "border-t border-white/10 bg-[#080f17]",
+          compact ? "p-4" : "rounded-b-lg px-6 py-5 sm:px-8",
         )}
         onSubmit={(event) => {
           event.preventDefault();
@@ -574,26 +533,121 @@ export function SupportGuide({ compact = false, onNavigate }: SupportGuideProps)
             id={compact ? "nova-question-compact" : "nova-question-page"}
             value={state.draft}
             onChange={(event) => dispatch({ type: "draft", value: event.target.value })}
-            placeholder="Beskriv vad som krånglar…"
+            placeholder="Till exempel: Wi-Fi bryts under möten"
             maxLength={300}
             autoComplete="off"
-            className="min-w-0 border-slate-700 bg-[#071018] text-slate-100 placeholder:text-slate-500 focus-visible:ring-sky-300"
+            className="min-w-0 border-white/12 bg-[#060d14] text-slate-100 placeholder:text-slate-500 focus-visible:ring-sky-300"
           />
           <Button
             type="submit"
             size="icon"
-            aria-label="Skicka frågan"
+            aria-label="Skicka beskrivningen"
             disabled={!state.draft.trim()}
           >
-            <Search className="h-4 w-4" />
+            <Send className="h-4 w-4" />
           </Button>
         </div>
-        <p className="mt-2 flex items-start gap-2 text-xs leading-5 text-slate-400">
+        <p className="mt-2.5 flex items-start gap-2 text-xs leading-5 text-slate-500">
           <LockKeyhole className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-          Skriv inte lösenord, personnummer eller bankuppgifter. Undvik uppgifter om andra om de
-          inte behövs. Inget skickas förrän du väljer kontakt.
+          Skriv inte lösenord, personnummer eller bankuppgifter. Inget lämnar din webbläsare förrän
+          du väljer att gå vidare till kontakt.
         </p>
       </form>
+    </div>
+  );
+}
+
+/**
+ * Ett enda kortutseende genom hela guiden. Tidigare hade varje block sin
+ * egen kombination av ram, bakgrund och rundning, vilket fick flödet att
+ * se ihopsatt ut. Färg används nu bara där den betyder något - se `Notice`.
+ */
+function Card({ children, className }: { children: ReactNode; className?: string }) {
+  return (
+    <div className={cn("rounded-lg border border-white/10 bg-white/[0.022] p-5", className)}>
+      {children}
+    </div>
+  );
+}
+
+function CardLabel({ children }: { children: ReactNode }) {
+  return (
+    <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+      {children}
+    </p>
+  );
+}
+
+function TextButton({ children, onClick }: { children: ReactNode; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="mt-3.5 text-xs font-semibold text-sky-300 transition-colors hover:text-sky-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
+    >
+      {children}
+    </button>
+  );
+}
+
+function ChoiceGrid({ children }: { children: ReactNode }) {
+  return <div className="mt-3.5 grid gap-2 min-[420px]:grid-cols-2">{children}</div>;
+}
+
+function Choice({
+  children,
+  onClick,
+  selected,
+}: {
+  children: ReactNode;
+  onClick: () => void;
+  selected: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      aria-pressed={selected}
+      onClick={onClick}
+      className={cn(
+        "min-h-11 rounded-md border px-3.5 py-2.5 text-left text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300",
+        selected
+          ? "border-sky-300 bg-sky-300 font-medium text-slate-950"
+          : "border-white/10 bg-white/[0.02] text-slate-300 hover:border-sky-300/50 hover:bg-sky-300/[0.06] hover:text-white",
+      )}
+    >
+      {children}
+    </button>
+  );
+}
+
+/**
+ * Färgade block reserveras för två lägen: `critical` (säkerhetsläge som
+ * kräver att kunden slutar göra saker) och `caution` (när det är läge att
+ * kontakta Nova IT). Allt annat är neutralt, så att rött och gult faktiskt
+ * betyder något när det dyker upp.
+ */
+function Notice({
+  children,
+  icon,
+  tone,
+}: {
+  children: ReactNode;
+  icon: ReactNode;
+  tone: "critical" | "caution";
+}) {
+  return (
+    <div
+      className={cn(
+        "ml-10 rounded-lg border p-5 text-sm",
+        tone === "critical"
+          ? "border-rose-400/30 bg-rose-400/[0.08] text-rose-50"
+          : "border-amber-300/25 bg-amber-300/[0.05] text-amber-50",
+      )}
+    >
+      <div className="flex items-start gap-2.5">
+        <span className="mt-0.5 shrink-0">{icon}</span>
+        <div className="min-w-0">{children}</div>
+      </div>
     </div>
   );
 }
@@ -609,30 +663,24 @@ function Message({
 }) {
   const isAssistant = role === "assistant";
   return (
-    <div className={cn("flex items-start gap-2.5", isAssistant ? "justify-start" : "justify-end")}>
+    <div className={cn("flex items-start gap-3", isAssistant ? "justify-start" : "justify-end")}>
       {isAssistant && (
-        <span className="mt-1 grid h-7 w-7 shrink-0 place-items-center rounded-md border border-sky-300/25 bg-sky-300/10 text-sky-200">
-          <Bot className="h-4 w-4" aria-hidden="true" />
-          <span className="sr-only">Automatisk guide</span>
+        <span className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-md border border-white/10 bg-white/[0.04] p-1.5">
+          <img src="/nova-it-mark.svg" alt="" aria-hidden="true" className="h-full w-full" />
+          <span className="sr-only">Nova IT ärendeguide</span>
         </span>
       )}
       <div
         className={cn(
           "text-sm",
-          compact ? "max-w-[calc(100%-2.25rem)]" : "max-w-2xl",
+          compact ? "max-w-[calc(100%-2.5rem)]" : "max-w-2xl",
           isAssistant
-            ? "py-1 text-slate-200"
-            : "rounded-md border border-sky-300/25 bg-sky-300/10 px-3 py-2.5 text-sky-50",
+            ? "pt-1 text-slate-200"
+            : "rounded-lg rounded-tr-sm border border-sky-300/20 bg-sky-300/[0.09] px-3.5 py-2.5 text-sky-50",
         )}
       >
         {children}
       </div>
-      {!isAssistant && (
-        <span className="mt-1 grid h-7 w-7 shrink-0 place-items-center rounded-full bg-slate-700 text-slate-200">
-          <UserRound className="h-4 w-4" aria-hidden="true" />
-          <span className="sr-only">Du</span>
-        </span>
-      )}
     </div>
   );
 }

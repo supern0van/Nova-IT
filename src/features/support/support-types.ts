@@ -4,7 +4,8 @@ export type SupportServiceSlug =
   | "datorinstallation"
   | "felsokning"
   | "sakerhet-backup"
-  | "microsoft-google";
+  | "microsoft-google"
+  | "datorservice";
 
 export type SupportOption = {
   id: string;

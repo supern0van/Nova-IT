@@ -51,24 +51,26 @@ export function SupportBot({ open, onOpenChange, triggerRef }: SupportBotProps) 
         role="dialog"
         aria-labelledby={titleId}
         aria-describedby={descriptionId}
-        className="pointer-events-auto absolute inset-x-0 bottom-0 flex h-[min(700px,calc(100dvh-0.5rem))] flex-col overflow-hidden rounded-t-xl border border-slate-700 bg-[#081018] text-slate-100 shadow-[0_24px_70px_rgba(2,8,23,0.55)] sm:inset-x-auto sm:bottom-6 sm:right-6 sm:h-[min(640px,calc(100dvh-8rem))] sm:w-[390px] sm:rounded-xl"
+        className="pointer-events-auto absolute inset-x-0 bottom-0 flex h-[min(700px,calc(100dvh-0.5rem))] flex-col overflow-hidden rounded-t-xl border border-white/12 bg-[#080f17] text-slate-100 shadow-[0_32px_80px_-20px_rgba(2,8,23,0.85)] sm:inset-x-auto sm:bottom-6 sm:right-6 sm:h-[min(660px,calc(100dvh-8rem))] sm:w-[400px] sm:rounded-xl"
       >
-        <header className="flex shrink-0 items-start justify-between gap-4 border-b border-white/10 bg-[#071018] px-4 py-4">
-          <div className="min-w-0">
-            <div className="flex items-center gap-2">
-              <span className="h-2 w-2 shrink-0 rounded-full bg-sky-300 shadow-[0_0_0_5px_rgba(125,211,252,0.12)]" />
-              <h2 id={titleId} className="font-semibold text-white">
-                Förbered ärende
+        <header className="flex shrink-0 items-start justify-between gap-4 border-b border-white/10 bg-[#060d14] px-5 py-4">
+          <div className="flex min-w-0 items-start gap-3">
+            <span className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-md border border-white/10 bg-white/[0.05] p-1.5">
+              <img src="/nova-it-mark.svg" alt="" aria-hidden="true" className="h-full w-full" />
+            </span>
+            <div className="min-w-0">
+              <h2 id={titleId} className="font-semibold leading-tight text-white">
+                Nova IT ärendeguide
               </h2>
+              <p id={descriptionId} className="mt-1 text-xs leading-5 text-slate-400">
+                Automatisk guide – ingen personal läser här förrän du skickar.
+              </p>
             </div>
-            <p id={descriptionId} className="mt-1 pl-4 text-xs leading-5 text-slate-400">
-              Välj kontaktorsak och samla underlag.
-            </p>
           </div>
           <button
             type="button"
             onClick={close}
-            className="grid h-11 w-11 shrink-0 place-items-center rounded-md text-slate-300 transition-colors hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
+            className="-mr-1.5 grid h-10 w-10 shrink-0 place-items-center rounded-md text-slate-400 transition-colors hover:bg-white/8 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
             aria-label="Stäng ärendeguiden"
           >
             <X className="h-5 w-5" />

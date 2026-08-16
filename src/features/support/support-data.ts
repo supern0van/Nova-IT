@@ -14,20 +14,54 @@ export const supportTimingOptions: SupportDetailOption[] = [
   { id: "unknown", label: "Jag är osäker" },
 ];
 
+/**
+ * Supportassistentens kunskapsbas.
+ *
+ * Varje flöde representerar en avgränsad ärendetyp som Nova IT faktiskt
+ * hanterar (se `src/lib/nova-data.ts` för tjänstekatalogen som
+ * `serviceSlug` pekar mot). `keywords` samlar medvetet många vardagliga
+ * sätt att beskriva samma problem - stavfel, engelska låneord, korta
+ * utrop - eftersom matchningen i `support-engine.ts` bara känner igen det
+ * den faktiskt ser i texten. Bredd i ordlistan är det som gör förståelsen
+ * bättre, inte fler flöden i sig.
+ *
+ * Texterna är skrivna som en erfaren tekniker skulle prata: konkret,
+ * lugn och utan överord. Ingen text ska låta som en generisk chatbot -
+ * varje rad ska kunna komma från någon som faktiskt gjort jobbet förut.
+ */
 export const supportFlows: SupportFlow[] = [
   {
     id: "slow-computer",
     label: "Långsam dator",
     title: "Långsam dator",
-    keywords: ["långsam", "seg", "trög", "hänger", "prestanda", "full disk"],
-    intro: "En långsam dator behöver bedömas utifrån symptom, ålder, lagring och hur den används.",
+    keywords: [
+      "långsam",
+      "seg",
+      "trög",
+      "tregt",
+      "hänger",
+      "hänger sig",
+      "fryser",
+      "laggar",
+      "laggig",
+      "prestanda",
+      "full disk",
+      "disken är full",
+      "för lite minne",
+      "snurrar bara",
+      "tar evigheter",
+      "startar segt",
+      "orkar inte",
+    ],
+    intro:
+      "En långsam dator kan bero på lagring, minne, bakgrundsprogram eller ren ålder - det går sällan att säga innan vi vet var det märks mest och hur gammal maskinen är.",
     firstSteps: [
-      "Notera om hela datorn eller bara ett program är långsamt.",
+      "Notera om hela datorn eller bara ett enskilt program är långsamt.",
       "Skriv när problemet märks mest: start, webbläsare, möten eller arbete i program.",
       "Ta fram datorns modell och ungefärlig ålder om du känner till den.",
     ],
     escalation:
-      "Be om hjälp om datorn fortfarande är seg, blir ovanligt varm, låter konstigt eller används i arbetet.",
+      "Be om hjälp om datorn fortfarande är seg efter omstart, blir ovanligt varm, låter konstigt eller används i arbetet dagligen.",
     question: "När märks problemet mest?",
     options: [
       {
@@ -38,17 +72,20 @@ export const supportFlows: SupportFlow[] = [
       {
         id: "slow-browser",
         label: "I webbläsaren",
-        reply: "Notera vilken webbläsare som används och om problemet gäller vissa webbsidor.",
+        reply:
+          "Notera vilken webbläsare som används och om problemet gäller vissa flikar eller sidor.",
       },
       {
         id: "slow-always",
         label: "Hela tiden",
-        reply: "Det är ett bra läge att låta Nova IT kontrollera lagring, minne och diskhälsa.",
+        reply:
+          "Det är ett bra läge att låta Nova IT kontrollera lagring, minne och diskhälsa på plats eller via fjärrhjälp.",
       },
       {
         id: "slow-hot",
         label: "Den blir varm",
-        reply: "Skriv om datorn blir varm, låter mycket eller stänger av sig själv.",
+        reply:
+          "Skriv om datorn blir varm, låter mycket eller stänger av sig själv - det pekar ofta mot kylning eller batteri, inte bara mjukvara.",
       },
     ],
     serviceSlug: "felsokning",
@@ -57,21 +94,44 @@ export const supportFlows: SupportFlow[] = [
     id: "wifi",
     label: "Wi-Fi och nätverk",
     title: "Wi-Fi och nätverk",
-    keywords: ["wifi", "wi-fi", "internet", "nätverk", "router", "vpn", "uppkoppling"],
-    intro: "Nätverksproblem behöver ringas in efter plats, antal enheter och hur ofta det händer.",
+    keywords: [
+      "wifi",
+      "wi-fi",
+      "wi fi",
+      "internet",
+      "nätverk",
+      "nätet",
+      "uppkoppling",
+      "uppkopplingen",
+      "router",
+      "routern",
+      "modem",
+      "vpn",
+      "trådlöst",
+      "trådlöst nät",
+      "svagt nät",
+      "dålig täckning",
+      "ingen signal",
+      "kommer inte ut på nätet",
+      "tappar nätet",
+      "surfar inte",
+    ],
+    intro:
+      "Nätverksproblem behöver ringas in efter plats, antal enheter och hur ofta det händer - annars fixas fel del av kedjan.",
     firstSteps: [
       "Skriv om problemet gäller en enhet, flera enheter eller hela lokalen.",
       "Notera var uppkopplingen fungerar sämst och när avbrotten händer.",
       "Skriv om problemet påverkar möten, betalning, arbete eller flera användare.",
     ],
     escalation:
-      "Gå vidare om flera enheter påverkas, anslutningen faller ofta eller nätet används för arbete.",
+      "Gå vidare om flera enheter påverkas, anslutningen faller ofta eller nätet används för arbete eller betalningar.",
     question: "Vad beskriver problemet bäst?",
     options: [
       {
         id: "wifi-hidden",
         label: "Inget nät syns",
-        reply: "Notera om nätet saknas på alla enheter eller bara på en specifik dator/mobil.",
+        reply:
+          "Notera om nätet saknas på alla enheter eller bara på en specifik dator eller mobil.",
       },
       {
         id: "wifi-drop",
@@ -81,12 +141,13 @@ export const supportFlows: SupportFlow[] = [
       {
         id: "wifi-slow",
         label: "Det är långsamt",
-        reply: "Notera om det är långsamt överallt eller bara i vissa rum.",
+        reply:
+          "Notera om det är långsamt överallt eller bara i vissa rum - avstånd till routern är ofta boven.",
       },
       {
         id: "wifi-one",
         label: "Bara en enhet",
-        reply: "Skriv vilken enhet det gäller och om andra enheter fungerar normalt.",
+        reply: "Skriv vilken enhet det gäller och om andra enheter fungerar normalt på samma nät.",
       },
     ],
     serviceSlug: "natverk",
@@ -98,17 +159,26 @@ export const supportFlows: SupportFlow[] = [
     keywords: [
       "windows",
       "uppdatering",
+      "uppdaterar",
       "felkod",
       "blå skärm",
+      "blue screen",
       "svart skärm",
       "skärmen är svart",
       "startar inte",
+      "startar om själv",
+      "startar om av sig själv",
+      "kraschar",
+      "krashar",
       "drivrutin",
+      "windows update",
+      "fastnar på uppdatering",
     ],
-    intro: "Ett exakt felmeddelande och vad som hände precis innan gör supporten säkrare.",
+    intro:
+      "Ett exakt felmeddelande och vad som hände precis innan gör supporten mycket säkrare - gissningar utan felkod kostar tid.",
     firstSteps: [
-      "Skriv av felkoden eller ta en bild.",
-      "Notera om felet började efter en uppdatering.",
+      "Skriv av felkoden ordagrant eller ta en bild av skärmen.",
+      "Notera om felet började efter en uppdatering eller installation.",
       "Skriv om filer, program eller inloggning påverkas.",
     ],
     escalation:
@@ -118,63 +188,272 @@ export const supportFlows: SupportFlow[] = [
       {
         id: "win-update",
         label: "Uppdatering fastnar",
-        reply: "Notera procent, tid och om datorn behövs akut i arbete.",
+        reply:
+          "Notera hur länge den stått still, ungefärlig procent och om datorn behövs akut i arbete.",
       },
       {
         id: "win-code",
         label: "Felkod visas",
-        reply: "Spara felkoden ordagrant; den styr vilka kontroller som är relevanta.",
+        reply: "Spara felkoden ordagrant - den styr vilka kontroller som faktiskt är relevanta.",
       },
       {
         id: "win-start",
         label: "Startar inte",
-        reply: "Låt datorn vara inkopplad och undvik upprepade hårda avstängningar.",
+        reply:
+          "Låt datorn vara inkopplad och undvik upprepade hårda avstängningar tills Nova IT tittat på den.",
       },
       {
         id: "win-blue",
         label: "Blå skärm",
-        reply: "Ta bild på stoppkoden. Orsaken kan vara drivrutin, minne, disk eller uppdatering.",
+        reply:
+          "Ta bild på stoppkoden om den hinner synas. Orsaken kan vara drivrutin, minne, disk eller en uppdatering.",
       },
     ],
     serviceSlug: "it-support",
   },
   {
-    id: "upgrade",
-    label: "Uppgradera dator",
-    title: "Uppgradering av dator",
-    keywords: ["uppgradera", "ssd", "ram", "minne", "batteri", "köpråd"],
-    intro: "Kompatibilitet och ekonomi bör kontrolleras innan delar köps.",
-    firstSteps: [
-      "Ta fram modell och ungefärlig ålder.",
-      "Bestäm om problemet är hastighet, lagring eller batteri.",
-      "Notera vilka filer och program som behöver följa med vid service.",
+    id: "screen",
+    label: "Skärm och bild",
+    title: "Skärm- och bildproblem",
+    keywords: [
+      "skärm",
+      "bildskärm",
+      "monitor",
+      "ingen bild",
+      "svart skärm",
+      "flimrar",
+      "flimmer",
+      "fläckar på skärmen",
+      "trasig skärm",
+      "spräckt skärm",
+      "extern skärm",
+      "andra skärmen",
+      "projektor",
+      "hdmi",
+      "upplösning",
+      "fel upplösning",
     ],
-    escalation: "Be om råd om modellen är okänd, svår att öppna eller data behöver flyttas.",
-    question: "Vad vill du förbättra?",
+    intro:
+      "Skärmproblem kan sitta i kabeln, kortet, inställningen eller själva panelen - vilket avgör om det går att laga, koppla om eller behöver bytas.",
+    firstSteps: [
+      "Skriv om det gäller den inbyggda skärmen, en extern skärm eller en projektor.",
+      "Notera om det är helt svart, flimrar, har fel färger eller bara fel upplösning.",
+      "Skriv vilken kabel eller anslutning som används, om du vet det (HDMI, USB-C, DisplayPort).",
+    ],
+    escalation:
+      "Be om hjälp om skärmen är helt svart trots att datorn verkar vara igång, eller om problemet uppstod efter en fysisk skada.",
+    question: "Vad stämmer bäst?",
     options: [
       {
-        id: "up-ssd",
-        label: "Snabbare lagring",
+        id: "screen-black",
+        label: "Helt svart",
         reply:
-          "Nova IT kan bedöma om SSD, minne eller en annan åtgärd ger bäst effekt för modellen.",
+          "Notera om datorn låter igång (fläkt, lampor) trots att skärmen är svart - det avgör om felet sitter i skärmen eller datorn.",
       },
       {
-        id: "up-ram",
-        label: "Mer minne",
-        reply: "RAM hjälper vid många program, men alla modeller kan inte uppgraderas.",
+        id: "screen-flicker",
+        label: "Flimrar eller blinkar",
+        reply:
+          "Skriv om det händer hela tiden eller bara i vissa lägen, till exempel vid rörelse eller mörk bakgrund.",
       },
       {
-        id: "up-battery",
-        label: "Batteri",
-        reply: "Batteribyte beror på modell, ålder och reservdelstillgång.",
+        id: "screen-external",
+        label: "Extern skärm funkar inte",
+        reply: "Notera vilken kabeltyp och om skärmen fungerar mot en annan dator.",
       },
       {
-        id: "up-advice",
-        label: "Köpråd",
-        reply: "Samla budget, användning, skärmstorlek och programkrav.",
+        id: "screen-damaged",
+        label: "Synlig skada",
+        reply:
+          "Beskriv skadan och när den uppstod. Fysisk skada går sällan att felsöka på distans.",
       },
     ],
-    serviceSlug: "datorinstallation",
+    serviceSlug: "felsokning",
+  },
+  {
+    id: "video-meeting",
+    label: "Videomöten och ljud",
+    title: "Videomöten, kamera och ljud",
+    keywords: [
+      "teams",
+      "zoom",
+      "google meet",
+      "videomöte",
+      "video möte",
+      "kamera",
+      "webbkamera",
+      "mikrofon",
+      "mikron",
+      "hörs inte",
+      "syns inte",
+      "ljudet fungerar inte",
+      "delar skärm",
+      "skärmdelning",
+      "möte krånglar",
+      "hörlurar",
+      "headset",
+    ],
+    intro:
+      "Kamera- och mikrofonproblem inför möten är ofta en behörighets- eller enhetsinställning, men kan också vara drivrutin eller mjukvara som krockar.",
+    firstSteps: [
+      "Skriv vilket mötesverktyg det gäller: Teams, Zoom, Google Meet eller annat.",
+      "Notera om problemet är kameran, mikrofonen, ljudet eller skärmdelningen.",
+      "Skriv om det fungerade tidigare och vad som ändrades innan det slutade fungera.",
+    ],
+    escalation:
+      "Be om hjälp i god tid före ett viktigt möte, inte akut när mötet redan börjat - felsökning tar oftast några minuter.",
+    question: "Vad är problemet?",
+    options: [
+      {
+        id: "video-camera",
+        label: "Kameran syns inte",
+        reply:
+          "Notera vilket program som ska använda kameran och om andra program (till exempel Kamera-appen) ser den.",
+      },
+      {
+        id: "video-mic",
+        label: "Mikrofonen hörs inte",
+        reply:
+          "Skriv om det gäller en inbyggd mikrofon eller ett headset, och om ljudnivån syns röra sig i mötesverktygets inställningar.",
+      },
+      {
+        id: "video-share",
+        label: "Skärmdelning fungerar inte",
+        reply:
+          "Notera felmeddelandet och om det gäller att dela hela skärmen eller ett enskilt fönster.",
+      },
+      {
+        id: "video-permission",
+        label: "Behörighet nekas",
+        reply:
+          "Windows eller macOS kan blockera kamera/mikrofon på systemnivå - notera vilket operativsystem det gäller.",
+      },
+    ],
+    serviceSlug: "microsoft-google",
+  },
+  {
+    id: "printer",
+    label: "Skrivaren strular",
+    title: "Skrivarproblem",
+    keywords: [
+      "skrivare",
+      "skrivaren",
+      "utskrift",
+      "skriver inte ut",
+      "offline",
+      "toner",
+      "bläck",
+      "scanner",
+      "skanner",
+      "scanning",
+      "skanning",
+      "papper fastnar",
+      "papperskrångel",
+      "kö med utskrifter",
+      "utskriftskö",
+    ],
+    intro:
+      "Vanliga orsaker till skrivarproblem är anslutning, utskriftskö, drivrutin eller förbrukningsmaterial - sällan skrivaren själv.",
+    firstSteps: [
+      "Skriv skrivarmodell och om den är ansluten via USB, nätverkskabel eller Wi-Fi.",
+      "Notera felmeddelande, om den är offline och om fler användare påverkas.",
+      "Skriv om problemet gäller utskrift, skanning eller kvalitet.",
+    ],
+    escalation:
+      "Be om hjälp om skrivaren används av flera eller fortsätter vara offline efter omstart.",
+    question: "Vad händer?",
+    options: [
+      {
+        id: "print-offline",
+        label: "Offline",
+        reply:
+          "Nova IT behöver veta anslutningstyp, placering och om fler datorer påverkas av samma skrivare.",
+      },
+      {
+        id: "print-queue",
+        label: "Jobb fastnar",
+        reply:
+          "Nova IT behöver skrivarmodell, anslutningstyp, felmeddelande och om fler användare påverkas.",
+      },
+      {
+        id: "print-quality",
+        label: "Dålig kvalitet",
+        reply:
+          "Beskriv utskriftsfelet (ränder, blek text, fel färg) och vilken typ av papper och förbrukningsmaterial som används.",
+      },
+      {
+        id: "print-add",
+        label: "Lägga till skrivare",
+        reply:
+          "Samla modellnamn, anslutningstyp och vilken eller vilka datorer som ska använda den.",
+      },
+    ],
+    serviceSlug: "it-support",
+  },
+  {
+    id: "account",
+    label: "E-post och konto",
+    title: "E-post, konto och inloggning",
+    keywords: [
+      "e-post",
+      "epost",
+      "mail",
+      "mejl",
+      "konto",
+      "kontot",
+      "inlogg",
+      "inloggning",
+      "logga in",
+      "kommer inte in",
+      "lösenord",
+      "glömt lösenord",
+      "återställa lösenord",
+      "mfa",
+      "tvåfaktor",
+      "authenticator",
+      "outlook",
+      "gmail",
+      "teams",
+      "icloud",
+      "apple id",
+    ],
+    intro:
+      "Kontoproblem ska hanteras säkert, särskilt när e-post, betalningar eller kunddata kan vara berörda.",
+    firstSteps: [
+      "Skriv vilken tjänst det gäller: Microsoft 365, Google, e-post eller annat konto.",
+      "Notera om kontot är låst, lösenordet glömt eller MFA (tvåfaktor) inte fungerar.",
+      "Skriv om problemet påverkar en person eller flera i samma verksamhet.",
+    ],
+    escalation:
+      "Sök hjälp direkt om kontot är låst, MFA saknas eller e-posten verkar ha använts av någon annan.",
+    question: "Vad gäller kontot?",
+    options: [
+      {
+        id: "account-password",
+        label: "Glömt lösenord",
+        reply:
+          "Nova IT behöver veta tjänst, konto och om återställningsvägar (telefon, reservmejl) fortfarande finns kvar.",
+      },
+      {
+        id: "account-mfa",
+        label: "MFA fungerar inte",
+        reply:
+          "Ny telefon, fel tid på enheten eller borttagen app kräver ofta en säker återaktivering, inte bara ett nytt lösenord.",
+      },
+      {
+        id: "account-locked",
+        label: "Kontot är låst",
+        reply:
+          "Nova IT behöver veta tjänst, konto och om felet påverkar fler användare eller bara en person.",
+      },
+      {
+        id: "account-mail",
+        label: "E-post fungerar inte",
+        reply:
+          "Notera vilken app eller webbinloggning som används, felmeddelandet och om andra tjänster fungerar.",
+      },
+    ],
+    serviceSlug: "microsoft-google",
   },
   {
     id: "virus",
@@ -183,39 +462,51 @@ export const supportFlows: SupportFlow[] = [
     keywords: [
       "virus",
       "malware",
+      "skadlig kod",
       "hack",
+      "hackad",
       "phishing",
+      "nätfiske",
       "misstänkt mejl",
       "misstänkt mail",
+      "misstänkt sms",
       "klickat på länk",
       "okänd länk",
       "popup",
+      "reklamfönster",
       "kapat",
       "kapad",
       "intrång",
       "ransom",
+      "ransomware",
       "krypterade filer",
       "betalningskrav",
       "bedrägeri",
+      "blivit lurad",
+      "gav ut mina uppgifter",
     ],
-    intro: "Vid misstänkt intrång är det viktigaste att minska risken och få hjälp snabbt.",
+    intro:
+      "Vid misstänkt intrång är det viktigaste att minska risken snabbt, inte att felsöka i detalj själv.",
     firstSteps: [
-      "Skriv vad som hänt: länk, popup, fil, konto eller betalningskrav.",
-      "Spara felmeddelanden och skärmbilder.",
-      "Kontakta Nova IT snabbt om konto, filer eller flera enheter kan vara påverkade.",
+      "Skriv vad som hänt: en länk, en popup, en fil, ett konto eller ett betalningskrav.",
+      "Spara felmeddelanden och ta skärmbilder innan du gör fler ändringar.",
+      "Kontakta Nova IT snabbt om ett konto, filer eller flera enheter kan vara påverkade.",
     ],
-    escalation: "Sök hjälp direkt vid krypterade filer, betalningskrav eller kapade konton.",
+    escalation:
+      "Sök hjälp direkt vid krypterade filer, betalningskrav eller konton som kan vara kapade.",
     question: "Vad har du märkt?",
     options: [
       {
         id: "virus-popup",
         label: "Konstiga popups",
-        reply: "Beskriv popupen och ta gärna en skärmbild innan du gör fler ändringar.",
+        reply:
+          "Beskriv popupen och ta gärna en skärmbild innan du klickar bort den eller gör fler ändringar.",
       },
       {
         id: "virus-link",
         label: "Klickat på länk",
-        reply: "Skriv vilken tjänst länken gällde och om inloggning eller betalning skedde.",
+        reply:
+          "Skriv vilken tjänst länken påstod sig gälla, och om någon inloggning eller betalning hann ske.",
       },
       {
         id: "virus-files",
@@ -233,105 +524,33 @@ export const supportFlows: SupportFlow[] = [
     serviceSlug: "sakerhet-backup",
   },
   {
-    id: "printer",
-    label: "Skrivaren strular",
-    title: "Skrivarproblem",
-    keywords: ["skrivare", "utskrift", "offline", "toner", "bläck", "scanner", "skanner"],
-    intro: "Vanliga orsaker är anslutning, utskriftskö, drivrutin eller förbrukningsmaterial.",
-    firstSteps: [
-      "Skriv skrivarmodell och om den är USB, nätverk eller Wi-Fi.",
-      "Notera felmeddelande, om den är offline och om fler användare påverkas.",
-      "Skriv om problemet gäller utskrift, skanning eller kvalitet.",
-    ],
-    escalation: "Be om hjälp om skrivaren används av flera eller fortsätter vara offline.",
-    question: "Vad händer?",
-    options: [
-      {
-        id: "print-offline",
-        label: "Offline",
-        reply: "Nova IT behöver veta anslutningstyp, placering och om fler datorer påverkas.",
-      },
-      {
-        id: "print-queue",
-        label: "Jobb fastnar",
-        reply:
-          "Nova IT behöver skrivarmodell, anslutningstyp, felmeddelande och om fler användare påverkas.",
-      },
-      {
-        id: "print-quality",
-        label: "Dålig kvalitet",
-        reply:
-          "Beskriv utskriftsfelet och vilken typ av dokument, papper och förbrukningsmaterial som används.",
-      },
-      {
-        id: "print-add",
-        label: "Lägga till skrivare",
-        reply: "Samla modellnamn, anslutningstyp och vilken dator som ska användas.",
-      },
-    ],
-    serviceSlug: "it-support",
-  },
-  {
-    id: "account",
-    label: "E-post och konto",
-    title: "E-post, konto och inloggning",
-    keywords: [
-      "e-post",
-      "mail",
-      "mejl",
-      "konto",
-      "inlogg",
-      "inloggning",
-      "logga in",
-      "lösenord",
-      "mfa",
-      "outlook",
-      "gmail",
-      "teams",
-    ],
-    intro: "Kontoproblem ska hanteras säkert, särskilt när e-post eller kunddata berörs.",
-    firstSteps: [
-      "Skriv vilken tjänst det gäller: Microsoft 365, Google, e-post eller annat konto.",
-      "Notera om kontot är låst, lösenordet glömt eller MFA inte fungerar.",
-      "Skriv om problemet påverkar en person eller flera.",
-    ],
-    escalation: "Sök hjälp om kontot är låst, MFA saknas eller e-post verkar kapad.",
-    question: "Vad gäller kontot?",
-    options: [
-      {
-        id: "account-password",
-        label: "Glömt lösenord",
-        reply: "Nova IT behöver veta tjänst, konto och om återställningsvägar finns kvar.",
-      },
-      {
-        id: "account-mfa",
-        label: "MFA fungerar inte",
-        reply: "Ny telefon, fel tid eller borttagen app kan kräva säker återaktivering.",
-      },
-      {
-        id: "account-locked",
-        label: "Kontot är låst",
-        reply:
-          "Nova IT behöver veta tjänst, konto och om felet påverkar fler användare eller bara en person.",
-      },
-      {
-        id: "account-mail",
-        label: "E-post fungerar inte",
-        reply: "Notera app, felmeddelande och om webbinloggning fungerar.",
-      },
-    ],
-    serviceSlug: "microsoft-google",
-  },
-  {
     id: "backup",
     label: "Backup och filer",
     title: "Backup och filåterställning",
-    keywords: ["backup", "säkerhetskopia", "återställa", "fil", "onedrive", "raderad"],
-    intro: "Backup och återställning bör hanteras försiktigt så att data inte skrivs över.",
+    keywords: [
+      "backup",
+      "säkerhetskopia",
+      "säkerhetskopiera",
+      "återställa",
+      "återställ fil",
+      "fil",
+      "mapp försvunnen",
+      "onedrive",
+      "google drive",
+      "dropbox",
+      "icloud",
+      "raderad",
+      "raderat av misstag",
+      "borttagen fil",
+      "synkar inte",
+      "synkroniserar inte",
+    ],
+    intro:
+      "Backup och återställning bör hanteras försiktigt så att data inte skrivs över innan vi vet var filerna faktiskt ligger.",
     firstSteps: [
       "Skriv vilka filer eller mappar som är viktigast.",
       "Notera var filerna brukar ligga: dator, OneDrive, Google Drive, extern disk eller server.",
-      "Kontakta Nova IT innan du gör större återställningar om filerna är viktiga.",
+      "Kontakta Nova IT innan du gör större återställningar om filerna är viktiga - vissa åtgärder går inte att ångra.",
     ],
     escalation:
       "Sök hjälp om filerna är kritiska, disken låter konstigt eller backupstatus är oklar.",
@@ -340,44 +559,226 @@ export const supportFlows: SupportFlow[] = [
       {
         id: "backup-start",
         label: "Komma igång",
-        reply: "Lista viktiga mappar, e-post, bokföring och licensfiler.",
+        reply: "Lista viktiga mappar, e-post, bokföring och licensfiler som bör ingå från början.",
       },
       {
         id: "backup-check",
         label: "Backupstatus",
-        reply: "Nova IT behöver veta var backupen finns och när den senast fungerade.",
+        reply: "Nova IT behöver veta var backupen finns idag och när den senast faktiskt kördes.",
       },
       {
         id: "backup-restore",
         label: "Återställa filer",
-        reply: "Notera filnamn, plats och när filen senast var korrekt.",
+        reply:
+          "Notera filnamn, plats och när filen senast var korrekt - sluta använda enheten om möjligt tills dess.",
       },
       {
         id: "backup-move",
         label: "Flytta till ny dator",
-        reply: "Planera filer, e-post, bokmärken, skrivare och licenser före byte.",
+        reply: "Planera filer, e-post, bokmärken, skrivare och licenser innan bytet, inte efteråt.",
       },
     ],
     serviceSlug: "sakerhet-backup",
   },
   {
+    id: "external-storage",
+    label: "Extern lagring och USB",
+    title: "Extern hårddisk, USB och minneskort",
+    keywords: [
+      "extern hårddisk",
+      "extern disk",
+      "usb",
+      "usb-minne",
+      "minneskort",
+      "sd-kort",
+      "känns inte igen",
+      "syns inte i utforskaren",
+      "hittar inte disken",
+      "disken låter konstigt",
+      "klickande ljud",
+      "filer försvunna",
+      "korrupt fil",
+      "går inte att öppna filen",
+    ],
+    intro:
+      "En extern disk eller ett USB-minne som slutat synas kan bero på kabeln, porten, filsystemet eller själva disken - ordningen på felsökningen spelar roll för att inte förlora data.",
+    firstSteps: [
+      "Notera om disken innehåller viktiga filer som inte finns någon annanstans - sluta i så fall använda den.",
+      "Skriv om disken syns i Utforskaren eller Finder, i Diskhantering, eller inte alls.",
+      "Notera om disken låter konstigt (klickande, tickande) - då är fysisk skada trolig.",
+    ],
+    escalation:
+      "Kontakta Nova IT direkt om disken låter konstigt eller innehåller filer som inte finns i någon backup - fortsatt användning kan göra återställning svårare.",
+    question: "Vad stämmer bäst?",
+    options: [
+      {
+        id: "storage-not-detected",
+        label: "Syns inte alls",
+        reply:
+          "Testa gärna en annan port eller dator om du kan göra det utan risk, och skriv vad som hände.",
+      },
+      {
+        id: "storage-noise",
+        label: "Låter konstigt",
+        reply:
+          "Sluta använda disken nu. Ovanliga ljud kan betyda att mekaniken är på väg att haverera.",
+      },
+      {
+        id: "storage-corrupt",
+        label: "Filer går inte att öppna",
+        reply:
+          "Notera filtyp och felmeddelande. Rör inte filerna mer än nödvändigt innan Nova IT tittat på det.",
+      },
+      {
+        id: "storage-missing",
+        label: "Filer är försvunna",
+        reply:
+          "Skriv när du senast såg filerna och om något annat ändrades samtidigt, till exempel en synk eller ominstallation.",
+      },
+    ],
+    serviceSlug: "sakerhet-backup",
+  },
+  {
+    id: "upgrade",
+    label: "Uppgradera dator",
+    title: "Uppgradering av dator",
+    keywords: [
+      "uppgradera",
+      "uppgradering",
+      "ssd",
+      "byta ssd",
+      "ram",
+      "mer minne",
+      "minne",
+      "batteri",
+      "batteribyte",
+      "dåligt batteri",
+      "köpråd",
+      "snabbare dator",
+      "göra datorn snabbare",
+    ],
+    intro:
+      "Kompatibilitet och ekonomi bör kontrolleras innan delar köps - inte alla modeller går att uppgradera, och ibland är en ny dator billigare i längden.",
+    firstSteps: [
+      "Ta fram modell och ungefärlig ålder.",
+      "Bestäm om problemet är hastighet, lagring eller batteri.",
+      "Notera vilka filer och program som behöver följa med vid en eventuell service.",
+    ],
+    escalation:
+      "Be om råd om modellen är okänd, svår att öppna, eller om data behöver flyttas i samband med bytet.",
+    question: "Vad vill du förbättra?",
+    options: [
+      {
+        id: "up-ssd",
+        label: "Snabbare lagring",
+        reply:
+          "Nova IT kan bedöma om SSD, minne eller en annan åtgärd ger bäst effekt för just den modellen.",
+      },
+      {
+        id: "up-ram",
+        label: "Mer minne",
+        reply:
+          "Mer RAM hjälper vid många program samtidigt, men alla modeller går inte att uppgradera - värt att kontrollera först.",
+      },
+      {
+        id: "up-battery",
+        label: "Batteri",
+        reply: "Batteribyte beror på modell, ålder och om reservdelar finns tillgängliga.",
+      },
+      {
+        id: "up-advice",
+        label: "Köpråd",
+        reply: "Samla budget, användning, skärmstorlek och programkrav innan ni bestämmer er.",
+      },
+    ],
+    serviceSlug: "datorservice",
+  },
+  {
+    id: "cleaning-service",
+    label: "Genomgång och rengöring",
+    title: "Genomgång, rengöring och allmän service",
+    keywords: [
+      "rengöring",
+      "rengöra",
+      "dammig",
+      "damm",
+      "fläkten låter",
+      "surrar",
+      "brummar",
+      "luktar bränt",
+      "genomgång",
+      "hälsokontroll",
+      "service på datorn",
+      "underhåll",
+      "stänger av sig",
+      "överhettar",
+      "blir jättevarm",
+    ],
+    intro:
+      "Damm och slitna fläktar är en av de vanligaste orsakerna till att äldre datorer blir varma, högljudda eller oförklarligt långsamma - en genomgång är ofta billigare än den känns.",
+    firstSteps: [
+      "Skriv hur gammal datorn är och om den används dagligen.",
+      "Notera om den blir varm, låter mer än vanligt eller stänger av sig själv.",
+      "Skriv om det är en bärbar eller stationär dator.",
+    ],
+    escalation:
+      "Be om hjälp snarast om datorn stänger av sig själv vid belastning eller luktar bränt - det är inte bara ett skönhetsfel.",
+    question: "Vad märker du mest?",
+    options: [
+      {
+        id: "clean-loud",
+        label: "Låter mer än vanligt",
+        reply:
+          "Notera om ljudet ökar när datorn jobbar hårt (till exempel videosamtal) eller är konstant.",
+      },
+      {
+        id: "clean-hot",
+        label: "Blir väldigt varm",
+        reply: "Skriv var det känns varmast och om det påverkar hur datorn presterar.",
+      },
+      {
+        id: "clean-shutdown",
+        label: "Stänger av sig själv",
+        reply:
+          "Notera när det händer - ofta vid tung belastning som spel, videoredigering eller flera program samtidigt.",
+      },
+      {
+        id: "clean-routine",
+        label: "Bara en rutinkoll",
+        reply:
+          "Bra läge för en genomgång innan något faktiskt går sönder, särskilt på en dator äldre än ett par år.",
+      },
+    ],
+    serviceSlug: "datorservice",
+  },
+  {
     id: "refurbished",
     label: "Begagnad dator",
     title: "Begagnad eller refurbished dator",
-    keywords: ["begagnad", "refurbished", "rekonditionerad", "köpa dator", "renoverad"],
-    intro: "Skick, garanti, batteri, lagring och uppdateringsstöd bör kontrolleras före köp.",
+    keywords: [
+      "begagnad",
+      "refurbished",
+      "rekonditionerad",
+      "köpa dator",
+      "ny dator",
+      "renoverad",
+      "andrahandsdator",
+    ],
+    intro:
+      "Skick, garanti, batteri, lagring och uppdateringsstöd bör kontrolleras före köp - särskilt vid begagnat.",
     firstSteps: [
       "Skriv modell, budget och vad datorn ska användas till.",
       "Notera krav på program, skärmstorlek, batteri och lagring.",
-      "Låt Nova IT bedöma om köp, uppgradering eller annan lösning är rimlig.",
+      "Låt Nova IT bedöma om köp, uppgradering eller annan lösning är rimlig i ditt fall.",
     ],
-    escalation: "Be om kontroll om datorn ska användas i arbete eller priset verkar avvikande.",
+    escalation:
+      "Be om kontroll om datorn ska användas i arbete eller om priset verkar avvikande från marknaden.",
     question: "Vad vill du ha hjälp med?",
     options: [
       {
         id: "ref-buy",
         label: "Köpråd",
-        reply: "Jämför modell och skick mot budget, programkrav och användning.",
+        reply: "Jämför modell och skick mot budget, programkrav och faktisk användning.",
       },
       {
         id: "ref-setup",
@@ -388,12 +789,14 @@ export const supportFlows: SupportFlow[] = [
       {
         id: "ref-check",
         label: "Bedöma skick",
-        reply: "Nova IT kan kontrollera batteri, SSD, skärm, portar, Wi-Fi och fläktljud.",
+        reply:
+          "Nova IT kan kontrollera batteri, SSD, skärm, portar, Wi-Fi och fläktljud innan köp eller efter leverans.",
       },
       {
         id: "ref-transfer",
         label: "Flytta data",
-        reply: "Planera filer, e-post, bokmärken, skrivare och licenser.",
+        reply:
+          "Planera filer, e-post, bokmärken, skrivare och licenser innan den gamla datorn tas ur bruk.",
       },
     ],
     serviceSlug: "datorinstallation",
@@ -402,26 +805,37 @@ export const supportFlows: SupportFlow[] = [
     id: "installation",
     label: "Installation",
     title: "Installation och konfiguration",
-    keywords: ["installera", "installation", "program", "ny dator", "konfigurera"],
-    intro: "Data, konton, licenser och kringutrustning bör planeras innan installationen börjar.",
+    keywords: [
+      "installera",
+      "installation",
+      "program",
+      "ny dator",
+      "konfigurera",
+      "konfiguration",
+      "ställa in ny dator",
+      "sätta upp",
+    ],
+    intro:
+      "Data, konton, licenser och kringutrustning bör planeras innan installationen börjar, inte upptäckas efteråt.",
     firstSteps: [
       "Skriv vilken enhet och vilket system eller program det gäller.",
       "Ta fram licenser, konton och eventuella installationsuppgifter.",
       "Notera vilka filer, program och inställningar som behöver bevaras vid större ändringar.",
     ],
     escalation:
-      "Be om hjälp när installationen påverkar filer, licenser, e-post eller flera användare.",
+      "Be om hjälp när installationen påverkar filer, licenser, e-post eller flera användare samtidigt.",
     question: "Vad ska installeras?",
     options: [
       {
         id: "install-win",
         label: "Windows",
-        reply: "Samla modell, licensläge och besked om vilka filer som ska sparas.",
+        reply:
+          "Samla modell, licensläge och besked om vilka filer som ska sparas innan installationen.",
       },
       {
         id: "install-printer",
         label: "Skrivare",
-        reply: "Samla modell, anslutningstyp och dator som ska använda den.",
+        reply: "Samla modell, anslutningstyp och vilken dator som ska använda den.",
       },
       {
         id: "install-other",
@@ -431,44 +845,117 @@ export const supportFlows: SupportFlow[] = [
       {
         id: "install-app",
         label: "E-post eller program",
-        reply: "Nova IT behöver konto, MFA-läge, licens och vilken app som ska användas.",
+        reply:
+          "Nova IT behöver konto, MFA-läge, licens och vilken app eller vilket program som ska användas.",
       },
     ],
     serviceSlug: "datorinstallation",
   },
   {
+    id: "office-network",
+    label: "Nätverk för kontor eller förening",
+    title: "Nätverk för kontor, förening eller flytt",
+    keywords: [
+      "kontoret",
+      "föreningen",
+      "flytta kontor",
+      "nytt kontor",
+      "ny lokal",
+      "gästnät",
+      "gäst-wifi",
+      "flera arbetsplatser",
+      "nätverkskarta",
+      "switch",
+      "accesspunkt",
+      "täckning i lokalen",
+      "dålig täckning på kontoret",
+    ],
+    intro:
+      "Nätverk för en verksamhet eller förening skiljer sig från hemmabruk - fler enheter, gästaccess och driftsäkerhet väger tyngre än toppfart.",
+    firstSteps: [
+      "Skriv ungefär hur många personer och enheter som ska använda nätet.",
+      "Notera om ni behöver ett separat gästnät.",
+      "Beskriv lokalen: antal rum, våningar och kända problemområden.",
+    ],
+    escalation:
+      "Be om en genomgång i god tid före en flytt eller ombyggnad - nätverk är enklare att planera rätt än att laga i efterhand.",
+    question: "Vad gäller det främst?",
+    options: [
+      {
+        id: "office-coverage",
+        label: "Dålig täckning i lokalen",
+        reply: "Skriv vilka rum eller ytor som har sämst täckning och hur lokalen ser ut ungefär.",
+      },
+      {
+        id: "office-guest",
+        label: "Gästnät saknas",
+        reply:
+          "Ett separat gästnät håller besökares enheter borta från er interna utrustning - vanligt och rimligt att sätta upp.",
+      },
+      {
+        id: "office-move",
+        label: "Flytt eller ombyggnad",
+        reply: "Skriv preliminärt datum och om befintlig utrustning ska följa med eller ersättas.",
+      },
+      {
+        id: "office-documentation",
+        label: "Vill ha dokumentation",
+        reply:
+          "Nova IT kan kartlägga och dokumentera nätverket så att det inte bara finns i någons huvud.",
+      },
+    ],
+    serviceSlug: "natverk",
+  },
+  {
     id: "booking",
     label: "Förbered support",
     title: "Förbered ett supportärende",
-    keywords: ["boka", "support", "hjälp", "tid", "fjärrhjälp", "service", "kontakt"],
-    intro: "Guiden hjälper dig samla ett tydligt underlag innan Nova IT kontaktas.",
-    firstSteps: [
-      "Beskriv problemet kort.",
-      "Notera enhetens modell om du känner till den.",
-      "Ange om det stoppar arbete eller kan planeras.",
+    keywords: [
+      "boka",
+      "boka tid",
+      "support",
+      "hjälp",
+      "tid",
+      "fjärrhjälp",
+      "distanshjälp",
+      "service",
+      "kontakt",
+      "komma hem",
+      "besök",
     ],
-    escalation: "Gå till kontaktformuläret om arbete står still eller ett konto är låst.",
+    intro:
+      "Guiden hjälper dig samla ett tydligt underlag innan Nova IT kontaktas, så första svaret redan träffar rätt.",
+    firstSteps: [
+      "Beskriv problemet kort, med egna ord.",
+      "Notera enhetens modell om du känner till den.",
+      "Ange om det stoppar arbete eller kan planeras in senare.",
+    ],
+    escalation:
+      "Gå till kontaktformuläret om arbete står still eller ett konto är låst - då är det inte längre en planeringsfråga.",
     question: "Vilken hjälp passar bäst?",
     options: [
       {
         id: "book-remote",
         label: "Fjärrhjälp",
-        reply: "Passar program, e-post, Windows och enklare felsökning.",
+        reply:
+          "Passar program, e-post, Windows och enklare felsökning som inte kräver att någon är fysiskt på plats.",
       },
       {
         id: "book-onsite",
         label: "På plats",
-        reply: "Passar nätverk, flera datorer eller fysisk utrustning.",
+        reply:
+          "Passar nätverk, flera datorer eller fysisk utrustning som behöver ses eller kopplas om.",
       },
       {
         id: "book-service",
         label: "Service",
-        reply: "Passar uppgradering, ominstallation, backup eller startproblem.",
+        reply:
+          "Passar uppgradering, ominstallation, backup eller startproblem som tar tid att lösa.",
       },
       {
         id: "book-advice",
         label: "Rådgivning",
-        reply: "Passar inför köp, systemval, backup eller säkerhetsupplägg.",
+        reply: "Passar inför köp, systemval, backup eller ett säkerhetsupplägg för verksamheten.",
       },
     ],
     serviceSlug: "it-support",
@@ -477,14 +964,16 @@ export const supportFlows: SupportFlow[] = [
     id: "general",
     label: "Annat problem",
     title: "Annat IT-problem",
-    keywords: ["annat", "övrigt", "vet inte", "problem", "fråga"],
-    intro: "Samla enhet, önskat resultat och exakt felbild även när kategorin är oklar.",
+    keywords: ["annat", "övrigt", "vet inte", "problem", "fråga", "osäker på vad det är"],
+    intro:
+      "Samla enhet, önskat resultat och en exakt felbild även när kategorin är oklar - det räcker för att Nova IT ska kunna svara konkret.",
     firstSteps: [
       "Skriv vilken enhet eller tjänst det gäller.",
-      "Beskriv vad du försökte göra och vad som hände.",
-      "Skriv av felmeddelandet ordagrant.",
+      "Beskriv vad du försökte göra och vad som hände istället.",
+      "Skriv av felmeddelandet ordagrant om det finns ett.",
     ],
-    escalation: "Gå vidare om problemet påverkar arbete, filer, konto eller internet.",
+    escalation:
+      "Gå vidare om problemet påverkar arbete, filer, konto eller internet, oavsett hur litet det känns.",
     question: "Vad kan du lägga till?",
     options: [
       {
@@ -495,17 +984,18 @@ export const supportFlows: SupportFlow[] = [
       {
         id: "gen-error",
         label: "Felmeddelande",
-        reply: "Spara en skärmbild eller skriv av texten ordagrant.",
+        reply: "Spara en skärmbild eller skriv av texten ordagrant - exakta ord gör stor skillnad.",
       },
       {
         id: "gen-urgent",
         label: "Det är akut",
-        reply: "Beskriv vad som är blockerat och hur många som påverkas.",
+        reply: "Beskriv vad som är blockerat och hur många som påverkas just nu.",
       },
       {
         id: "gen-contact",
         label: "Gå vidare",
-        reply: "Kontaktformuläret hjälper dig samla uppgifter så Nova IT kan återkomma rätt.",
+        reply:
+          "Kontaktformuläret hjälper dig samla uppgifter så Nova IT kan återkomma med rätt person direkt.",
       },
     ],
     serviceSlug: "it-support",

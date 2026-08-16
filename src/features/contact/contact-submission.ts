@@ -20,15 +20,50 @@ const kallaLabel: Record<ContactKalla, string> = {
 export type ContactAssistantContext = {
   contactReason: string;
   context: string;
+  /**
+   * Den guidade konversationen från supportassistenten. Följer med in i
+   * ärendets beskrivning så att adminportalen får hela dialogen som logg,
+   * inte bara en enradsrubrik. Se `createSupportTranscript` i
+   * `features/support/support-engine.ts`.
+   */
+  transcript?: string;
 };
+
+/**
+ * Adminportalens `/api/public/intag` avvisar hela ärendet om beskrivningen
+ * överstiger 2000 tecken (`arGiltigMeddelande` i dess
+ * `publikt-intag-server.ts`). Kundens egen text är redan begränsad till 2000
+ * i formulärets schema, så när assistentens kontext läggs till MÅSTE det
+ * sammansatta resultatet kortas här - annars kan ett ärende som kunden
+ * skrivit korrekt ändå misslyckas i sista steget.
+ */
+const MAX_ARENDE_BESKRIVNING = 2000;
 
 export function composeContactMessage(
   message: string,
   assistantContext: ContactAssistantContext | null,
 ) {
-  if (!assistantContext) return message.trim();
+  if (!assistantContext) return message.trim().slice(0, MAX_ARENDE_BESKRIVNING);
 
-  return [
+  const sammansatt = [
+    `Kontaktorsak: ${assistantContext.contactReason}`,
+    assistantContext.context ? `Omfattning: ${assistantContext.context}` : undefined,
+    assistantContext.transcript ? "" : undefined,
+    assistantContext.transcript ? "Guidad dialog:" : undefined,
+    assistantContext.transcript ? assistantContext.transcript : undefined,
+    "",
+    "Kundens beskrivning:",
+    message.trim(),
+  ]
+    .filter((line): line is string => line !== undefined)
+    .join("\n");
+
+  if (sammansatt.length <= MAX_ARENDE_BESKRIVNING) return sammansatt;
+
+  // Kundens egna ord är alltid viktigast och får aldrig offras för
+  // guidens metadata - därför kortas dialogen först, och bara om det
+  // fortfarande inte räcker kortas hela texten hårt.
+  const utanDialog = [
     `Kontaktorsak: ${assistantContext.contactReason}`,
     assistantContext.context ? `Omfattning: ${assistantContext.context}` : undefined,
     "",
@@ -37,6 +72,8 @@ export function composeContactMessage(
   ]
     .filter((line): line is string => line !== undefined)
     .join("\n");
+
+  return utanDialog.slice(0, MAX_ARENDE_BESKRIVNING);
 }
 
 /**

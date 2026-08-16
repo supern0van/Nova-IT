@@ -119,3 +119,32 @@ test("keeps the locked contact reason separate from the customer's description",
     ].join("\n"),
   );
 });
+
+test("carries the guided dialogue into the ticket description", () => {
+  const message = composeContactMessage("Kameran syns inte i Teams.", {
+    contactReason: "Videomöten, kamera och ljud – Kameran syns inte",
+    context: "Arbetet står still · Det började nyligen",
+    transcript: [
+      "Guidat område: Videomöten, kamera och ljud",
+      "Guidens bedömning: Prioriterat",
+      "Kundens egna ord: Kameran syns inte i Teams.",
+    ].join("\n"),
+  });
+
+  expect(message).toContain("Guidad dialog:");
+  expect(message).toContain("Guidens bedömning: Prioriterat");
+  expect(message).toContain("Kundens beskrivning:\nKameran syns inte i Teams.");
+});
+
+test("never exceeds the admin intake description limit", () => {
+  const message = composeContactMessage("x".repeat(1900), {
+    contactReason: "Wi-Fi och nätverk – Tappar anslutning",
+    context: "Flera personer eller enheter · Det kommer och går",
+    transcript: "y".repeat(1500),
+  });
+
+  expect(message.length).toBeLessThanOrEqual(2000);
+  // Kundens egna ord får aldrig offras för guidens metadata.
+  expect(message).toContain("Kundens beskrivning:");
+  expect(message).not.toContain("Guidad dialog:");
+});
