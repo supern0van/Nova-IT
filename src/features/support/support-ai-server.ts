@@ -52,9 +52,17 @@ import type { AiForslag } from "./support-ai";
  * inte i den här koden.
  */
 
-/** Standardmodell. Liten, snabb och billig i Neurons räknat; uppgiften är
- *  klassificering, inte fritt resonemang. Kan bytas utan kodändring. */
-const STANDARDMODELL = "@cf/meta/llama-3.2-3b-instruct";
+/**
+ * Standardmodell. Liten, snabb och billig i Neurons räknat; uppgiften är
+ * klassificering, inte fritt resonemang. Kan bytas utan kodändring.
+ *
+ * Explicit pinnad till -v2, inte den äldre `@cf/meta/llama-3.2-3b-instruct`.
+ * Cloudflare aliasar det äldre namnet tyst till -v2 (bekräftat mot skarpt
+ * API 2026-08-16) - att peka rätt direkt är säkrare än att lita på att
+ * aliaset finns kvar. Svarsformatet skiljer sig inte: `extraheraModellsvar`
+ * hanterar redan både `response` och `choices[].message.content`.
+ */
+const STANDARDMODELL = "@cf/meta/llama-3.2-3b-instruct-v2";
 
 /** Kunden ska aldrig få vänta på en långsam modell. Hellre falla tillbaka
  *  på regelmotorn direkt än att guiden känns trög. */
