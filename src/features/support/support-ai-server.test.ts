@@ -1,5 +1,9 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { aiArPaslaget, klassificeraMedAiInternt } from "./support-ai-server";
+import {
+  aiArPaslaget,
+  klassificeraMedAiInternt,
+  klassificeraViaBindning,
+} from "./support-ai-server";
 
 const originalFetch = globalThis.fetch;
 
@@ -102,5 +106,47 @@ describe("klassificering via Workers AI", () => {
       true,
     );
     expect(hadeToken).toBe(true);
+  });
+});
+
+describe("klassificering via den native bindningen", () => {
+  test("returnerar ett validerat förslag och kallar aldrig fetch", async () => {
+    let fetchAnropad = false;
+    globalThis.fetch = (async () => {
+      fetchAnropad = true;
+      throw new Error("ska inte anropas");
+    }) as unknown as typeof fetch;
+
+    const fejkBindning = {
+      run: async () => ({ response: '{"flowId":"wifi","urgency":"standard","tolkning":"x"}' }),
+    };
+
+    const forslag = await klassificeraViaBindning(fejkBindning, "wifi krånglar", "modell-x");
+    expect(forslag).toEqual({ flowId: "wifi", urgency: "standard", tolkning: "x" });
+    expect(fetchAnropad).toBe(false);
+  });
+
+  test("faller tillbaka till null när bindningen kastar", async () => {
+    const fejkBindning = {
+      run: async () => {
+        throw new Error("Workers AI internal error");
+      },
+    };
+    expect(await klassificeraViaBindning(fejkBindning, "wifi krånglar", "modell-x")).toBeNull();
+  });
+
+  test("faller tillbaka till null vid ett ogiltigt svar från bindningen", async () => {
+    const fejkBindning = { run: async () => ({ response: 42 }) };
+    expect(await klassificeraViaBindning(fejkBindning, "wifi krånglar", "modell-x")).toBeNull();
+  });
+
+  test("respekterar timeouten även för bindningsvägen", async () => {
+    const fejkBindning = {
+      run: () => new Promise(() => {}), // löser sig aldrig
+    };
+    const start = Date.now();
+    const forslag = await klassificeraViaBindning(fejkBindning, "wifi krånglar", "modell-x");
+    expect(forslag).toBeNull();
+    expect(Date.now() - start).toBeLessThan(4500);
   });
 });
