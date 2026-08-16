@@ -18,7 +18,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { AlertCircle, CheckCircle2, LockKeyhole, Mail, Sparkles } from "lucide-react";
 import { contactChannels, contactNotice, getServiceBySlug, services } from "@/lib/nova-data";
 import { Container } from "@/components/design-system";
-import { submitContactRequest } from "@/features/contact/contact-server";
+import { getIntagLage, submitContactRequest } from "@/features/contact/contact-server";
+import { INTAG_STANGT_MEDDELANDE } from "@/features/contact/intag-lage";
 import {
   composeContactMessage,
   type ContactAssistantContext,
@@ -158,6 +159,25 @@ function ContactPage() {
   const formRenderedAtRef = useRef<number | null>(null);
   const [honeypot, setHoneypot] = useState("");
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  // Presentationsläge - den bindande kontrollen sitter server-side i
+  // skickaKontaktforfragan(). Startar som "oppen" så att formuläret inte
+  // blinkar förbi som stängt innan serverns svar hunnit fram.
+  const [intagStangt, setIntagStangt] = useState(false);
+
+  useEffect(() => {
+    let avbruten = false;
+    getIntagLage()
+      .then((lage) => {
+        if (!avbruten) setIntagStangt(lage === "stangd");
+      })
+      .catch(() => {
+        // Kan inte läsa läget: låt formuläret vara synligt. Servern stoppar
+        // ändå inskickningen om intaget faktiskt är stängt.
+      });
+    return () => {
+      avbruten = true;
+    };
+  }, []);
 
   useEffect(() => {
     if (!selectedServiceTitle) return;
@@ -294,6 +314,37 @@ function ContactPage() {
 
   if (!("form" in search) || search.form !== "request") {
     return <ContactInformation />;
+  }
+
+  // Låst intag: visa aldrig ett formulär som ändå kommer avvisas. Resten av
+  // webbplatsen, inklusive supportassistenten, fungerar som vanligt.
+  if (intagStangt) {
+    return (
+      <section className="border-b border-border bg-secondary/35">
+        <Container className="max-w-2xl py-20 text-center">
+          <span className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-secondary text-muted-foreground">
+            <Mail className="h-7 w-7" />
+          </span>
+          <p className="eyebrow mt-6">Kontakt</p>
+          <h1 className="mt-3 text-4xl font-semibold tracking-[-0.04em]">
+            Skriv till oss direkt så länge
+          </h1>
+          <p className="mt-4 text-muted-foreground">{INTAG_STANGT_MEDDELANDE}</p>
+          <p className="mt-7">
+            <a
+              href={`mailto:${contactChannels.contact}`}
+              className="text-lg font-semibold text-primary underline underline-offset-4"
+            >
+              {contactChannels.contact}
+            </a>
+          </p>
+          <p className="mt-6 text-sm text-muted-foreground">
+            Beskriv vad som krånglar, när det började och vad det påverkar, så återkommer vi med hur
+            vi bäst kan hjälpa till.
+          </p>
+        </Container>
+      </section>
+    );
   }
 
   if (submitted) {

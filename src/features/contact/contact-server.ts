@@ -6,6 +6,7 @@ import {
   tillAdminAngelagenhet,
   tillAdminKundtyp,
 } from "./contact-submission";
+import { INTAG_STANGT_MEDDELANDE, lasIntagLage } from "./intag-lage";
 
 /**
  * Kundens synliga kontaktväg (reply-to på bekräftelsemejlet) - matchar
@@ -81,6 +82,15 @@ type ContactRequestData = ReturnType<typeof contactRequestSchema.parse>;
 export async function skickaKontaktforfragan(
   data: ContactRequestData,
 ): Promise<SubmitContactRequestResult> {
+  // Låst intag kontrolleras FÖRST, före honeypot, tidskontroll och
+  // Turnstile. När intaget är stängt ska ingen kunddata behandlas alls -
+  // inte ens skickas vidare till en spamkontroll. Kontrollen sitter här och
+  // inte bara i gränssnittet, så att den håller även om serverfunktionen
+  // anropas direkt. Se `intag-lage.ts`.
+  if (lasIntagLage(process.env.PUBLIK_INTAG_LAGE) === "stangd") {
+    throw new Error(INTAG_STANGT_MEDDELANDE);
+  }
+
   // Honeypot: ett fält som är osynligt och onåbart för en människa som
   // använder formuläret normalt, men som enkla bottar ofta fyller i
   // automatiskt. Generiskt fel - avslöjar inte att det är en spamkontroll.
@@ -205,6 +215,15 @@ export const submitContactRequest = createServerFn({ method: "POST" })
  * secret inte felaktigt förväntas vara tillgänglig i Vite-buildens klientkod.
  * Secret Key läses aldrig tillbaka till klienten.
  */
+/**
+ * Låter gränssnittet visa ett ärligt läge i stället för ett formulär som
+ * ändå kommer avvisas. Detta är BARA för presentation - den bindande
+ * kontrollen sker server-side i `skickaKontaktforfragan` ovan.
+ */
+export const getIntagLage = createServerFn({ method: "GET" }).handler(() =>
+  lasIntagLage(process.env.PUBLIK_INTAG_LAGE),
+);
+
 export const getTurnstileSiteKey = createServerFn({ method: "GET" }).handler(
   () => process.env.TURNSTILE_SITE_KEY ?? process.env.VITE_TURNSTILE_SITE_KEY ?? null,
 );

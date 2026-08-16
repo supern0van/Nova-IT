@@ -382,3 +382,20 @@ test("proceeds when Turnstile is configured and Cloudflare confirms the token is
   expect(result.accepted).toBe(true);
   expect(result.arendenummer).toBe("NIT-2604");
 });
+
+test("a locked intake rejects the submission without processing any customer data", async () => {
+  let fetchCalled = false;
+  globalThis.fetch = (async () => {
+    fetchCalled = true;
+    throw new Error("should not be called");
+  }) as unknown as typeof fetch;
+
+  process.env.PUBLIK_INTAG_LAGE = "stangd";
+  try {
+    await expect(skickaKontaktforfragan(validPayload)).rejects.toThrow(/kontakt@nova-it\.se/);
+    // Varken ärendeintaget, Turnstile eller Resend får ha kontaktats.
+    expect(fetchCalled).toBe(false);
+  } finally {
+    delete process.env.PUBLIK_INTAG_LAGE;
+  }
+});
