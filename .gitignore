@@ -23,6 +23,13 @@ dist-ssr
 .wrangler/
 .dev.vars
 
+# Lokala miljövariabler. .env.example instruerar uttryckligen att lägga
+# RESEND_API_KEY, INTAG_SECRET och TURNSTILE_SECRET_KEY i en lokal env-fil -
+# de får aldrig kunna committas av misstag. Bara .env.example spåras.
+.env
+.env.*
+!.env.example
+
 # Local, machine-specific Claude Code tool permissions
 .claude/settings.local.json
 

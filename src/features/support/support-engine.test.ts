@@ -3,6 +3,7 @@ import { supportFlows } from "./support-data";
 import {
   classifySupportQuery,
   createSupportSummary,
+  createSupportTranscript,
   getSupportFlow,
   getSupportOption,
   matchSupportFlow,
@@ -22,12 +23,18 @@ const flowMatches: Array<[query: string, expectedId: string, expectedService: Su
     ["skärmen är svart", "windows", "it-support"],
     ["jag fick ett misstänkt mejl", "virus", "sakerhet-backup"],
     ["min dator har problem med virus", "virus", "sakerhet-backup"],
+    // Områden som tillkom när kunskapsbasen breddades.
+    ["kameran syns inte i videomöte", "video-meeting", "microsoft-google"],
+    ["min externa hårddisk känns inte igen", "external-storage", "sakerhet-backup"],
+    ["fläkten låter mycket och datorn blir jättevarm", "cleaning-service", "datorservice"],
+    ["vi behöver ett gästnät till föreningen", "office-network", "natverk"],
+    ["jag vill byta till ssd", "upgrade", "datorservice"],
   ];
 
 describe("support engine", () => {
-  test("contains the twelve planned public intake flows", () => {
-    expect(supportFlows).toHaveLength(12);
-    expect(new Set(supportFlows.map((flow) => flow.id)).size).toBe(12);
+  test("covers the full public intake catalogue without duplicate ids", () => {
+    expect(supportFlows.length).toBeGreaterThanOrEqual(17);
+    expect(new Set(supportFlows.map((flow) => flow.id)).size).toBe(supportFlows.length);
     expect(JSON.stringify(supportFlows)).not.toContain("ChromeOS Flex");
   });
 
@@ -46,8 +53,10 @@ describe("support engine", () => {
       "Beskriv",
       "Bestäm",
       "Kontakta",
+      "Lista",
       "Låt",
       "Notera",
+      "Planera",
       "Skriv",
       "Spara",
       "Ta",
@@ -70,6 +79,12 @@ describe("support engine", () => {
     expect(flow.serviceSlug).toBe(expectedService);
   });
 
+  test("matches inflected Swedish word forms, not just exact keywords", () => {
+    // "långsamt"/"långsamma" ska landa i samma spår som "långsam".
+    expect(matchSupportFlow("datorn har blivit långsammare").id).toBe("slow-computer");
+    expect(matchSupportFlow("uppkopplingen är instabil och routern startar om").id).toBe("wifi");
+  });
+
   test("creates a support summary", () => {
     const flow = getSupportFlow("wifi");
     expect(flow).toBeDefined();
@@ -84,6 +99,26 @@ describe("support engine", () => {
     expect(summary).toContain("När hjälp behövs:");
     expect(summary).toContain("Påverkan: Flera personer eller enheter");
     expect(summary).toContain("Tidsbild: Det kommer och går");
+  });
+
+  test("creates a transcript with the customer's own answers, not the guide's advice", () => {
+    const flow = getSupportFlow("wifi")!;
+    const transcript = createSupportTranscript({
+      flow,
+      impact: "Arbetet står still",
+      option: flow.options[1],
+      query: "Nätet bryts under möten",
+      timing: "Det kommer och går",
+      urgency: "priority",
+    });
+
+    expect(transcript).toContain("Guidat område: Wi-Fi och nätverk");
+    expect(transcript).toContain("Kundens egna ord: Nätet bryts under möten");
+    expect(transcript).toContain("Påverkan → Arbetet står still");
+    expect(transcript).toContain("Guidens bedömning: Prioriterat");
+    // Guidens checklistor är till för kunden och ska inte tynga ärendet.
+    expect(transcript).not.toContain("Bra att ha med");
+    expect(transcript).not.toContain(flow.escalation);
   });
 
   test("returns a low-confidence clarification for an unknown question", () => {
@@ -105,6 +140,12 @@ describe("support engine", () => {
     );
     expect(intrusion.flow.id).toBe("virus");
     expect(intrusion.urgency).toBe("urgent");
+  });
+
+  test("raises urgency when work is blocked, without changing the category", () => {
+    const match = classifySupportQuery("Skrivaren är offline och hela kontoret står still");
+    expect(match.flow.id).toBe("printer");
+    expect(match.urgency).toBe("priority");
   });
 
   test("normalizes case, punctuation and Swedish diacritics", () => {
