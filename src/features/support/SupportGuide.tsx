@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { useMemo, useReducer, type MouseEvent, type ReactNode } from "react";
+import { useMemo, useReducer, useRef, type MouseEvent, type ReactNode } from "react";
 import {
   ArrowRight,
   Check,
@@ -19,6 +19,7 @@ import {
   createSupportTranscript,
 } from "./support-engine";
 import { createSupportHandoff, saveSupportHandoff } from "./support-handoff";
+import { klassificeraMedAi } from "./support-ai-server";
 import { supportFlows, supportImpactOptions, supportTimingOptions } from "./support-data";
 import type {
   SupportDetailOption,
@@ -33,6 +34,11 @@ type SupportGuideProps = {
 };
 
 type GuideState = {
+  /** AI:ns förslag när det pekar på ETT ANNAT område än regelmotorn valde.
+   *  Visas som en fråga till kunden, aldrig som ett tyst byte under fötterna
+   *  på hen. Är null när AI är avstängt, när svaret uteblev eller när AI
+   *  kom fram till samma sak. */
+  aiForslag: { flow: SupportFlow; tolkning: string } | null;
   choiceHistory: string[];
   copyState: "idle" | "copied" | "error";
   draft: string;
@@ -55,9 +61,11 @@ type GuideAction =
   | { type: "copy-state"; value: GuideState["copyState"] }
   | { type: "handoff-state"; value: GuideState["handoffState"] }
   | { type: "toggle-topics" }
+  | { type: "ai-forslag"; forslag: GuideState["aiForslag"] }
   | { type: "reset" };
 
 const initialState: GuideState = {
+  aiForslag: null,
   choiceHistory: [],
   copyState: "idle",
   draft: "",
@@ -72,9 +80,12 @@ function guideReducer(state: GuideState, action: GuideAction): GuideState {
   switch (action.type) {
     case "draft":
       return { ...state, draft: action.value };
+    case "ai-forslag":
+      return { ...state, aiForslag: action.forslag };
     case "select-flow":
       return {
         ...state,
+        aiForslag: null,
         choiceHistory: [],
         copyState: "idle",
         draft: "",
@@ -132,6 +143,9 @@ function guideReducer(state: GuideState, action: GuideAction): GuideState {
 
 export function SupportGuide({ compact = false, onNavigate }: SupportGuideProps) {
   const [state, dispatch] = useReducer(guideReducer, initialState);
+  // Räknar frågor så att ett långsamt AI-svar på en tidigare fråga aldrig
+  // skriver över resultatet av en nyare.
+  const aiRakneverkRef = useRef(0);
   const service = getServiceBySlug(state.flow?.serviceSlug);
   const needsClarification = state.match?.requiresClarification === true;
   const urgency =
@@ -169,8 +183,28 @@ export function SupportGuide({ compact = false, onNavigate }: SupportGuideProps)
   function submitQuestion() {
     const query = state.draft.trim();
     if (!query) return;
+
+    // Regelmotorn svarar direkt och lokalt. Guiden får aldrig kännas
+    // långsammare för att AI-stödet finns - eller vara beroende av att det
+    // fungerar.
     const match = classifySupportQuery(query);
     selectFlow(match.flow, query, match);
+
+    // AI:n körs vid sidan om och får bara komma med ett FÖRSLAG om den
+    // landar i ett annat område. Räknaren gör att ett långsamt svar på en
+    // tidigare fråga aldrig kan skriva över en nyare.
+    const fragaNummer = (aiRakneverkRef.current += 1);
+    klassificeraMedAi({ data: { fraga: query } })
+      .then((forslag) => {
+        if (!forslag || fragaNummer !== aiRakneverkRef.current) return;
+        if (forslag.flowId === match.flow.id) return;
+        const flow = supportFlows.find((kandidat) => kandidat.id === forslag.flowId);
+        if (!flow) return;
+        dispatch({ type: "ai-forslag", forslag: { flow, tolkning: forslag.tolkning } });
+      })
+      .catch(() => {
+        // AI-stödet är ett tillägg. Uteblivet svar ska inte synas för kunden.
+      });
   }
 
   async function copySummary() {
@@ -355,6 +389,37 @@ export function SupportGuide({ compact = false, onNavigate }: SupportGuideProps)
                 . {state.flow.intro}
               </p>
             </Message>
+
+            {state.aiForslag && (
+              <Card className="ml-10 border-sky-300/25 bg-sky-300/[0.05]">
+                <p className="text-sm leading-6 text-slate-200">
+                  {state.aiForslag.tolkning ? (
+                    <>
+                      Om jag förstår dig rätt:{" "}
+                      <span className="text-white">{state.aiForslag.tolkning}</span>
+                    </>
+                  ) : (
+                    "Det kan också höra hemma i ett annat område."
+                  )}
+                </p>
+                <div className="mt-3.5 flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => selectFlow(state.aiForslag!.flow, state.query, state.match)}
+                    className="min-h-11 rounded-md border border-sky-300/50 bg-sky-300/10 px-3.5 py-2.5 text-sm font-medium text-sky-100 transition-colors hover:bg-sky-300/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
+                  >
+                    Byt till {state.aiForslag.flow.label.toLocaleLowerCase("sv")}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => dispatch({ type: "ai-forslag", forslag: null })}
+                    className="min-h-11 rounded-md border border-white/10 px-3.5 py-2.5 text-sm text-slate-400 transition-colors hover:border-white/25 hover:text-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
+                  >
+                    Nej, behåll {state.flow.label.toLocaleLowerCase("sv")}
+                  </button>
+                </div>
+              </Card>
+            )}
 
             {urgency === "urgent" && (
               <Notice tone="critical" icon={<ShieldAlert className="h-4 w-4" />}>

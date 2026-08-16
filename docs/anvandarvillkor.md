@@ -1,15 +1,17 @@
-# Utkast: användarvillkor
+# Användarvillkor — ersatt
 
-## Ändringar
+Detta dokument innehöll ett tidigt utkast i tre punkter: ändring av villkor,
+driftsavveckling och radering, samt otillåten användning.
 
-Nova IT kan ändra villkoren när det behövs för att återspegla förändringar i tjänsten, lagkrav eller säkerhet. Väsentliga ändringar meddelas minst 30 dagar i förväg, om inte en kortare tid krävs av lag eller för att hantera en akut säkerhetsrisk.
+**Innehållet är i sin helhet inarbetat i
+[`allmanna-villkor-it-tjanster.md`](allmanna-villkor-it-tjanster.md)**, som är
+ett fullständigt villkorsutkast i 16 punkter:
 
-## Driftsavveckling och radering
+| Tidigare avsnitt här | Motsvarande punkt i de nya villkoren |
+| -------------------- | ------------------------------------ |
+| Ändringar | 14. Ändring av villkoren |
+| Driftsavveckling och radering | 13 a. Avslutad tjänst och radering |
+| Otillåten användning | 15. Otillåten användning |
 
-När en tjänst avslutas lagras kunddata högst 30 dagar för export, återställning eller administrativ avveckling. Därefter raderas uppgifterna, om inte lag kräver att vissa uppgifter sparas längre.
-
-## Otillåten användning
-
-Tjänsten får inte användas för nätfiske, systemintrång, spridning av skadlig kod, obehörig åtkomst, försök att kringgå säkerhetskontroller eller annan användning som strider mot lag eller tredje mans rättigheter.
-
-> Detta dokument är ett utkast och ska kompletteras med tjänstespecifika kommersiella villkor innan det används som avtal.
+Använd de nya villkoren. Denna fil behålls bara så att äldre hänvisningar inte
+leder till en tom sida, och kan tas bort när ingen längre refererar till den.

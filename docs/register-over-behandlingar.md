@@ -7,7 +7,7 @@ Detta register är en första arbetsversion för Nova IT:s publika webbplats, ko
 - Personuppgiftsansvarig för Nova IT:s egna webbplatsbehandlingar: Nova IT
 - Kontakt: kontakt@nova-it.se
 - Dataskyddsombud: inget särskilt dataskyddsombud utsett i denna version
-- Senast granskad: 2026-08-03
+- Senast granskad: 2026-08-16
 
 ## Registerposter
 
@@ -19,6 +19,24 @@ Detta register är en första arbetsversion för Nova IT:s publika webbplats, ko
 | Samtyckesval för valfria tekniker      | Spara besökarens val och respektera återkallelse                 | Besökare                        | Val för statistik och marknadsföring, tidpunkt och teknisk kontext i lokal lagring          | Ingen extern mottagare i nuvarande version                                                                    | Tills besökaren ändrar eller raderar valet                                                                                              | Samtycke för valfria tekniker                                      |
 | Kundportalens konto och inloggning     | Ge kunden inloggning för att se och svara på sina egna ärenden   | Kunder med registrerat ärende   | E-post, tillfälligt lösenord (endast i ett engångsmejl, aldrig loggat), inloggningshistorik | Supabase (databas och autentisering, kundportalens EGET, separata projekt); Cloudflare för drift och säkerhet | Kontot består så länge kundrelationen är aktiv; spärras eller raderas vid avslutad relation eller på begäran när lag/avtal tillåter     | Berättigat intresse/avtal - fullgörande av support-/serviceavtalet |
 | Kundportalens ärenden och konversation | Visa kundens egna ärenden och ta emot kundens svar               | Kunder med registrerat ärende   | Ärenderubrik, status, prioritet, konversationstext kunden själv skrivit                     | Supabase (samma projekt som ovan); adminportalen (samma uppgifter som redan behandlas där för ärendet)        | Följer ärendets egen livscykel/lagringstid i adminportalen - ingen separat kopia utöver kundportalens egen `kund_konton`-koppling       | Berättigat intresse/avtal - fullgörande av support-/serviceavtalet |
+
+### Supportguiden på den publika webbplatsen
+
+| Behandling | Ändamål | Registrerade | Personuppgifter | Mottagare/biträden | Lagring | Rättslig grund / instruktion |
+| ---------- | ------- | ------------ | --------------- | ------------------ | ------- | ---------------------------- |
+| Supportguidens underlag i webbläsaren | Föra kundens beskrivning och val vidare till kontaktformuläret | Besökare | Fritextbeskrivning kunden själv skrivit, valt område, påverkan och tidsbild | Ingen extern mottagare - lagras bara i besökarens egen webbläsare | Sessionslagring, högst 30 minuter, raderas när den använts eller när fliken stängs | Berättigat intresse - att kunna ta emot en begriplig förfrågan |
+| Guidad dialog som del av ärendet | Ge Nova IT kundens egna ord och gjorda val direkt i ärendet i stället för att fråga om grunderna igen | Personer som skickar en förfrågan | Kundens fritext och de val kunden gjort i guiden, som del av ärendets beskrivning | Adminportalen (samma ärende som redan behandlas där); Cloudflare för drift | Följer ärendets egen lagringstid - ingen separat kopia | Berättigat intresse; åtgärder inför avtal när relevant |
+| Automatisk kategoriförslag med AI | Föreslå rätt ärendeområde och sammanfatta problemet för kundens bekräftelse | Besökare som skriver i guiden | Kundens fritextbeskrivning, kapad till 600 tecken | Cloudflare Workers AI (befintligt biträde - ingen ny leverantör) | Ingen lagring hos Nova IT; anropet är tillfälligt och svaret sparas inte | Berättigat intresse - att sortera förfrågningar rätt |
+
+**Anmärkning om AI-behandlingen.** Förslaget är rådgivande. Kunden väljer själv
+om området ska bytas, och en människa hanterar alltid ärendet. Behandlingen
+utgör därför inte ett automatiserat beslut enligt artikel 22, eftersom den
+varken har rättsliga följder eller på liknande sätt i betydande grad påverkar
+den registrerade. Modellen körs hos Cloudflare, som redan är biträde för
+webbdriften, vilket innebär att **inget nytt personuppgiftsbiträde tillkommer**.
+Kundens text används inte för modellträning. Funktionen är avstängd som
+standard (`SUPPORT_AI_LAGE`) - se
+[`supportassistent-ai-drift.md`](supportassistent-ai-drift.md).
 
 Gallrings- och incidentrutinen beskrivs operativt i
 [`sakerhetsdrift-runbook.md`](sakerhetsdrift-runbook.md).

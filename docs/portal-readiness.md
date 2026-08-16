@@ -1,6 +1,15 @@
 # Portalens startlage
 
-`portal.nova-it.se` är reserverad för en framtida kund- och adminportal. Ingen portalapp eller DNS-koppling ska delas med den publika webbplatsen innan projektet startar.
+> **Historiskt dokument.** Beskriver utgångsläget innan portalprojektet
+> startade. Portalerna är sedan dess byggda och i drift:
+> `kundportal.nova-it.se`, `portal.nova-it.se` och `portal.novait.se` pekar mot
+> kundportalens egen Worker sedan 2026-07-30, och `admin.nova-it.se` mot
+> adminportalen. Koden ligger i repot `supern0van/Nova-IT-Portaler`.
+>
+> Avgränsningsprinciperna nedan gäller fortfarande och har följts. Läs
+> dokumentet som det beslut det var, inte som en beskrivning av nuläget.
+
+`portal.nova-it.se` reserverades för en framtida kund- och adminportal. Ingen portalapp eller DNS-koppling skulle delas med den publika webbplatsen innan projektet startade.
 
 ## Avgransning
 

@@ -74,6 +74,53 @@ const documents: Record<
         ),
       },
       {
+        heading: "Supportguiden på webbplatsen",
+        body: (
+          <>
+            <p>
+              Supportguiden hjälper dig sortera ditt ärende innan du kontaktar oss. Det du skriver i
+              guiden stannar i din webbläsare och skickas ingenstans så länge du bara klickar dig
+              igenom frågorna. Först när du väljer att gå vidare till kontaktformuläret följer dina
+              svar med dit, och de skickas till oss först när du skickar formuläret.
+            </p>
+            <p>
+              Går du vidare till kontakt följer din egen beskrivning och de val du gjort i guiden med
+              in i ärendet, så att vi slipper fråga om grunderna igen. Guidens råd och checklistor
+              följer inte med — de är skrivna för dig, inte för vår tekniker.
+            </p>
+            <p>
+              Mellan guiden och kontaktformuläret sparas underlaget tillfälligt i webbläsarens
+              sessionslagring i högst 30 minuter. Det raderas när det har använts, och när du stänger
+              fliken. Skriv inte lösenord, personnummer eller bankuppgifter i guiden.
+            </p>
+          </>
+        ),
+      },
+      {
+        heading: "Automatisk sortering med AI",
+        body: (
+          <>
+            <p>
+              För att förstå fritext bättre kan din beskrivning i supportguiden skickas till en
+              språkmodell som körs hos Cloudflare, vår befintliga driftleverantör. Modellen används
+              bara för att föreslå vilket område ärendet hör hemma i och för att sammanfatta
+              problemet i en mening som du får bekräfta.
+            </p>
+            <p>
+              Förslaget är just ett förslag. Området byts aldrig automatiskt, du väljer själv, och
+              hela guiden fungerar även om AI-stödet är avstängt eller inte svarar. Ingen automatisk
+              sortering fattar beslut som har rättsliga följder eller på liknande sätt i betydande
+              grad påverkar dig — en människa hanterar alltid själva ärendet.
+            </p>
+            <p>
+              Din text används inte för att träna modeller, och den lämnas inte vidare till någon
+              annan AI-leverantör. Skickas ingen beskrivning i guiden sker ingen sådan behandling
+              alls.
+            </p>
+          </>
+        ),
+      },
+      {
         heading: "Säkerhet och missbruksskydd",
         body: (
           <p>
@@ -194,6 +241,29 @@ const documents: Record<
             skydda webbplatsen. Sådana tekniker används inte för marknadsföring eller analys och
             kräver normalt inte samtycke.
           </p>
+        ),
+      },
+      {
+        heading: "Lokal lagring vi faktiskt använder",
+        body: (
+          <div className="space-y-2">
+            <p>Två saker sparas lokalt i din webbläsare, båda för att sidan ska fungera:</p>
+            <p>
+              <span className="font-medium text-slate-950">Ditt samtyckesval.</span> Sparas tills du
+              ändrar eller raderar det, så att du slipper svara på frågan varje gång.
+            </p>
+            <p>
+              <span className="font-medium text-slate-950">Underlag från supportguiden.</span> Om du
+              går från guiden till kontaktformuläret sparas dina svar tillfälligt i webbläsarens
+              sessionslagring, i högst 30 minuter, så att formuläret kan fyllas i åt dig. Det raderas
+              när det använts och när du stänger fliken. Det skickas ingenstans förrän du skickar
+              formuläret.
+            </p>
+            <p>
+              Ingen av dem används för statistik, annonsering eller för att följa dig mellan
+              webbplatser.
+            </p>
+          </div>
         ),
       },
       {
