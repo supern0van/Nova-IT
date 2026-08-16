@@ -3,6 +3,28 @@
 Gäller `src/features/support/support-ai.ts` och `support-ai-server.ts`.
 Senast uppdaterad: 2026-08-16.
 
+## Två anropsvägar
+
+Sedan NOVA-0043 finns två vägar till Workers AI, i prioritetsordning:
+
+1. **Den native `env.AI`-bindningen.** Kräver ingen hemlighet alls -
+   Cloudflare sköter autentiseringen mellan Workern och Workers AI internt.
+   Detta är vägen som används i produktion.
+2. **REST-API:et** med `CLOUDFLARE_ACCOUNT_ID`/`CLOUDFLARE_AI_TOKEN`, som
+   fallback när bindningen inte hittas - det är det normala läget i lokal
+   `vite dev`, där ingen Cloudflare-runtime finns.
+
+**Viktig avgränsning:** bindningsvägen är verifierad genom byggutdata
+(`.output/server/wrangler.json` innehåller `"ai": { "binding": "AI" }`,
+identiskt i övrigt mot tidigare bygge) och genom en verklig `_serverFn`-
+rundtripp i `vite dev` som svarar 200 utan fel. Den är **inte** verifierad
+mot en riktig Cloudflare-deploy från utvecklingsmiljön där den skrevs, eftersom
+det hade krävt `wrangler dev --remote` mot ett skarpt konto. Bekräfta efter
+första skarpa aktivering genom att slå på `SUPPORT_AI_LAGE=pa` och leta efter
+loggraden `Supportassistentens AI svarade. { kalla: "bindning" }` i Cloudflares
+loggar (`kalla: "rest"` betyder att den föll tillbaka - se felsökning nedan).
+REST-vägen och dess miljövariabler är kvar som skyddsnät, inte borttagna.
+
 ## Vad AI-stödet gör, och inte gör
 
 AI-stödet är ett **tillägg** till den regelbaserade motorn i
@@ -87,13 +109,19 @@ statuskod respektive feltyp, aldrig kundens text eller token.
 ## Checklista före aktivering
 
 - [ ] Rate Limiting-regel uppsatt i Cloudflare mot serverfunktionens sökväg.
-- [ ] Scopad token skapad med enbart `Workers AI: Read`.
-- [ ] `CLOUDFLARE_ACCOUNT_ID` och `CLOUDFLARE_AI_TOKEN` satta som Worker-secrets.
 - [ ] Integritetspolicyn uppdaterad med AI-behandlingen (klar, se
       `legal-dialog.tsx`).
 - [ ] Registret över behandlingar uppdaterat (klar, se
       `register-over-behandlingar.md`).
 - [ ] `SUPPORT_AI_LAGE=pa` sätts sist, efter övriga punkter.
+- [ ] Efter aktivering: bekräfta i Cloudflares loggar att anrop faktiskt går
+      via `kalla: "bindning"`, inte `"rest"` (se ovan).
+
+REST-fallbackens punkter behövs bara om bindningen av någon anledning inte
+fungerar och REST ska kunna ta över tillfälligt:
+
+- [ ] Scopad token skapad med enbart `Workers AI: Read`.
+- [ ] `CLOUDFLARE_ACCOUNT_ID` och `CLOUDFLARE_AI_TOKEN` satta som Worker-secrets.
 
 ## Modellbyte
 
