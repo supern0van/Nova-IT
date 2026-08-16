@@ -1,89 +1,62 @@
-# NOVA-0038 – Supportassistenten fick bredare förståelse och blev en ärendelogg
+---
+id: NOVA-0038
+date: 2026-08-16
+date_precision: day
+type: changed
+status: completed
+systems:
+  - publik-webbplats
+  - adminportal
+---
 
-```yaml
-datum: 2026-08-16
-datumprecision: dag
-typ: funktion
-status: genomförd
-system: [publik webbplats, adminportal]
-```
+# Supportassistenten fick bredare förståelse och blev en ärendelogg
 
-Supportassistenten kunde tidigare bara föra vidare en kort sammanfattning till
-kontaktformuläret. Själva dialogen – vad kunden faktiskt svarade på guidens
-frågor – fanns bara i webbläsarens `sessionStorage` och försvann när fliken
-stängdes. Den kunskapsbas som styrde matchningen täckte tolv områden med
-relativt smala nyckelordslistor, vilket gjorde att naturligt formulerade
-beskrivningar ofta hamnade i "Annat problem".
+## Vad ändrades?
 
-## Bredare kunskapsbas
+Kunskapsbasen gick från 12 till 17 områden. De fem nya täcker skärm och bild,
+videomöten med kamera och ljud, extern hårddisk och USB, genomgång och
+rengöring samt nätverk för kontor och förening. Samtliga nyckelordslistor
+breddades med vardagliga formuleringar, engelska låneord och vanliga
+stavvarianter. Tjänsten `datorservice` går nu att träffa från guiden.
 
-Kunskapsbasen gick från 12 till 17 områden. Fem nya täcker vanliga ärenden som
-tidigare saknade eget spår:
+Matchningen känner igen svenska böjningsformer genom en enkel stemmer som
+även kollapsar dubblerad slutkonsonant. Angelägenheten höjs av uttryck för
+att arbetet står still och av tecken på begynnande datahaveri, utan att
+kategorin ändras.
 
-- Skärm och bild
-- Videomöten, kamera och ljud
-- Extern hårddisk, USB och minneskort
-- Genomgång, rengöring och allmän service
-- Nätverk för kontor, förening eller flytt
-
-Samtliga områdens nyckelordslistor breddades med vardagliga formuleringar,
-engelska låneord och vanliga stavvarianter. `datorservice` togs med som
-tjänstemål, vilket det inte var tidigare trots att tjänsten fanns i katalogen.
-
-## Bättre matchning
-
-Matchningen i `support-engine.ts` känner nu igen svenska böjningsformer genom
-en enkel stemmer, så att "långsammare" landar i samma spår som "långsam".
-Dubblerad slutkonsonant kollapsas, vilket annars hade gjort att just den
-vanligaste svenska böjningsformen aldrig matchade.
-
-Angelägenhetsbedömningen utökades: uttryck som antyder att arbetet står still
-höjer prioriteten utan att ändra kategorin, och tecken på begynnande
-datahaveri höjer prioriteten i backup- och lagringsspåren.
-
-## Konversationen följer med in i ärendet
-
-Överlämningen till kontaktformuläret bär nu ett `transcript`-fält (version 3)
+Överlämningen till kontaktformuläret bär ett `transcript`-fält (version 3)
 med kundens egna ord och de val som gjorts i guiden. Det komponeras in i
-ärendets beskrivning och når därmed adminportalen via det befintliga
-`/api/public/intag` – samma väg som kontaktformuläret redan använder. Ingen ny
-infrastruktur, inga nya hemligheter.
+ärendets beskrivning och når adminportalen via befintliga
+`/api/public/intag`. Den sammansatta beskrivningen kortas innan den skickas,
+med kundens egna ord prioriterade före guidens metadata.
 
-Transkriptet innehåller medvetet **inte** guidens råd och checklistor. De är
-skrivna för kunden, inte för teknikern som ska läsa ärendet.
+Visuellt konsoliderades fem olika kortutseenden till ett. Färg reserverades
+för säkerhetsläge och eskalering. Panelen leds av Nova IT-märket i stället
+för en prick som kunde läsas som en online-status.
 
-Den sammansatta beskrivningen kortas nu innan den skickas, så att den aldrig
-kan överskrida adminportalens hårda gräns på 2000 tecken. Kundens egna ord
-prioriteras: guidens metadata kortas först.
+## Varför?
 
-## Visuell översyn
+Guidens dialog fanns bara i webbläsarens `sessionStorage` och försvann när
+fliken stängdes, så det kunden faktiskt svarade nådde aldrig ärendet. Den
+smala nyckelordslistan gjorde samtidigt att naturligt formulerade
+beskrivningar ofta hamnade i "Annat problem" i stället för rätt område.
 
-Guiden hade fem olika kortutseenden staplade på varandra, vilket fick flödet
-att se ihopsatt ut. Allt neutralt innehåll använder nu ett enda kortutseende.
-Färg är reserverad för två lägen som faktiskt betyder något: rött för
-säkerhetsläge där kunden bör sluta klicka, gult för när det är läge att höra
-av sig.
+Adminportalen avvisar hela ärendet när beskrivningen överskrider 2000 tecken.
+Kundens fritext var redan tillåten upp till 2000, så när guidens kontext lades
+ovanpå kunde ett korrekt ifyllt ärende misslyckas i sista steget.
 
-Panelen leds nu av Nova IT-märket i stället för en prick som kunde läsas som
-en online-status. Rubriken säger uttryckligen att guiden är automatisk och att
-ingen personal läser förrän kunden skickar.
+Guidens råd och checklistor utelämnas medvetet ur transkriptet. De är skrivna
+för kunden, inte för teknikern som ska läsa ärendet.
 
-## Verifiering
+## Resultat
 
-- `bun run typecheck`: passerar.
-- `bun test`: 61 tester passerar.
-- `bun run lint`: 0 fel.
-- `bun run build`: produktionsbygge genomfört.
-- Manuellt verifierat i dev: fritexten "kameran syns inte i teams och hela
-  kontoret står still" matchade det nya videomötesspåret, förde med sig
-  beskrivning och förvald tjänst till kontaktformuläret, och visade rätt
-  kontaktorsak.
-- Mobil (375px) och desktop (1280px): ingen horisontell overflow, panelen
-  ligger korrekt i båda lägena.
+Guiden träffar rätt område på fler naturligt formulerade beskrivningar, och
+personalen ser hela den guidade dialogen i ärendet i stället för en
+enradsrubrik. Ett ärende kan inte längre avvisas på grund av att guidens
+kontext gjorde beskrivningen för lång.
 
-## Kvarstår
+## Dokumentationspåverkan
 
-Supportassistenten är fortfarande regelbaserad och anropar ingen extern
-AI-tjänst. Om en språkmodell ska kopplas in senare krävs separata beslut om
-databehandling, kostnad, driftansvar och missbruksskydd – se
+Ingen. Supportassistenten är fortfarande regelbaserad och anropar ingen extern
+AI-tjänst, vilket är den avgränsning som redan står i
 `docs/supportbot-integration-report.md`.
