@@ -1,9 +1,40 @@
-import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import {
+import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
+
+/**
+ * `harAiBudget()` (och `hamtaAiBindning()`) läser `env.AI_BUDGET_SERVICE`
+ * via `getRequest()` från `@tanstack/react-start/server` - en dynamisk
+ * import, inte ett statiskt top-level-import (se kommentaren i
+ * support-ai-server.ts för varför). Utanför en TanStack Start-kontext
+ * (exakt läget här i testerna) kastar den riktiga `getRequest()`, vilket
+ * `hamtaAiBindning` redan var byggd för att hantera - den föll tyst
+ * tillbaka till REST-vägen. Men `harAiBudget` hade utan mockning ALLTID
+ * fallit tillbaka till `false` av samma skäl, vilket tyst hade stoppat
+ * varje test som förväntar sig ett faktiskt AI-svar innan de ens nådde
+ * REST- eller bindningsvägen.
+ *
+ * Mockar därför modulen och ger budgeten ett godkännande som standard, så
+ * att testerna nedan fortsätter pröva REST-/bindningslogiken de faktiskt
+ * heter efter - inte budgetspärren, som har sina egna tester längre ned.
+ */
+const getRequestMock = mock(() => ({
+  runtime: { cloudflare: { env: budgetMiljo(true) } },
+}));
+mock.module("@tanstack/react-start/server", () => ({ getRequest: getRequestMock }));
+
+function budgetMiljo(godkant: boolean): { AI_BUDGET_SERVICE: { fetch: typeof fetch } } {
+  return {
+    AI_BUDGET_SERVICE: {
+      fetch: (async () =>
+        new Response(JSON.stringify({ ok: godkant }), { status: 200 })) as unknown as typeof fetch,
+    },
+  };
+}
+
+const {
   aiArPaslaget,
   klassificeraMedAiInternt,
   klassificeraViaBindning,
-} from "./support-ai-server";
+} = await import("./support-ai-server");
 
 const originalFetch = globalThis.fetch;
 
@@ -29,6 +60,9 @@ beforeEach(() => {
   process.env.SUPPORT_AI_LAGE = "pa";
   process.env.CLOUDFLARE_ACCOUNT_ID = "konto123";
   process.env.CLOUDFLARE_AI_TOKEN = "hemlig-token";
+  getRequestMock.mockImplementation(() => ({
+    runtime: { cloudflare: { env: budgetMiljo(true) } },
+  }));
 });
 
 afterEach(() => {
@@ -134,6 +168,36 @@ describe("klassificering via Workers AI", () => {
       true,
     );
     expect(hadeToken).toBe(true);
+  });
+});
+
+describe("den delade AI-budgeten", () => {
+  test("nekar AI-anropet helt när budgettjänsten nekar reservationen, utan att kalla fetch", async () => {
+    getRequestMock.mockImplementation(() => ({
+      runtime: { cloudflare: { env: budgetMiljo(false) } },
+    }));
+    let anropad = false;
+    globalThis.fetch = (async () => {
+      anropad = true;
+      throw new Error("ska inte anropas");
+    }) as unknown as typeof fetch;
+
+    expect(await klassificeraMedAiInternt("wifi krånglar")).toBeNull();
+    expect(anropad).toBe(false);
+  });
+
+  test("nekar AI-anropet när budgettjänsten inte går att nå (ingen bindning)", async () => {
+    getRequestMock.mockImplementation(() => {
+      throw new Error("ingen aktiv request-kontext");
+    });
+    let anropad = false;
+    globalThis.fetch = (async () => {
+      anropad = true;
+      throw new Error("ska inte anropas");
+    }) as unknown as typeof fetch;
+
+    expect(await klassificeraMedAiInternt("wifi krånglar")).toBeNull();
+    expect(anropad).toBe(false);
   });
 });
 
