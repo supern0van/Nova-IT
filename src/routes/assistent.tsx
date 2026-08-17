@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Container, PageHeader } from "@/components/design-system";
-import { SupportGuide } from "@/features/support/SupportGuide";
+import { SupportChat } from "@/features/support/SupportChat";
 
 const assistentUrl = "https://nova-it.se/assistent";
 const assistentTitle = "Förbered ditt IT-ärende – Nova IT";
@@ -31,12 +31,12 @@ function AssistantPage() {
     <>
       <PageHeader
         eyebrow="Automatisk ärendeguide"
-        title="Ett bättre supportärende börjar med rätt frågor."
-        intro="Guiden hjälper dig att välja ärendetyp, beskriva påverkan och samla underlaget Nova IT behöver. Den felsöker inte och ersätter inte en tekniker."
+        title="Fråga vad som helst. Vi svarar direkt."
+        intro="Chatta fritt om vad som krånglar eller vad Nova IT kan hjälpa till med. Guiden svarar utifrån våra faktiska tjänster - den felsöker inte och ersätter inte en tekniker."
       />
       <section className="nova-section">
         <Container className="py-10 sm:py-14">
-          <SupportGuide />
+          <SupportChat />
         </Container>
       </section>
     </>

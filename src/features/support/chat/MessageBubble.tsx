@@ -1,0 +1,88 @@
+import ReactMarkdown from "react-markdown";
+import { cn } from "@/lib/utils";
+import type { KnowledgeDoc } from "../support-knowledge";
+import { CitationChips } from "./CitationChip";
+
+/**
+ * Ett meddelande i transcriptet. Bevarar bubbel-konventionen från den gamla
+ * guiden (höger/tinted för kund, vänster/neutral för assistent) - den
+ * matchade redan researchunderlagets rekommendation, så den återanvänds
+ * medvetet i stället för att uppfinnas om.
+ *
+ * Ingen maskot, ingen avatar med ansikte - bara Nova IT-märket, samma
+ * antropomorfiserings-återhållsamhet som resten av funktionen (se
+ * `SupportBotLauncher.tsx`).
+ */
+export function MessageBubble({
+  role,
+  content,
+  compact,
+  citedDocs,
+  isStreaming,
+}: {
+  role: "assistant" | "user";
+  content: string;
+  compact: boolean;
+  citedDocs?: KnowledgeDoc[];
+  isStreaming?: boolean;
+}) {
+  const isAssistant = role === "assistant";
+
+  return (
+    <div className="space-y-2">
+      <div className={cn("flex items-start gap-3", isAssistant ? "justify-start" : "justify-end")}>
+        {isAssistant && (
+          <span className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-md border border-white/10 bg-white/[0.04] p-1.5">
+            <img src="/nova-it-mark.svg" alt="" aria-hidden="true" className="h-full w-full" />
+            <span className="sr-only">Nova IT ärendeguide</span>
+          </span>
+        )}
+        <div
+          className={cn(
+            "text-sm",
+            compact ? "max-w-[calc(100%-2.5rem)]" : "max-w-2xl",
+            isAssistant
+              ? "pt-1 text-slate-200"
+              : "rounded-lg rounded-tr-sm border border-sky-300/20 bg-sky-300/[0.09] px-3.5 py-2.5 text-sky-50",
+          )}
+        >
+          {isAssistant ? (
+            <div className="leading-6">
+              <ReactMarkdown
+                allowedElements={["p", "strong", "em", "ul", "ol", "li", "a", "code"]}
+                unwrapDisallowed
+                components={{
+                  p: (props) => <p {...props} className="mb-2 last:mb-0" />,
+                  ul: (props) => <ul {...props} className="my-2 list-disc space-y-1 pl-5" />,
+                  ol: (props) => <ol {...props} className="my-2 list-decimal space-y-1 pl-5" />,
+                  code: (props) => (
+                    <code {...props} className="rounded bg-white/8 px-1 py-0.5 text-[0.85em]" />
+                  ),
+                  a: (props) => (
+                    <a
+                      {...props}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-sky-300 underline"
+                    />
+                  ),
+                }}
+              >
+                {content}
+              </ReactMarkdown>
+              {isStreaming && (
+                <span
+                  aria-hidden="true"
+                  className="ml-0.5 inline-block h-4 w-[2px] motion-safe:animate-pulse bg-slate-400 align-middle"
+                />
+              )}
+            </div>
+          ) : (
+            content
+          )}
+        </div>
+      </div>
+      {isAssistant && citedDocs && citedDocs.length > 0 && <CitationChips docs={citedDocs} />}
+    </div>
+  );
+}

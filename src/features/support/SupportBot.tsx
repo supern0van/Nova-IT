@@ -1,6 +1,6 @@
 import { useEffect, useId, useRef, type RefObject } from "react";
 import { X } from "lucide-react";
-import { SupportGuide } from "./SupportGuide";
+import { SupportChat } from "./SupportChat";
 
 type SupportBotProps = {
   open: boolean;
@@ -23,11 +23,25 @@ export function SupportBot({ open, onOpenChange, triggerRef }: SupportBotProps) 
       window.requestAnimationFrame(() => triggerRef.current?.focus());
     };
 
+    // Desktop saknade tidigare ett sätt att stänga genom att klicka utanför
+    // panelen (bara mobilens backdrop-knapp gjorde det) - täpper till den
+    // luckan utan att röra mobilbeteendet, som redan fungerar via
+    // backdrop-knappen nedan.
+    const onPointerDown = (event: PointerEvent) => {
+      const target = event.target as Node;
+      if (panelRef.current?.contains(target) || triggerRef.current?.contains(target)) return;
+      onOpenChange(false);
+    };
+
     document.addEventListener("keydown", onKeyDown);
+    document.addEventListener("pointerdown", onPointerDown);
     window.requestAnimationFrame(() => {
-      panelRef.current?.querySelector<HTMLInputElement>("input")?.focus();
+      panelRef.current?.querySelector<HTMLTextAreaElement>("textarea")?.focus();
     });
-    return () => document.removeEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      document.removeEventListener("pointerdown", onPointerDown);
+    };
   }, [onOpenChange, open, triggerRef]);
 
   if (!open) return null;
@@ -51,7 +65,7 @@ export function SupportBot({ open, onOpenChange, triggerRef }: SupportBotProps) 
         role="dialog"
         aria-labelledby={titleId}
         aria-describedby={descriptionId}
-        className="pointer-events-auto absolute inset-x-0 bottom-0 flex h-[min(700px,calc(100dvh-0.5rem))] flex-col overflow-hidden rounded-t-xl border border-white/12 bg-[#080f17] text-slate-100 shadow-[0_32px_80px_-20px_rgba(2,8,23,0.85)] sm:inset-x-auto sm:bottom-6 sm:right-6 sm:h-[min(660px,calc(100dvh-8rem))] sm:w-[400px] sm:rounded-xl"
+        className="pointer-events-auto absolute inset-x-0 bottom-0 flex h-[min(700px,calc(100dvh-0.5rem))] flex-col overflow-hidden rounded-t-xl border border-white/12 bg-[#080f17] text-slate-100 shadow-[0_32px_80px_-20px_rgba(2,8,23,0.85)] duration-200 motion-safe:animate-in motion-safe:slide-in-from-bottom-4 motion-safe:fade-in sm:inset-x-auto sm:bottom-6 sm:right-6 sm:h-[min(660px,calc(100dvh-8rem))] sm:w-[400px] sm:rounded-xl"
       >
         <header className="flex shrink-0 items-start justify-between gap-4 border-b border-white/10 bg-[#060d14] px-5 py-4">
           <div className="flex min-w-0 items-start gap-3">
@@ -63,7 +77,7 @@ export function SupportBot({ open, onOpenChange, triggerRef }: SupportBotProps) 
                 Nova IT ärendeguide
               </h2>
               <p id={descriptionId} className="mt-1 text-xs leading-5 text-slate-400">
-                Automatisk guide – ingen personal läser här förrän du skickar.
+                Automatisk chatt – ingen personal läser här förrän du skickar vidare.
               </p>
             </div>
           </div>
@@ -77,7 +91,7 @@ export function SupportBot({ open, onOpenChange, triggerRef }: SupportBotProps) 
           </button>
         </header>
         <div className="min-h-0 flex-1">
-          <SupportGuide compact onNavigate={close} />
+          <SupportChat compact onNavigate={close} />
         </div>
       </section>
     </div>
