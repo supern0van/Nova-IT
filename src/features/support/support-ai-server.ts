@@ -135,6 +135,41 @@ const hamtaAiBindning = createServerOnlyFn(async (): Promise<WorkersAiBindning |
   }
 });
 
+/**
+ * Frågar den delade AI-budgeten (Nova-IT-Portaler/ai-budget/, en Durable
+ * Object som ALLA tre portaler delar) om det är okej att göra ett AI-anrop
+ * just nu. Samma Service Binding-mönster som `hamtaAiBindning` ovan -
+ * `request.runtime.cloudflare.env`, inte ett statiskt import.
+ *
+ * Svarar `false` vid MINSTA osäkerhet - saknad bindning, timeout, ett fel
+ * svar - eftersom "vi vet inte" ska tolkas som "gör inte anropet", aldrig
+ * tvärtom. Gäller BÅDA anropsvägarna nedan (bindning och REST) - budgeten
+ * är gemensam oavsett teknisk väg.
+ */
+const harAiBudget = createServerOnlyFn(async (): Promise<boolean> => {
+  try {
+    const { getRequest } = await import("@tanstack/react-start/server");
+    const request = getRequest() as unknown as {
+      runtime?: { cloudflare?: { env?: { AI_BUDGET_SERVICE?: { fetch: typeof fetch } } } };
+    };
+    const tjanst = request?.runtime?.cloudflare?.env?.AI_BUDGET_SERVICE;
+    if (!tjanst) return false;
+
+    const svar = await tjanst.fetch("https://internal/reservera", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ system: "nova-it" }),
+      signal: AbortSignal.timeout(2000),
+    });
+    if (!svar.ok) return false;
+
+    const data = (await svar.json().catch(() => null)) as { ok?: boolean } | null;
+    return data?.ok === true;
+  } catch {
+    return false;
+  }
+});
+
 async function medTimeout<T>(arbete: Promise<T>): Promise<T> {
   let timeout: ReturnType<typeof setTimeout>;
   const tidsgrans = new Promise<never>((_, avvisa) => {
@@ -239,6 +274,11 @@ async function klassificeraViaRest(fraga: string, modell: string): Promise<AiKla
 
 export async function klassificeraMedAiInternt(fraga: string): Promise<AiKlassificering> {
   if (!aiArPaslaget(process.env.SUPPORT_AI_LAGE)) return null;
+
+  // Kontrolleras FÖRST, före bindningen ens letas upp - den delade budgeten
+  // gäller över alla tre portaler, ett nej ska stoppa anropet innan något
+  // annat görs.
+  if (!(await harAiBudget())) return null;
 
   const modell = process.env.SUPPORT_AI_MODELL || STANDARDMODELL;
   const bindning = await hamtaAiBindning();

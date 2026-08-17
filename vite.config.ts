@@ -61,7 +61,15 @@ export default defineConfig({
      */
     nitro({
       defaultPreset: "cloudflare-module",
-      cloudflare: { wrangler: { ai: { binding: "AI" } } },
+      cloudflare: {
+        wrangler: {
+          ai: { binding: "AI" },
+          // Delad AI-budget över alla tre portaler (nova-it.se, adminportal,
+          // kundportal) - se Nova-IT-Portaler/ai-budget/. Service Binding,
+          // inte HTTP: Cloudflare autentiserar internt, ingen hemlighet krävs.
+          services: [{ binding: "AI_BUDGET_SERVICE", service: "nova-it-ai-budget" }],
+        },
+      },
     }),
     viteReact(),
   ],
