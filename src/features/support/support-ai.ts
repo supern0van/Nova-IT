@@ -152,8 +152,12 @@ export function tolkaAiSvar(ratext: string, flows: SupportFlow[]): AiForslag | n
  * Modeller lägger ofta svaret i ```json-staket eller före/efter prosa trots
  * instruktionen. Plocka ut det första balanserade objektet i stället för att
  * förkasta ett i övrigt korrekt svar.
+ *
+ * Exporterad (utöver användningen i den här filen) eftersom exakt samma
+ * robusthet behövs av `support-chat.ts` - den fria chattens motsvarande
+ * svarstolkning. Ren textbearbetning, inget skäl att duplicera den.
  */
-function plockaJson(ratext: string): string | null {
+export function plockaJson(ratext: string): string | null {
   const start = ratext.indexOf("{");
   if (start === -1) return null;
 

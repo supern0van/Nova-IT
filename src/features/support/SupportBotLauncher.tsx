@@ -35,7 +35,7 @@ export function SupportBotLauncher() {
         aria-haspopup="dialog"
       >
         <MessageCircleQuestion className="h-5 w-5 text-sky-300 transition-transform duration-200 group-hover:scale-110" />
-        <span className="hidden text-sm font-semibold min-[420px]:inline">Förbered ärende</span>
+        <span className="hidden text-sm font-semibold min-[420px]:inline">Fråga oss</span>
       </button>
       <SupportBot open={open} onOpenChange={setOpen} triggerRef={triggerRef} />
     </>
