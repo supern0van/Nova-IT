@@ -13,7 +13,7 @@ export function CitationChips({ docs }: { docs: KnowledgeDoc[] }) {
   if (docs.length === 0) return null;
 
   return (
-    <div className="ml-10 flex flex-wrap gap-1.5">
+    <div className="ml-9 flex flex-wrap gap-1.5">
       {docs.map((doc, index) => (
         <a
           key={doc.id}

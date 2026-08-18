@@ -16,14 +16,14 @@ export function QuickReplyChips({
   if (suggestions.length === 0) return null;
 
   return (
-    <div className="ml-10 flex flex-wrap gap-2">
+    <div className="flex flex-wrap gap-2">
       {suggestions.map((suggestion) => (
         <button
           key={suggestion}
           type="button"
           disabled={disabled}
           onClick={() => onSelect(suggestion)}
-          className="min-h-9 rounded-full border border-white/12 bg-white/[0.03] px-3.5 py-1.5 text-xs font-medium text-slate-300 transition-colors hover:border-sky-300/50 hover:bg-sky-300/[0.08] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 disabled:cursor-not-allowed disabled:opacity-50"
+          className="min-h-8 rounded-full bg-white/[0.05] px-3 py-1.5 text-xs font-medium text-slate-300 transition-colors hover:bg-sky-300/[0.12] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {suggestion}
         </button>

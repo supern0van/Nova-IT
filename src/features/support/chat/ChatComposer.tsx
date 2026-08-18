@@ -1,13 +1,21 @@
-import { LockKeyhole, Send } from "lucide-react";
+import { Link } from "@tanstack/react-router";
+import { LockKeyhole, Send, UserRound } from "lucide-react";
 import { useLayoutEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
+import type { SupportServiceSlug, SupportUrgency } from "../support-types";
 
 const MAX_LENGTH = 800;
 /** Räknaren syns bara nära gränsen - Intercom-stilens sparsamhet, inte
  *  ständigt synligt "0/800"-klutter. */
 const SHOW_COUNTER_FROM = Math.round(MAX_LENGTH * 0.7);
+
+type EscalationProps = {
+  urgency: SupportUrgency;
+  serviceSlug: SupportServiceSlug | null;
+  onClick: () => void;
+};
 
 export function ChatComposer({
   value,
@@ -15,12 +23,17 @@ export function ChatComposer({
   onSubmit,
   disabled,
   inputId,
+  escalation,
 }: {
   value: string;
   onChange: (value: string) => void;
   onSubmit: () => void;
   disabled: boolean;
   inputId: string;
+  /** Alltid tillgänglig väg till en människa - visas som en diskret länk i
+   *  footern i stället för att ligga inne i konversationshistoriken (se
+   *  SupportChat.tsx för varför). */
+  escalation?: EscalationProps;
 }) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -85,6 +98,19 @@ export function ChatComposer({
           {value.length}/{MAX_LENGTH}
         </p>
       </div>
+      {escalation && (
+        <Link
+          to="/kontakt"
+          search={{ form: "request", service: escalation.serviceSlug ?? undefined }}
+          onClick={escalation.onClick}
+          className="mt-2 inline-flex items-center gap-1.5 text-xs font-medium text-slate-500 transition-colors hover:text-sky-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
+        >
+          <UserRound className="h-3.5 w-3.5" />
+          {escalation.urgency === "standard"
+            ? "Prata med en människa istället"
+            : "Kontakta Nova IT direkt"}
+        </Link>
+      )}
     </form>
   );
 }

@@ -32,7 +32,7 @@ export function MessageBubble({
     <div className="space-y-2">
       <div className={cn("flex items-start gap-3", isAssistant ? "justify-start" : "justify-end")}>
         {isAssistant && (
-          <span className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-md border border-white/10 bg-white/[0.04] p-1.5">
+          <span className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-md bg-white/[0.05] p-1">
             <img src="/nova-it-mark.svg" alt="" aria-hidden="true" className="h-full w-full" />
             <span className="sr-only">Nova IT ärendeguide</span>
           </span>
@@ -40,10 +40,10 @@ export function MessageBubble({
         <div
           className={cn(
             "text-sm",
-            compact ? "max-w-[calc(100%-2.5rem)]" : "max-w-2xl",
+            compact ? "max-w-[calc(100%-2rem)]" : "max-w-2xl",
             isAssistant
-              ? "pt-1 text-slate-200"
-              : "rounded-lg rounded-tr-sm border border-sky-300/20 bg-sky-300/[0.09] px-3.5 py-2.5 text-sky-50",
+              ? "pt-0.5 text-slate-200"
+              : "rounded-lg rounded-tr-sm bg-sky-300/[0.12] px-3 py-2 text-sky-50",
           )}
         >
           {isAssistant ? (
