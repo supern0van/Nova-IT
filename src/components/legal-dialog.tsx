@@ -146,6 +146,14 @@ const documents: Record<
               Om uppgifter måste sparas enligt lag, till exempel för bokföring efter ett uppdrag,
               sker behandlingen för att uppfylla en rättslig förpliktelse.
             </p>
+            <p>
+              Kontot i vår kundportal (se avsnittet Kundportalen nedan) skapas automatiskt när ett
+              ärende registreras, utan ett separat val från dig. Det är inte i sig ett krav för att
+              du ska kunna få hjälp med ärendet - du kan alltid få hjälp och statusbesked på annat
+              sätt, till exempel via e-post eller telefon. Kontots skapande och drift grundas därför
+              på vårt berättigade intresse av att kunna erbjuda dig ett enkelt sätt att följa och
+              kommunicera om ditt ärende, inte på att det skulle vara ett avtalskrav.
+            </p>
           </>
         ),
       },
@@ -178,14 +186,21 @@ const documents: Record<
           <>
             <p>
               När ett ärende registreras kan ett konto i Nova IT:s kundportal skapas automatiskt åt
-              dig, så att du kan följa och svara på ditt ärende. Du får då ett separat mejl med
-              inloggningsuppgifter och ett tillfälligt lösenord, som du byter första gången du
-              loggar in. Det tillfälliga lösenordet lagras eller loggas aldrig i klartext utöver det
-              enda mejlet.
+              dig, så att du kan följa och svara på ditt ärende. Du får då ett separat mejl med en
+              säker, tidsbegränsad aktiveringslänk - inget lösenord skickas eller lagras i mejlet
+              eller mellan våra system. Du väljer ditt eget lösenord först när du öppnar länken.
             </p>
             <p>
               I kundportalen kan du se dina egna ärenden, deras status och den konversation som förs
               kring dem, samt skriva svar. Du ser aldrig andra kunders ärenden eller uppgifter.
+            </p>
+            <p>
+              Kontot är knutet till kundrelationen och kan finnas kvar efter att ett enskilt ärende
+              avslutats, så det har inte automatiskt samma sparandetid som ärendet. Vi tar bort
+              kontot senast 24 månader efter din senaste inloggning eller ärendeaktivitet, om inte
+              ett nytt ärende under tiden förnyar den perioden. Du kan när som helst be oss avsluta
+              kontot tidigare - det påverkar inte din rätt att få hjälp med ditt ärende på annat
+              sätt.
             </p>
           </>
         ),
@@ -193,11 +208,18 @@ const documents: Record<
       {
         heading: "Hur länge uppgifterna sparas",
         body: (
-          <p>
-            Vi sparar uppgifter bara så länge de behövs. En första förfrågan som inte leder till ett
-            ärende gallras senast 12 månader efter senaste kontakt. Uppgifter som behövs för ett
-            uppdrag eller enligt lag sparas så länge som krävs för det ändamålet eller enligt lag.
-          </p>
+          <>
+            <p>
+              Vi sparar uppgifter bara så länge de behövs. En första förfrågan som inte leder till
+              ett ärende gallras senast 12 månader efter senaste kontakt. Uppgifter som behövs för
+              ett uppdrag eller enligt lag sparas så länge som krävs för det ändamålet eller enligt
+              lag.
+            </p>
+            <p>
+              Ett kundportalskonto följer kundrelationen, se avsnittet Kundportalen ovan, och tas
+              bort senast 24 månader efter din senaste inloggning eller ärendeaktivitet.
+            </p>
+          </>
         ),
       },
       {
@@ -206,8 +228,9 @@ const documents: Record<
           <>
             <p>
               Du kan begära information om uppgifter som rör dig, rättelse, radering, begränsning
-              eller invända mot behandling när reglerna ger dig den rätten. Du kan också ha rätt att
-              få ut uppgifter i ett överförbart format.
+              eller invända mot behandling när reglerna ger dig den rätten. Det gäller även
+              kundportalskontot, som grundas på berättigat intresse (se avsnittet Kundportalen
+              ovan). Du kan också ha rätt att få ut uppgifter i ett överförbart format.
             </p>
             <p>
               Kontakta <a href="mailto:kontakt@nova-it.se">kontakt@nova-it.se</a> först. Du kan även
@@ -426,7 +449,7 @@ function LegalDocument({ document }: { document: (typeof documents)[LegalDocumen
           <span className="text-sm font-bold tracking-wide text-sky-700">NOVA IT</span>
         </div>
         <p className="pt-4 text-xs font-semibold uppercase tracking-[0.14em] text-sky-700">
-          {document.label} · Version 1.1
+          {document.label} · Version 1.2
         </p>
         <DialogTitle className="pt-1 text-2xl font-semibold tracking-normal text-slate-950 sm:text-3xl">
           {document.title}
@@ -456,7 +479,7 @@ function LegalDocument({ document }: { document: (typeof documents)[LegalDocumen
       </div>
 
       <div className="flex items-center justify-between border-t border-slate-200 bg-slate-50 px-6 py-3 text-xs text-slate-500 sm:px-8">
-        <span>Senast uppdaterad 30 juli 2026</span>
+        <span>Senast uppdaterad 19 augusti 2026</span>
         <a
           href="https://www.nova-it.se"
           className="inline-flex items-center gap-1 font-medium text-sky-700 hover:text-sky-900"

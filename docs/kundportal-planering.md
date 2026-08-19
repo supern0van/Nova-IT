@@ -3,6 +3,17 @@
 Senast uppdaterad: 2026-07-29
 Status: **planeringsfas, inget byggarbete påbörjat**
 
+> **Uppdatering 19 augusti 2026:** avsnitten nedan som beskriver ett
+> `crypto.getRandomValues`-genererat tillfälligt lösenord skickat i klartext
+> via mejl är SUPERSEDED. En säkerhetsgranskning visade att en delad,
+> reversibel hemlighet i ett mejl var en onödig risk. Den faktiska
+> implementationen använder i stället Supabase Auths inbyggda
+> `generateLink({ type: 'invite' | 'recovery' })` - en tidsbegränsad,
+> engångsanvändbar länk. Inget lösenord genereras, returneras mellan Workers
+> eller skickas via mejl; kunden väljer alltid sitt eget på
+> kundportalens `/aktivera-konto`. Se
+> `kundportal/lib/admin/kundkonto-server.ts` för den faktiska koden.
+
 ## 0. Syfte med detta dokument
 
 Det här dokumentet är skrivet för att vara **självständigt läsbart** - av mig (Claude)

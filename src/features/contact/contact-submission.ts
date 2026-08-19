@@ -129,8 +129,6 @@ export function formatContactEmail(submission: ContactSubmission) {
   return { subject, text };
 }
 
-const KUNDPORTAL_INLOGGNING_URL = "https://kundportal.nova-it.se/logga-in";
-
 /**
  * Kundens mottagningsbekräftelse - inte samma sak som `formatContactEmail`
  * (som är den interna aviseringen till Nova IT). Innehåller uttryckligen
@@ -139,13 +137,21 @@ const KUNDPORTAL_INLOGGNING_URL = "https://kundportal.nova-it.se/logga-in";
  *
  * `kundportalKonto` är bara satt när kundportalen (Milstolpe 2, se
  * docs/kundportal-planering.md i huvudrepot) faktiskt skapade ett NYTT konto
- * för den här kunden - en återkommande kund som redan har ett konto får inget
- * (nytt) tillfälligt lösenord, bara den vanliga bekräftelsetexten.
+ * för den här kunden - en återkommande kund som redan har ett konto får
+ * ingen (ny) aktiveringslänk, bara den vanliga bekräftelsetexten.
+ *
+ * `aktiveringslank` är ALLTID en länk, ALDRIG ett lösenord - en Supabase
+ * Auth-genererad, engångsanvändbar, tidsbegränsad `invite`-länk (se
+ * Nova-IT-Portaler/kundportal/lib/admin/kundkonto-server.ts). Kunden väljer
+ * sitt eget lösenord först på kundportalens /aktivera-konto. Den här
+ * funktionen får ALDRIG innehålla ett lösenordsfält - se den granskning
+ * som ledde fram till detta (kundportalskontots aktiveringsflöde,
+ * 19 augusti 2026).
  */
 export function formatCustomerConfirmationEmail(
   namn: string,
   arendenummer: string,
-  kundportalKonto?: { epost: string; tillfalligtLosenord: string },
+  kundportalKonto?: { epost: string; aktiveringslank: string },
 ) {
   const subject = `Din förfrågan är mottagen – ${arendenummer}`;
   const text = [
@@ -159,11 +165,13 @@ export function formatCustomerConfirmationEmail(
     ...(kundportalKonto
       ? [
           "",
-          "Du kan följa ärendet i vår kundportal:",
-          KUNDPORTAL_INLOGGNING_URL,
-          `Logga in med ärendenumret ovan (${arendenummer}) och lösenordet nedan.`,
-          `Tillfälligt lösenord: ${kundportalKonto.tillfalligtLosenord}`,
-          "Du blir ombedd att byta lösenordet första gången du loggar in.",
+          "Ett konto till kundportalen har skapats åt dig.",
+          "",
+          "Aktivera kontot och välj ditt lösenord:",
+          kundportalKonto.aktiveringslank,
+          "",
+          "Länken är tidsbegränsad och kan bara användas en gång. När kontot är",
+          "aktiverat kan du logga in i kundportalen och följa ditt ärende.",
         ]
       : []),
     "",
