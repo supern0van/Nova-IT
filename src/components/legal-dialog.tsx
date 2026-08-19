@@ -178,10 +178,9 @@ const documents: Record<
           <>
             <p>
               När ett ärende registreras kan ett konto i Nova IT:s kundportal skapas automatiskt åt
-              dig, så att du kan följa och svara på ditt ärende. Du får då ett separat mejl med
-              inloggningsuppgifter och ett tillfälligt lösenord, som du byter första gången du
-              loggar in. Det tillfälliga lösenordet lagras eller loggas aldrig i klartext utöver det
-              enda mejlet.
+              dig, så att du kan följa och svara på ditt ärende. Du får då ett separat mejl med en
+              säker, tidsbegränsad aktiveringslänk - inget lösenord skickas eller lagras i mejlet
+              eller mellan våra system. Du väljer ditt eget lösenord först när du öppnar länken.
             </p>
             <p>
               I kundportalen kan du se dina egna ärenden, deras status och den konversation som förs

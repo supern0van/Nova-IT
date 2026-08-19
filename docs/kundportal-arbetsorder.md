@@ -3,6 +3,12 @@
 Senast uppdaterad: 2026-07-29
 Föregås av: `docs/kundportal-planering.md` (läs den först)
 
+> **Uppdatering 19 augusti 2026:** milstolpen nedan som beskriver ett
+> genererat tillfälligt lösenord (`tillfalligtLosenord`) är SUPERSEDED av en
+> säkerhetsgranskning - se uppdateringsnoten i `kundportal-planering.md`.
+> Kontraktet mellan systemen heter nu `aktiveringslank` och bär en Supabase
+> Auth-genererad engångslänk, aldrig ett lösenord.
+
 ## Milstolpe 0 — KLAR (2026-07-29)
 
 Se `docs/DECISIONS.md` (DEC-0006) för de beslut som fattades. Sammanfattning:

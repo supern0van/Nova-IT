@@ -155,7 +155,7 @@ export async function skickaKontaktforfragan(
     mottagetVid?: string;
     internt?: {
       arendeId?: string;
-      kundportalKonto?: { kontoSkapat?: boolean; tillfalligtLosenord?: string };
+      kundportalKonto?: { kontoSkapat?: boolean; aktiveringslank?: string };
     };
   } | null;
 
@@ -177,16 +177,16 @@ export async function skickaKontaktforfragan(
   // misslyckat internt mejl loggas men stoppar aldrig svaret till kunden.
   await forsokSkickaInternAvisering(data, arendenummer);
 
-  const tillfalligtLosenord =
+  const aktiveringslank =
     internt?.kundportalKonto?.kontoSkapat === true
-      ? internt.kundportalKonto.tillfalligtLosenord
+      ? internt.kundportalKonto.aktiveringslank
       : undefined;
 
   const confirmationSent = await forsokSkickaKundbekraftelse({
     namn: data.name,
     epost: data.email,
     arendenummer,
-    tillfalligtLosenord,
+    aktiveringslank,
   });
 
   if (internt?.arendeId) {
@@ -338,10 +338,12 @@ async function forsokSkickaKundbekraftelse(uppgifter: {
   arendenummer: string;
   /**
    * Endast satt när kundportalen faktiskt skapade ett NYTT konto för den här
-   * kunden (se skickaKontaktforfragan ovan). Skickas ALDRIG till konsolen
-   * eller loggas - den enda platsen detta värde syns är i detta ena mejl.
+   * kunden (se skickaKontaktforfragan ovan). En Supabase Auth-genererad,
+   * engångsanvändbar, tidsbegränsad aktiveringslänk - ALDRIG ett lösenord.
+   * Skickas ALDRIG till konsolen eller loggas - den enda platsen detta
+   * värde syns är i detta ena mejl.
    */
-  tillfalligtLosenord?: string;
+  aktiveringslank?: string;
 }): Promise<boolean> {
   const apiKey = process.env.RESEND_API_KEY;
   const from = process.env.CONTACT_FORM_FROM;
@@ -356,8 +358,8 @@ async function forsokSkickaKundbekraftelse(uppgifter: {
   const { subject, text } = formatCustomerConfirmationEmail(
     uppgifter.namn,
     uppgifter.arendenummer,
-    uppgifter.tillfalligtLosenord
-      ? { epost: uppgifter.epost, tillfalligtLosenord: uppgifter.tillfalligtLosenord }
+    uppgifter.aktiveringslank
+      ? { epost: uppgifter.epost, aktiveringslank: uppgifter.aktiveringslank }
       : undefined,
   );
 

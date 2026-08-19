@@ -131,7 +131,9 @@ test("skickar internavisering till support@nova-it.se, kundbekräftelsens svarsa
   expect(JSON.parse(String(kundbekraftelse?.init?.body)).reply_to).toBe("kontakt@nova-it.se");
 });
 
-test("forwards the temporary kundportal password into the customer confirmation email", async () => {
+test("forwards the kundportal activation link (never a password) into the customer confirmation email", async () => {
+  const aktiveringslank =
+    "https://xyzcompany.supabase.co/auth/v1/verify?token=abc123&type=invite&redirect_to=https://kundportal.nova-it.se/aktivera-konto";
   const calls: { url: string; init?: RequestInit }[] = [];
   globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input);
@@ -145,7 +147,7 @@ test("forwards the temporary kundportal password into the customer confirmation 
           arendeId: "arende-1",
           kundEpost: "anna@example.se",
           kundNamn: "Anna Andersson",
-          kundportalKonto: { kontoSkapat: true, tillfalligtLosenord: "xR7-tillfalligt-9k2" },
+          kundportalKonto: { kontoSkapat: true, aktiveringslank },
         },
       });
     }
@@ -165,7 +167,9 @@ test("forwards the temporary kundportal password into the customer confirmation 
     String(call.init?.body).includes("Din förfrågan är mottagen"),
   );
   expect(customerEmailCall).toBeDefined();
-  expect(String(customerEmailCall?.init?.body)).toContain("xR7-tillfalligt-9k2");
+  const body = String(customerEmailCall?.init?.body);
+  expect(body).toContain(aktiveringslank);
+  expect(body.toLowerCase()).not.toContain("lösenord: ");
 });
 
 test("does not mention the kundportal when no new account was created", async () => {

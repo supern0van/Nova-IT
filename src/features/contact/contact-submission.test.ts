@@ -92,15 +92,18 @@ test("formats a customer confirmation email with the ärendenummer and no leaked
   expect(email.text).not.toContain("kundportal");
 });
 
-test("includes kundportal login details only when a new account was created", () => {
+test("includes an activation link only when a new kundportal account was created - never a password", () => {
+  const aktiveringslank =
+    "https://xyzcompany.supabase.co/auth/v1/verify?token=abc123&type=invite&redirect_to=https://kundportal.nova-it.se/aktivera-konto";
   const email = formatCustomerConfirmationEmail("Anna Andersson", "NIT-2601", {
     epost: "anna@example.se",
-    tillfalligtLosenord: "xR7-tillfalligt-9k2",
+    aktiveringslank,
   });
 
   expect(email.text).toContain("kundportal");
-  expect(email.text).toContain("ärendenumret ovan (NIT-2601)");
-  expect(email.text).toContain("Tillfälligt lösenord: xR7-tillfalligt-9k2");
+  expect(email.text).toContain(aktiveringslank);
+  expect(email.text.toLowerCase()).not.toContain("lösenord: ");
+  expect(email.text.toLowerCase()).not.toMatch(/tillfälligt lösenord/);
 });
 
 test("keeps the locked contact reason separate from the customer's description", () => {
