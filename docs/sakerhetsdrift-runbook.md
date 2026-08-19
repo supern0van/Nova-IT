@@ -123,8 +123,8 @@ Tills annat dokumenterat beslut tas gäller:
 | ------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------- |
 | Kontaktförfrågningar som inte leder till uppdrag | gallras senast 12 månader efter senaste kontakt                                                                      |
 | Ärenden och kundkommunikation                    | sparas så länge kundrelation, garanti, bokförings-/avtalsbehov eller supporthistorik motiverar det; årlig genomgång  |
-| Kundportalkonto utan aktiv relation              | spärras eller raderas vid avslutad kundrelation eller på begäran när lag/avtal tillåter                              |
-| Tillfälliga lösenord                             | ska bara finnas i engångsmejl/flöde och aldrig loggas eller visas i admin efter skapande                             |
+| Kundportalkonto                                  | [v1.5.2] raderas senast 24 månader efter senaste inloggning eller ärendeaktivitet - automatiserad daglig gallring (Cloudflare Cron Trigger, se `kundportal/lib/admin/kundkonto-gallring.ts` i Nova-IT-Portaler); kan spärras/raderas tidigare på begäran |
+| Aktiveringslänkar                                | tidsbegränsade engångslänkar (Supabase Auth `generateLink`), ska bara finnas i engångsmejl/flöde och aldrig loggas eller visas i admin efter skapande - inget lösenord genereras eller passerar genom våra system |
 | Drift- och säkerhetsloggar                       | behålls enligt leverantörernas inställningar och bara så länge de behövs för drift, felsökning och incidenthantering |
 | Lokala testdata och exporter                     | raderas när testet är klart; får inte innehålla riktiga kunduppgifter utan särskilt beslut                           |
 
