@@ -17,10 +17,37 @@ export function SupportBot({ open, onOpenChange, triggerRef }: SupportBotProps) 
     if (!open) return;
 
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key !== "Escape") return;
-      event.preventDefault();
-      onOpenChange(false);
-      window.requestAnimationFrame(() => triggerRef.current?.focus());
+      if (event.key === "Escape") {
+        event.preventDefault();
+        onOpenChange(false);
+        window.requestAnimationFrame(() => triggerRef.current?.focus());
+        return;
+      }
+
+      // Enkelt fokusfångst - utan den kan Tab lämna panelen och gå in i
+      // resten av sidan bakom den (på desktop är den inte ens täckt av en
+      // backdrop, se onPointerDown ovan), vilket bryter mot role="dialog"/
+      // aria-modal="true"-kontraktet: en skärmläsare eller tangentbords-
+      // användare ska inte kunna navigera ut ur en öppen modal.
+      if (event.key !== "Tab") return;
+      const panel = panelRef.current;
+      if (!panel) return;
+
+      const fokuserbara = panel.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      );
+      if (fokuserbara.length === 0) return;
+
+      const forsta = fokuserbara[0];
+      const sista = fokuserbara[fokuserbara.length - 1];
+
+      if (event.shiftKey && document.activeElement === forsta) {
+        event.preventDefault();
+        sista.focus();
+      } else if (!event.shiftKey && document.activeElement === sista) {
+        event.preventDefault();
+        forsta.focus();
+      }
     };
 
     // Desktop saknade tidigare ett sätt att stänga genom att klicka utanför
@@ -63,6 +90,7 @@ export function SupportBot({ open, onOpenChange, triggerRef }: SupportBotProps) 
       <section
         ref={panelRef}
         role="dialog"
+        aria-modal="true"
         aria-labelledby={titleId}
         aria-describedby={descriptionId}
         className="pointer-events-auto absolute inset-x-0 bottom-0 flex h-[min(700px,calc(100dvh-0.5rem))] flex-col overflow-hidden rounded-t-xl border border-white/12 bg-[#080f17] text-slate-100 shadow-[0_32px_80px_-20px_rgba(2,8,23,0.85)] duration-200 motion-safe:animate-in motion-safe:slide-in-from-bottom-4 motion-safe:fade-in sm:inset-x-auto sm:bottom-6 sm:right-6 sm:h-[min(660px,calc(100dvh-8rem))] sm:w-[400px] sm:rounded-xl"
