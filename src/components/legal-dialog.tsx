@@ -34,9 +34,8 @@ const documents: Record<
         heading: "Personuppgiftsansvarig",
         body: (
           <div className="space-y-1.5">
-            <p className="font-medium text-slate-950">Nova IT</p>
-            <p>Organisationsnummer: 19870528-0652</p>
-            <p>Persikogatan 12, 165 63 Hässelby</p>
+            <p className="font-medium text-slate-950">Nova IT (enskild firma)</p>
+            <p>Org.nr: 19870528-0652</p>
             <p>
               Kontakt: <a href="mailto:kontakt@nova-it.se">kontakt@nova-it.se</a>
             </p>
