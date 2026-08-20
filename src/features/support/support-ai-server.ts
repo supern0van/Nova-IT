@@ -205,7 +205,6 @@ export async function klassificeraViaBindning(
     const ratext = extraheraModellsvar(svar);
     if (ratext === null) return null;
 
-    console.log("Supportassistentens AI svarade.", { kalla: "bindning" });
     return tolkaAiSvar(ratext, supportFlows);
   } catch (error) {
     console.error(
@@ -259,7 +258,6 @@ async function klassificeraViaRest(fraga: string, modell: string): Promise<AiKla
     const ratext = extraheraModellsvar(kropp?.result);
     if (ratext === null) return null;
 
-    console.log("Supportassistentens AI svarade.", { kalla: "rest" });
     return tolkaAiSvar(ratext, supportFlows);
   } catch (error) {
     // Timeout och nätverksfel är förväntade lägen, inte undantagsfall.
