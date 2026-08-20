@@ -311,7 +311,13 @@ test("skips Turnstile verification locally when it is not configured", async () 
     }
     if (url.endsWith("/api/public/intag") && init?.method === "PATCH")
       return jsonResponse({ ok: true });
-    if (url.includes("api.resend.com")) return jsonResponse({ id: "email-1" });
+    try {
+      const parsedUrl = new URL(url);
+      if (parsedUrl.protocol === "https:" && parsedUrl.hostname === "api.resend.com")
+        return jsonResponse({ id: "email-1" });
+    } catch {
+      // Ignore parse failures and fall through to unexpected fetch error.
+    }
     throw new Error(`Unexpected fetch to ${url}`);
   }) as unknown as typeof fetch;
 
