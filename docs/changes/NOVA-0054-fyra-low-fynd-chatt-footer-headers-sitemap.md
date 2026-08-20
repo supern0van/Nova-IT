@@ -56,7 +56,8 @@ vilseledande headerregler, en fotens tjänstelista som både gett fel
 information och förlorat en klickbar navigeringsväg, samt en sitemap
 som inte speglade verkliga ändringsdatum.
 
-## Påverkan
+## Resultat
 
 Inga databasändringar, inga nya miljövariabler. Rent klient-/statisk
-innehålls-fix, ingen driftpåverkan.
+innehålls-fix, ingen driftpåverkan. `bun run test`/`lint`/`typecheck`/
+`build` gröna.
