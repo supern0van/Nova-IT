@@ -49,7 +49,19 @@ export function MessageBubble({
           {isAssistant ? (
             <div className="leading-6">
               <ReactMarkdown
-                allowedElements={["p", "strong", "em", "ul", "ol", "li", "a", "code"]}
+                // Medvetet INGEN "a" här. Modellens fritext ska bara beskriva
+                // Nova IT och föreslå nästa steg (se byggChattSystemPrompt i
+                // support-chat.ts) - den har aldrig ett legitimt behov av att
+                // själv producera klickbara länkar. Riktiga källhänvisningar
+                // renderas separat via CitationChips, med en hårdkodad
+                // sourceUrl från kunskapsbasen, ALDRIG från modellens egen
+                // text. Utan "a" i listan unwrappar unwrapDisallowed en
+                // eventuell markdown-länk till bara sin synliga text i
+                // stället för en klickbar `<a href>` - stänger dörren för att
+                // en promptinjicerad eller hallucinerad länk (t.ex. en
+                // phishing-url eller ett javascript:-schema) blir klickbar i
+                // chatten.
+                allowedElements={["p", "strong", "em", "ul", "ol", "li", "code"]}
                 unwrapDisallowed
                 components={{
                   p: (props) => <p {...props} className="mb-2 last:mb-0" />,
@@ -57,14 +69,6 @@ export function MessageBubble({
                   ol: (props) => <ol {...props} className="my-2 list-decimal space-y-1 pl-5" />,
                   code: (props) => (
                     <code {...props} className="rounded bg-white/8 px-1 py-0.5 text-[0.85em]" />
-                  ),
-                  a: (props) => (
-                    <a
-                      {...props}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-sky-300 underline"
-                    />
                   ),
                 }}
               >

@@ -97,25 +97,36 @@ const documents: Record<
         ),
       },
       {
-        heading: "Automatisk sortering med AI",
+        heading: "Ärendeguidens AI",
         body: (
           <>
             <p>
-              För att förstå fritext bättre kan din beskrivning i supportguiden skickas till en
-              språkmodell som körs hos Cloudflare, vår befintliga driftleverantör. Modellen används
-              bara för att föreslå vilket område ärendet hör hemma i och för att sammanfatta
-              problemet i en mening som du får bekräfta.
+              Ärendeguiden kan använda en språkmodell som körs hos Cloudflare, vår befintliga
+              driftleverantör, på två olika sätt. I den strukturerade guiden kan din beskrivning
+              skickas till modellen bara för att föreslå vilket område ärendet hör hemma i och för
+              att sammanfatta problemet i en mening som du får bekräfta.
             </p>
             <p>
-              Förslaget är just ett förslag. Området byts aldrig automatiskt, du väljer själv, och
-              hela guiden fungerar även om AI-stödet är avstängt eller inte svarar. Ingen automatisk
-              sortering fattar beslut som har rättsliga följder eller på liknande sätt i betydande
-              grad påverkar dig — en människa hanterar alltid själva ärendet.
+              Väljer du i stället att skriva fritt i guidens chatt skickas hela den pågående
+              konversationen (dina meddelanden och guidens tidigare svar, inte bara det senaste) till
+              samma språkmodell inför varje svar, tillsammans med Nova IT:s egna, redan publika
+              tjänstebeskrivningar som modellen kan hänvisa till. Modellen svarar på allmänna frågor
+              om Nova IT och föreslår nästa steg - den ger aldrig felsöknings- eller
+              reparationsråd, och hittar aldrig på priser.
+            </p>
+            <p>
+              Oavsett läge är förslaget just ett förslag. Området byts aldrig automatiskt, du väljer
+              själv, och guiden fungerar även om AI-stödet är avstängt eller inte svarar. Ingen
+              automatisk sortering eller chattdialog fattar beslut som har rättsliga följder eller på
+              liknande sätt i betydande grad påverkar dig — en människa hanterar alltid själva
+              ärendet.
             </p>
             <p>
               Din text används inte för att träna modeller, och den lämnas inte vidare till någon
-              annan AI-leverantör. Skickas ingen beskrivning i guiden sker ingen sådan behandling
-              alls.
+              annan AI-leverantör. Väljer du att gå vidare till kontaktformuläret kan ett sammandrag
+              av det du skrivit i guiden eller chatten följa med in i ärendet, på samma sätt som
+              beskrivs i avsnittet Supportguiden på webbplatsen ovan. Skriver du ingenting i guiden
+              eller chatten sker ingen AI-behandling alls.
             </p>
           </>
         ),
@@ -449,7 +460,7 @@ function LegalDocument({ document }: { document: (typeof documents)[LegalDocumen
           <span className="text-sm font-bold tracking-wide text-sky-700">NOVA IT</span>
         </div>
         <p className="pt-4 text-xs font-semibold uppercase tracking-[0.14em] text-sky-700">
-          {document.label} · Version 1.2
+          {document.label} · Version 1.3
         </p>
         <DialogTitle className="pt-1 text-2xl font-semibold tracking-normal text-slate-950 sm:text-3xl">
           {document.title}
@@ -479,7 +490,7 @@ function LegalDocument({ document }: { document: (typeof documents)[LegalDocumen
       </div>
 
       <div className="flex items-center justify-between border-t border-slate-200 bg-slate-50 px-6 py-3 text-xs text-slate-500 sm:px-8">
-        <span>Senast uppdaterad 19 augusti 2026</span>
+        <span>Senast uppdaterad 20 augusti 2026</span>
         <a
           href="https://www.nova-it.se"
           className="inline-flex items-center gap-1 font-medium text-sky-700 hover:text-sky-900"
