@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { Menu, X, ArrowUpRight, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Container } from "@/components/design-system";
-import { contactChannels } from "@/lib/nova-data";
+import { contactChannels, services } from "@/lib/nova-data";
 import { LegalDialogTrigger } from "@/components/legal-dialog";
 import { CookiePreferencesButton } from "@/components/cookie-consent";
 import { PortalMeny } from "@/components/portal-meny";
@@ -18,11 +18,25 @@ const nav = [
   { to: "/om-oss", label: "Om oss" },
 ] as const;
 
-const footerServiceColumns = [
-  ["IT-support och helpdesk", "Felsökning", "Datorinstallation"],
-  ["Datorservice och uppgradering", "Nätverk och Wi‑Fi"],
-  ["Säkerhet och backup", "Microsoft 365 och Google Workspace"],
-];
+/**
+ * Kolumnindelningen för fotens tjänstelista - härledd från den kanoniska
+ * `services`-listan (lib/nova-data.ts), INTE en egen hårdkodad kopia av
+ * namnen. Låg tidigare som en fristående textlista med egna, redan
+ * avvikande formuleringar ("IT-support och helpdesk" mot den riktiga
+ * titeln "IT-support", "Wi‑Fi" med en annan bindestrecks-glyf än
+ * originalets "Wi-Fi") och rena `<li>`-textrader utan länkar alls - en
+ * besökare kunde inte klicka sig vidare till tjänstesidan från foten.
+ * Chunkas i grupper om 3/2/2 för att bevara samma visuella tre-kolumns-
+ * layout som förut.
+ */
+const FOOTER_TJANST_KOLUMNSTORLEKAR = [3, 2, 2];
+
+function chunka<T>(lista: T[], storlekar: number[]): T[][] {
+  let index = 0;
+  return storlekar.map((storlek) => lista.slice(index, (index += storlek)));
+}
+
+const footerServiceColumns = chunka(services, FOOTER_TJANST_KOLUMNSTORLEKAR);
 
 const linkClass =
   "whitespace-nowrap rounded-md px-2.5 py-2 text-sm font-medium text-slate-300 transition-colors hover:bg-white/8 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 xl:px-3";
@@ -168,11 +182,17 @@ export function SiteFooter() {
             </Link>
           </h2>
           <div className="mt-5 grid grid-cols-2 gap-x-6 text-[13px] sm:grid-cols-3">
-            {footerServiceColumns.map((services, index) => (
+            {footerServiceColumns.map((kolumn, index) => (
               <ul key={index} className="space-y-1.5">
-                {services.map((service) => (
-                  <li key={service} className="leading-5 text-slate-400">
-                    {service}
+                {kolumn.map((service) => (
+                  <li key={service.slug} className="leading-5">
+                    <Link
+                      to="/tjanster/$slug"
+                      params={{ slug: service.slug }}
+                      className="text-slate-400 transition-colors hover:text-white focus-visible:text-white"
+                    >
+                      {service.title}
+                    </Link>
                   </li>
                 ))}
               </ul>
