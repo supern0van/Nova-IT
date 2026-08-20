@@ -365,6 +365,7 @@ test("proceeds when Turnstile is configured and Cloudflare confirms the token is
   process.env.TURNSTILE_SECRET_KEY = "test-turnstile-secret";
   globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input);
+    const hostname = new URL(url).hostname;
     if (url.includes("challenges.cloudflare.com")) {
       return jsonResponse({ success: true, action: "contact", hostname: "nova-it.se" });
     }
@@ -378,7 +379,7 @@ test("proceeds when Turnstile is configured and Cloudflare confirms the token is
     }
     if (url.endsWith("/api/public/intag") && init?.method === "PATCH")
       return jsonResponse({ ok: true });
-    if (url.includes("api.resend.com")) return jsonResponse({ id: "email-1" });
+    if (hostname === "api.resend.com") return jsonResponse({ id: "email-1" });
     throw new Error(`Unexpected fetch to ${url}`);
   }) as unknown as typeof fetch;
 
