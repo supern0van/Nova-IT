@@ -84,7 +84,7 @@ test("creates the ticket via the admin intake, then sends confirmation and inter
   expect(result.arendenummer).toBe("NIT-2601");
   expect(result.confirmationSent).toBe(true);
 
-  const resendCalls = calls.filter((call) => call.url.includes("api.resend.com"));
+  const resendCalls = calls.filter((call) => new URL(call.url).hostname === "api.resend.com");
   expect(resendCalls.length).toBe(2); // internal notice + customer confirmation
 
   const patchCall = calls.find((call) => call.init?.method === "PATCH");
