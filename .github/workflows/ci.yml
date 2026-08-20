@@ -99,5 +99,21 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
+      # Vites egen transform-/dep-optimeringscache (node_modules/.vite) och
+      # Nitros byggcache (.nitro) - sparar arbete mellan körningar. Nyckeln
+      # inkluderar lockfilen och källkoden: en ändring i endera bygger en
+      # färsk cache, annars återanvänds den senaste. `restore-keys` faller
+      # tillbaka till senaste cachen för samma lockfile-generation även om
+      # källkods-hashen inte matchar exakt.
+      - name: Cache Vite/Nitro build
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules/.vite
+            .nitro
+          key: ${{ runner.os }}-vite-${{ hashFiles('bun.lock') }}-${{ hashFiles('src/**/*.[jt]s', 'src/**/*.[jt]sx') }}
+          restore-keys: |
+            ${{ runner.os }}-vite-${{ hashFiles('bun.lock') }}-
+
       - name: Build
         run: bun run build
