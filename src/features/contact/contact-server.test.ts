@@ -13,6 +13,14 @@ const ENV_KEYS = [
 const originalEnv: Record<string, string | undefined> = {};
 let originalFetch: typeof fetch;
 
+const isResendHost = (rawUrl: string): boolean => {
+  try {
+    return new URL(rawUrl).hostname === "api.resend.com";
+  } catch {
+    return false;
+  }
+};
+
 beforeEach(() => {
   for (const key of ENV_KEYS) originalEnv[key] = process.env[key];
   process.env.ADMIN_INTAKE_URL = "https://admin.nova-it.se";
@@ -188,7 +196,7 @@ test("does not mention the kundportal when no new account was created", async ()
     if (url.endsWith("/api/public/intag") && init?.method === "PATCH") {
       return jsonResponse({ ok: true });
     }
-    if (url.includes("api.resend.com")) {
+    if (isResendHost(url)) {
       return jsonResponse({ id: "email-1" });
     }
     throw new Error(`Unexpected fetch to ${url}`);
@@ -196,7 +204,7 @@ test("does not mention the kundportal when no new account was created", async ()
 
   await skickaKontaktforfragan(validPayload);
 
-  const resendCalls = calls.filter((call) => call.url.includes("api.resend.com"));
+  const resendCalls = calls.filter((call) => isResendHost(call.url));
   const customerEmailCall = resendCalls.find((call) =>
     String(call.init?.body).includes("Din förfrågan är mottagen"),
   );
