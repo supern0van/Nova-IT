@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useRef, useState, useReducer } from "react";
 import { classifySupportQuery } from "./support-engine";
-import { hamtaRelevantaDokument, type KnowledgeDoc } from "./support-knowledge";
+import { hamtaRelevantaDokument } from "./support-knowledge";
 import { chattaMedAi } from "./support-chat-server";
 import { MAX_TURNS, type ChatMessage } from "./support-chat";
 import type { SupportServiceSlug, SupportUrgency } from "./support-types";
+import type { CitedDoc } from "./chat/CitationChip";
 
 /**
  * Klientsidans chatt-state. Historiken hålls i React-state och skickas i
@@ -17,13 +18,13 @@ export type DisplayMessage = {
   id: string;
   role: "user" | "assistant";
   content: string;
-  citedDocs?: KnowledgeDoc[];
+  citedDocs?: CitedDoc[];
   quickReplies?: string[];
 };
 
 type PendingAssistant = {
   content: string;
-  citedDocs: KnowledgeDoc[];
+  citedDocs: CitedDoc[];
   quickReplies: string[];
   serviceSlug: SupportServiceSlug | null;
   urgency: SupportUrgency;
@@ -201,6 +202,13 @@ export function useSupportChat() {
     chattaMedAi({ data: { meddelanden: historik, sessionsTurer: turNummer } })
       .then((resultat) => {
         if (!resultat.ok) {
+          // Ett misslyckat anrop (AI nere, budget slut, nätverksfel) gav
+          // kunden inget svar - då ska det inte heller kosta en tur.
+          // Räknaren ökades optimistiskt innan anropet (ovan) för att skicka
+          // rätt `sessionsTurer` till servern; utan denna återställning kunde
+          // en kund tömma hela MAX_TURNS på enbart misslyckade försök och
+          // aldrig hinna få ett enda faktiskt svar.
+          turerRef.current -= 1;
           if (resultat.anledning === "for-manga-turer") {
             dispatch({ type: "status", value: "session-limit" });
           } else if (historik.length === 1) {
@@ -214,10 +222,17 @@ export function useSupportChat() {
           return;
         }
 
-        const docIds = new Set(resultat.svar.citedDocIds);
-        const citedDocs = docIds.size
-          ? hamtaRelevantaDokument(query).filter((_, i) => docIds.has(i + 1))
-          : [];
+        // Numret som skickas till CitationChips MÅSTE vara samma nummer
+        // modellen citerade i sin svarstext ([n], se byggChattSystemPrompt),
+        // inte ett nytt index räknat om från 1 på den filtrerade listan -
+        // annars matchar chippen inte texten (regression, se CitationChip.tsx).
+        const alla = hamtaRelevantaDokument(query);
+        const citedDocs: CitedDoc[] = resultat.svar.citedDocIds
+          .map((nummer) => {
+            const doc = alla[nummer - 1];
+            return doc ? { doc, nummer } : null;
+          })
+          .filter((entry): entry is CitedDoc => entry !== null);
 
         setPending({
           content: resultat.svar.reply,

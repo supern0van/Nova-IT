@@ -1,7 +1,6 @@
 import ReactMarkdown from "react-markdown";
 import { cn } from "@/lib/utils";
-import type { KnowledgeDoc } from "../support-knowledge";
-import { CitationChips } from "./CitationChip";
+import { CitationChips, type CitedDoc } from "./CitationChip";
 
 /**
  * Ett meddelande i transcriptet. Bevarar bubbel-konventionen från den gamla
@@ -23,7 +22,7 @@ export function MessageBubble({
   role: "assistant" | "user";
   content: string;
   compact: boolean;
-  citedDocs?: KnowledgeDoc[];
+  citedDocs?: CitedDoc[];
   isStreaming?: boolean;
 }) {
   const isAssistant = role === "assistant";

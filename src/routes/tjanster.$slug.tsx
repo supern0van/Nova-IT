@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { ArrowRight, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Container, PageHeader } from "@/components/design-system";
@@ -10,6 +10,14 @@ const siteUrl = "https://nova-it.se";
 const socialImageUrl = `${siteUrl}/nova-it-workspace.png`;
 
 export const Route = createFileRoute("/tjanster/$slug")({
+  // En ogiltig slug ska ge ett RIKTIGT 404-svar - notFound() gör att
+  // routern renderar rotens notFoundComponent (__root.tsx) i stället för
+  // att den här komponenten renderar sin egen "hittades inte"-text med en
+  // vanlig 200-status (ett soft-404, dåligt för SEO och för allt som
+  // faktiskt bryr sig om statuskoden, t.ex. en länkkontroll).
+  loader: ({ params }) => {
+    if (!getServiceBySlug(params.slug)) throw notFound();
+  },
   head: ({ params }) => {
     const service = getServiceBySlug(params.slug);
     const title = service ? `${service.title} – Nova IT` : "Tjänst – Nova IT";

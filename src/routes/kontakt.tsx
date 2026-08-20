@@ -147,6 +147,7 @@ function ContactPage() {
   const [errors, setErrors] = useState<FormErrors>({});
   const [assistantHandoffApplied, setAssistantHandoffApplied] = useState(false);
   const [assistantContext, setAssistantContext] = useState<AssistantContext | null>(null);
+  const [handoffMissing, setHandoffMissing] = useState(false);
   const [values, setValues] = useState<FormValues>(() => createInitialValues(selectedServiceTitle));
   // Stabil per formulärsession - samma nyckel skickas med vid varje
   // sändningsförsök av SAMMA inskickning (dubbelklick, nätverksretry), så
@@ -195,11 +196,19 @@ function ContactPage() {
   useEffect(() => {
     if (!("form" in search) || search.form !== "request") return;
     const handoff = consumeSupportHandoff();
-    if (!handoff) return;
+    if (!handoff) {
+      // Guiden bad om att skicka med en konversation (?form=request), men
+      // sessionStorage-underlaget saknas eller kunde inte tolkas (blockerad
+      // lagring, för kort kontaktorsak - se parseSupportHandoff). Utan den
+      // här flaggan landar kunden på en helt tom formulärsida utan minsta
+      // förklaring till varför deras chatt inte följde med.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setHandoffMissing(true);
+      return;
+    }
     const handoffService = getServiceBySlug(handoff.serviceSlug);
 
     // The handoff is consumed from browser sessionStorage after hydration.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setValues((current) => ({
       ...current,
       message: current.message || handoff.customerDescription,
@@ -431,8 +440,14 @@ function ContactPage() {
             {!sent && (
               <div className="flex flex-col items-center gap-3 sm:items-start">
                 <TurnstileWidget action="contact" onToken={setTurnstileToken} />
-                <Button onClick={sendContactRequest} disabled={isSending}>
-                  {isSending ? "Skickar..." : "Skicka ärendet"}
+                {/* Widgeten monteras här, på samma steg som knappen, och
+                    hinner inte alltid utfärda en token innan en snabb
+                    användare hinner klicka - utan denna spärr skickades
+                    turnstileToken: null med, vilket servern (som kräver
+                    Turnstile i produktion) avvisar med ett generiskt fel som
+                    inte förklarar varför. Väntar hellre en halv sekund. */}
+                <Button onClick={sendContactRequest} disabled={isSending || !turnstileToken}>
+                  {isSending ? "Skickar..." : !turnstileToken ? "Verifierar..." : "Skicka ärendet"}
                 </Button>
               </div>
             )}
@@ -705,6 +720,15 @@ function ContactPage() {
                     </div>
 
                     <div className="mt-4">
+                      {handoffMissing && (
+                        <div
+                          role="status"
+                          className="mb-4 rounded-md border border-amber-300/20 bg-amber-300/[0.045] px-4 py-3 text-sm leading-6 text-amber-100"
+                        >
+                          Vi kunde inte hämta konversationen från guiden automatiskt. Beskriv gärna
+                          kort igen vad som händer nedan.
+                        </div>
+                      )}
                       {assistantContext && (
                         <div
                           className="mb-4 rounded-md border border-sky-300/20 bg-sky-300/[0.045] px-4 py-3"
