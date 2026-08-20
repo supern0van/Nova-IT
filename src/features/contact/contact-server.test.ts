@@ -298,7 +298,13 @@ test("rejects a submission that arrives implausibly fast after the form rendered
 test("skips Turnstile verification locally when it is not configured", async () => {
   globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input);
-    if (url.includes("challenges.cloudflare.com")) {
+    let hostname = "";
+    try {
+      hostname = new URL(url).hostname;
+    } catch {
+      hostname = "";
+    }
+    if (hostname === "challenges.cloudflare.com") {
       throw new Error("Turnstile should not be called when unconfigured");
     }
     if (url.endsWith("/api/public/intag") && init?.method === "POST") {
