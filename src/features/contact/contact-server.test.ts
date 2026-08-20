@@ -347,11 +347,11 @@ test("rejects the submission when Cloudflare reports the Turnstile token as inva
   process.env.TURNSTILE_SECRET_KEY = "test-turnstile-secret";
   let intakeCalled = false;
   globalThis.fetch = (async (input: RequestInfo | URL) => {
-    const url = String(input);
-    if (url.includes("challenges.cloudflare.com")) {
+    const requestUrl = input instanceof URL ? input : new URL(String(input));
+    if (requestUrl.hostname === "challenges.cloudflare.com" && requestUrl.protocol === "https:") {
       return jsonResponse({ success: false, "error-codes": ["invalid-input-response"] });
     }
-    if (url.endsWith("/api/public/intag")) intakeCalled = true;
+    if (requestUrl.pathname.endsWith("/api/public/intag")) intakeCalled = true;
     throw new Error("should not reach the intake with an invalid token");
   }) as unknown as typeof fetch;
 
