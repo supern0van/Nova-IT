@@ -106,7 +106,7 @@ jobs:
       # tillbaka till senaste cachen för samma lockfile-generation även om
       # källkods-hashen inte matchar exakt.
       - name: Cache Vite/Nitro build
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             node_modules/.vite
