@@ -72,8 +72,12 @@ test("creates the ticket via the admin intake, then sends confirmation and inter
     if (url.endsWith("/api/public/intag") && init?.method === "PATCH") {
       return jsonResponse({ ok: true });
     }
-    if (url.includes("api.resend.com")) {
-      return jsonResponse({ id: "email-1" });
+    try {
+      if (new URL(url).hostname === "api.resend.com") {
+        return jsonResponse({ id: "email-1" });
+      }
+    } catch {
+      // Ignore parse errors here; unexpected URLs are handled below.
     }
     throw new Error(`Unexpected fetch to ${url}`);
   }) as unknown as typeof fetch;
