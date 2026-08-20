@@ -8,9 +8,6 @@ updates:
       time: "07:00"
       timezone: "Europe/Stockholm"
     open-pull-requests-limit: 5
-    labels:
-      - "dependencies"
-      - "security"
     commit-message:
       prefix: "deps"
       include: "scope"
@@ -23,9 +20,6 @@ updates:
       time: "07:30"
       timezone: "Europe/Stockholm"
     open-pull-requests-limit: 5
-    labels:
-      - "dependencies"
-      - "security"
     commit-message:
       prefix: "deps"
       include: "scope"
