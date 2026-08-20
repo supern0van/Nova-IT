@@ -154,7 +154,13 @@ test("forwards the kundportal activation link (never a password) into the custom
     if (url.endsWith("/api/public/intag") && init?.method === "PATCH") {
       return jsonResponse({ ok: true });
     }
-    if (url.includes("api.resend.com")) {
+    let isResendHost = false;
+    try {
+      isResendHost = new URL(url).hostname === "api.resend.com";
+    } catch {
+      isResendHost = false;
+    }
+    if (isResendHost) {
       return jsonResponse({ id: "email-1" });
     }
     throw new Error(`Unexpected fetch to ${url}`);
@@ -162,7 +168,13 @@ test("forwards the kundportal activation link (never a password) into the custom
 
   await skickaKontaktforfragan(validPayload);
 
-  const resendCalls = calls.filter((call) => call.url.includes("api.resend.com"));
+  const resendCalls = calls.filter((call) => {
+    try {
+      return new URL(call.url).hostname === "api.resend.com";
+    } catch {
+      return false;
+    }
+  });
   const customerEmailCall = resendCalls.find((call) =>
     String(call.init?.body).includes("Din förfrågan är mottagen"),
   );
