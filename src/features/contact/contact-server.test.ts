@@ -162,7 +162,9 @@ test("forwards the kundportal activation link (never a password) into the custom
 
   await skickaKontaktforfragan(validPayload);
 
-  const resendCalls = calls.filter((call) => call.url.includes("api.resend.com"));
+  const resendCalls = calls.filter(
+    (call) => new URL(call.url).hostname === "api.resend.com",
+  );
   const customerEmailCall = resendCalls.find((call) =>
     String(call.init?.body).includes("Din förfrågan är mottagen"),
   );
