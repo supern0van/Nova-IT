@@ -117,3 +117,21 @@ jobs:
 
       - name: Build
         run: bun run build
+
+  verify:
+    name: Verify frontend
+    if: ${{ always() }}
+    needs:
+      - test
+      - lint
+      - typecheck
+      - build
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Verify all frontend checks passed
+        run: |
+          test "${{ needs.test.result }}" = "success"
+          test "${{ needs.lint.result }}" = "success"
+          test "${{ needs.typecheck.result }}" = "success"
+          test "${{ needs.build.result }}" = "success"
