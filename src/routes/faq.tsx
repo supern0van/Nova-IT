@@ -75,8 +75,12 @@ function FaqPage() {
           <div>
             <h2 className="sr-only">Frågor och svar</h2>
             <Accordion type="single" collapsible className="border-t border-white/10">
-              {faqs.map((faq) => (
-                <AccordionItem key={faq.q} value={faq.q}>
+              {faqs.map((faq, index) => (
+                // id matchar sourceUrl:en supportchattens källhänvisningar
+                // bygger (`/faq#fraga-${index + 1}`, se support-knowledge.ts)
+                // - utan den hade ankarlänken bara laddat sidan utan att
+                // bläddra fram till rätt fråga.
+                <AccordionItem key={faq.q} id={`fraga-${index + 1}`} value={faq.q}>
                   <AccordionTrigger className="text-left text-base">{faq.q}</AccordionTrigger>
                   <AccordionContent className="leading-7 text-slate-300">{faq.a}</AccordionContent>
                 </AccordionItem>

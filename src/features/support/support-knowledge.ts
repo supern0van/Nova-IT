@@ -45,7 +45,14 @@ function buildCorpus(): KnowledgeDoc[] {
     kind: "flow",
     title: flow.title,
     text: [flow.intro, ...flow.firstSteps, flow.escalation].join(" "),
-    sourceUrl: `/assistent#${flow.id}`,
+    // `/assistent` (chatten själv) har inga per-flödes-ankare att peka på -
+    // sidan renderar bara chattwidgeten, inget innehåll med `id={flow.id}`.
+    // Den gamla strukturerade guidens per-steg-vyer finns inte kvar sedan
+    // omdesignen till fri chatt, så `/assistent#${flow.id}` pekade på ett
+    // fragment som aldrig funnits. Flödets `serviceSlug` ger en riktig,
+    // fungerande sida i stället - mer relevant för källhänvisningen än
+    // chattsidan självt hade varit ändå.
+    sourceUrl: `/tjanster/${flow.serviceSlug}`,
   }));
 
   const serviceDocs: KnowledgeDoc[] = services.map((service) => ({
