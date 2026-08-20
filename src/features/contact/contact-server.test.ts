@@ -99,6 +99,7 @@ test("skickar internavisering till support@nova-it.se, kundbekräftelsens svarsa
   const calls: { url: string; init?: RequestInit }[] = [];
   globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input);
+    const parsedUrl = new URL(url);
     calls.push({ url, init });
     if (url.endsWith("/api/public/intag") && init?.method === "POST") {
       return jsonResponse({
@@ -111,7 +112,7 @@ test("skickar internavisering till support@nova-it.se, kundbekräftelsens svarsa
     if (url.endsWith("/api/public/intag") && init?.method === "PATCH") {
       return jsonResponse({ ok: true });
     }
-    if (url.includes("api.resend.com")) {
+    if (parsedUrl.hostname === "api.resend.com") {
       return jsonResponse({ id: "email-1" });
     }
     throw new Error(`Unexpected fetch to ${url}`);
