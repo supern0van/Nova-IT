@@ -218,6 +218,12 @@ test("never shows a ticket number when the intake itself rejects the request", a
 test("still returns the ticket number when only the confirmation email fails", async () => {
   globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input);
+    let hostname: string | null = null;
+    try {
+      hostname = new URL(url).hostname;
+    } catch {
+      hostname = null;
+    }
     if (url.endsWith("/api/public/intag") && init?.method === "POST") {
       return jsonResponse({
         accepted: true,
@@ -229,7 +235,7 @@ test("still returns the ticket number when only the confirmation email fails", a
     if (url.endsWith("/api/public/intag") && init?.method === "PATCH") {
       return jsonResponse({ ok: true });
     }
-    if (url.includes("api.resend.com")) {
+    if (hostname === "api.resend.com") {
       return jsonResponse({ message: "invalid recipient" }, false, 422);
     }
     throw new Error(`Unexpected fetch to ${url}`);
