@@ -348,7 +348,8 @@ test("rejects the submission when Cloudflare reports the Turnstile token as inva
   let intakeCalled = false;
   globalThis.fetch = (async (input: RequestInfo | URL) => {
     const url = String(input);
-    if (url.includes("challenges.cloudflare.com")) {
+    const hostname = new URL(url).hostname;
+    if (hostname === "challenges.cloudflare.com") {
       return jsonResponse({ success: false, "error-codes": ["invalid-input-response"] });
     }
     if (url.endsWith("/api/public/intag")) intakeCalled = true;
@@ -365,7 +366,8 @@ test("proceeds when Turnstile is configured and Cloudflare confirms the token is
   process.env.TURNSTILE_SECRET_KEY = "test-turnstile-secret";
   globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input);
-    if (url.includes("challenges.cloudflare.com")) {
+    const hostname = new URL(url).hostname;
+    if (hostname === "challenges.cloudflare.com") {
       return jsonResponse({ success: true, action: "contact", hostname: "nova-it.se" });
     }
     if (url.endsWith("/api/public/intag") && init?.method === "POST") {
@@ -378,7 +380,7 @@ test("proceeds when Turnstile is configured and Cloudflare confirms the token is
     }
     if (url.endsWith("/api/public/intag") && init?.method === "PATCH")
       return jsonResponse({ ok: true });
-    if (url.includes("api.resend.com")) return jsonResponse({ id: "email-1" });
+    if (hostname === "api.resend.com") return jsonResponse({ id: "email-1" });
     throw new Error(`Unexpected fetch to ${url}`);
   }) as unknown as typeof fetch;
 
