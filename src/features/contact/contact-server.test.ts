@@ -13,6 +13,15 @@ const ENV_KEYS = [
 const originalEnv: Record<string, string | undefined> = {};
 let originalFetch: typeof fetch;
 
+function hasExpectedHttpsHost(rawUrl: string, expectedHostname: string): boolean {
+  try {
+    const parsedUrl = new URL(rawUrl);
+    return parsedUrl.protocol === "https:" && parsedUrl.hostname === expectedHostname;
+  } catch {
+    return false;
+  }
+}
+
 beforeEach(() => {
   for (const key of ENV_KEYS) originalEnv[key] = process.env[key];
   process.env.ADMIN_INTAKE_URL = "https://admin.nova-it.se";
@@ -72,7 +81,7 @@ test("creates the ticket via the admin intake, then sends confirmation and inter
     if (url.endsWith("/api/public/intag") && init?.method === "PATCH") {
       return jsonResponse({ ok: true });
     }
-    if (url.includes("api.resend.com")) {
+    if (hasExpectedHttpsHost(url, "api.resend.com")) {
       return jsonResponse({ id: "email-1" });
     }
     throw new Error(`Unexpected fetch to ${url}`);
@@ -84,7 +93,7 @@ test("creates the ticket via the admin intake, then sends confirmation and inter
   expect(result.arendenummer).toBe("NIT-2601");
   expect(result.confirmationSent).toBe(true);
 
-  const resendCalls = calls.filter((call) => call.url.includes("api.resend.com"));
+  const resendCalls = calls.filter((call) => hasExpectedHttpsHost(call.url, "api.resend.com"));
   expect(resendCalls.length).toBe(2); // internal notice + customer confirmation
 
   const patchCall = calls.find((call) => call.init?.method === "PATCH");
@@ -111,7 +120,7 @@ test("skickar internavisering till support@nova-it.se, kundbekräftelsens svarsa
     if (url.endsWith("/api/public/intag") && init?.method === "PATCH") {
       return jsonResponse({ ok: true });
     }
-    if (url.includes("api.resend.com")) {
+    if (hasExpectedHttpsHost(url, "api.resend.com")) {
       return jsonResponse({ id: "email-1" });
     }
     throw new Error(`Unexpected fetch to ${url}`);
@@ -119,7 +128,7 @@ test("skickar internavisering till support@nova-it.se, kundbekräftelsens svarsa
 
   await skickaKontaktforfragan(validPayload);
 
-  const resendCalls = calls.filter((call) => call.url.includes("api.resend.com"));
+  const resendCalls = calls.filter((call) => hasExpectedHttpsHost(call.url, "api.resend.com"));
   const internAvisering = resendCalls.find(
     (call) => String(call.init?.body).includes("Din förfrågan är mottagen") === false,
   );
@@ -154,7 +163,7 @@ test("forwards the kundportal activation link (never a password) into the custom
     if (url.endsWith("/api/public/intag") && init?.method === "PATCH") {
       return jsonResponse({ ok: true });
     }
-    if (url.includes("api.resend.com")) {
+    if (hasExpectedHttpsHost(url, "api.resend.com")) {
       return jsonResponse({ id: "email-1" });
     }
     throw new Error(`Unexpected fetch to ${url}`);
@@ -162,7 +171,7 @@ test("forwards the kundportal activation link (never a password) into the custom
 
   await skickaKontaktforfragan(validPayload);
 
-  const resendCalls = calls.filter((call) => call.url.includes("api.resend.com"));
+  const resendCalls = calls.filter((call) => hasExpectedHttpsHost(call.url, "api.resend.com"));
   const customerEmailCall = resendCalls.find((call) =>
     String(call.init?.body).includes("Din förfrågan är mottagen"),
   );
@@ -188,7 +197,7 @@ test("does not mention the kundportal when no new account was created", async ()
     if (url.endsWith("/api/public/intag") && init?.method === "PATCH") {
       return jsonResponse({ ok: true });
     }
-    if (url.includes("api.resend.com")) {
+    if (hasExpectedHttpsHost(url, "api.resend.com")) {
       return jsonResponse({ id: "email-1" });
     }
     throw new Error(`Unexpected fetch to ${url}`);
@@ -196,7 +205,7 @@ test("does not mention the kundportal when no new account was created", async ()
 
   await skickaKontaktforfragan(validPayload);
 
-  const resendCalls = calls.filter((call) => call.url.includes("api.resend.com"));
+  const resendCalls = calls.filter((call) => hasExpectedHttpsHost(call.url, "api.resend.com"));
   const customerEmailCall = resendCalls.find((call) =>
     String(call.init?.body).includes("Din förfrågan är mottagen"),
   );
@@ -229,7 +238,7 @@ test("still returns the ticket number when only the confirmation email fails", a
     if (url.endsWith("/api/public/intag") && init?.method === "PATCH") {
       return jsonResponse({ ok: true });
     }
-    if (url.includes("api.resend.com")) {
+    if (hasExpectedHttpsHost(url, "api.resend.com")) {
       return jsonResponse({ message: "invalid recipient" }, false, 422);
     }
     throw new Error(`Unexpected fetch to ${url}`);
@@ -298,7 +307,7 @@ test("rejects a submission that arrives implausibly fast after the form rendered
 test("skips Turnstile verification locally when it is not configured", async () => {
   globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input);
-    if (url.includes("challenges.cloudflare.com")) {
+    if (hasExpectedHttpsHost(url, "challenges.cloudflare.com")) {
       throw new Error("Turnstile should not be called when unconfigured");
     }
     if (url.endsWith("/api/public/intag") && init?.method === "POST") {
@@ -311,7 +320,7 @@ test("skips Turnstile verification locally when it is not configured", async () 
     }
     if (url.endsWith("/api/public/intag") && init?.method === "PATCH")
       return jsonResponse({ ok: true });
-    if (url.includes("api.resend.com")) return jsonResponse({ id: "email-1" });
+    if (hasExpectedHttpsHost(url, "api.resend.com")) return jsonResponse({ id: "email-1" });
     throw new Error(`Unexpected fetch to ${url}`);
   }) as unknown as typeof fetch;
 
@@ -348,7 +357,7 @@ test("rejects the submission when Cloudflare reports the Turnstile token as inva
   let intakeCalled = false;
   globalThis.fetch = (async (input: RequestInfo | URL) => {
     const url = String(input);
-    if (url.includes("challenges.cloudflare.com")) {
+    if (hasExpectedHttpsHost(url, "challenges.cloudflare.com")) {
       return jsonResponse({ success: false, "error-codes": ["invalid-input-response"] });
     }
     if (url.endsWith("/api/public/intag")) intakeCalled = true;
@@ -365,7 +374,7 @@ test("proceeds when Turnstile is configured and Cloudflare confirms the token is
   process.env.TURNSTILE_SECRET_KEY = "test-turnstile-secret";
   globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input);
-    if (url.includes("challenges.cloudflare.com")) {
+    if (hasExpectedHttpsHost(url, "challenges.cloudflare.com")) {
       return jsonResponse({ success: true, action: "contact", hostname: "nova-it.se" });
     }
     if (url.endsWith("/api/public/intag") && init?.method === "POST") {
@@ -378,7 +387,7 @@ test("proceeds when Turnstile is configured and Cloudflare confirms the token is
     }
     if (url.endsWith("/api/public/intag") && init?.method === "PATCH")
       return jsonResponse({ ok: true });
-    if (url.includes("api.resend.com")) return jsonResponse({ id: "email-1" });
+    if (hasExpectedHttpsHost(url, "api.resend.com")) return jsonResponse({ id: "email-1" });
     throw new Error(`Unexpected fetch to ${url}`);
   }) as unknown as typeof fetch;
 
