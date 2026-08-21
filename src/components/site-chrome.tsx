@@ -7,6 +7,7 @@ import { contactChannels, services } from "@/lib/nova-data";
 import { LegalDialogTrigger } from "@/components/legal-dialog";
 import { CookiePreferencesButton } from "@/components/cookie-consent";
 import { PortalMeny } from "@/components/portal-meny";
+import { SUPPORT_ASSISTANT_IS_ONLINE } from "@/features/support/support-availability";
 
 const nav = [
   { to: "/", label: "Hem" },
@@ -206,7 +207,9 @@ export function SiteFooter() {
         >
           <FooterLink to="/om-oss">Om Nova IT</FooterLink>
           <FooterLink to="/faq">Vanliga frågor</FooterLink>
-          <FooterLink to="/assistent">Förbered ditt ärende</FooterLink>
+          {SUPPORT_ASSISTANT_IS_ONLINE && (
+            <FooterLink to="/assistent">Förbered ditt ärende</FooterLink>
+          )}
         </FooterColumn>
 
         <FooterColumn title="Kontaktuppgifter" className="py-7 lg:pl-10">
