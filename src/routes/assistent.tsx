@@ -46,7 +46,7 @@ function AssistantPage() {
           <Container className="py-10 sm:py-14">
             <Link
               to="/kontakt"
-              search={{ service: undefined }}
+              search={{ form: "request", handoff: undefined, service: undefined }}
               className="inline-flex items-center justify-center rounded-md bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
             >
               Gå till kontaktformuläret
