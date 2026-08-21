@@ -27,7 +27,7 @@ den vanliga kontaktvägen påverkas.
 
 Besökare ser inte längre boten på webbplatsen. Den som öppnar en gammal direktlänk
 till ärendeguiden får ett tydligt offline-besked och kan gå vidare till
-kontaktformuläret.
+kontaktformuläret utan att någon guidekonversation försöker läsas in.
 
 ## Dokumentationspåverkan
 
