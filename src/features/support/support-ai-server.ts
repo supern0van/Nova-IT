@@ -9,6 +9,7 @@ import {
   tolkaAiSvar,
 } from "./support-ai";
 import type { AiForslag } from "./support-ai";
+import { SUPPORT_ASSISTANT_IS_ONLINE } from "./support-availability";
 
 /**
  * AI-stödd ärendeförståelse via Cloudflare Workers AI.
@@ -287,4 +288,6 @@ export async function klassificeraMedAiInternt(fraga: string): Promise<AiKlassif
 
 export const klassificeraMedAi = createServerFn({ method: "POST" })
   .validator(fragaSchema)
-  .handler(({ data }) => klassificeraMedAiInternt(data.fraga));
+  .handler(({ data }) =>
+    SUPPORT_ASSISTANT_IS_ONLINE ? klassificeraMedAiInternt(data.fraga) : null,
+  );

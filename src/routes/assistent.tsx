@@ -1,11 +1,15 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { Link, createFileRoute } from "@tanstack/react-router";
 import { Container, PageHeader } from "@/components/design-system";
 import { SupportChat } from "@/features/support/SupportChat";
+import { SUPPORT_ASSISTANT_IS_ONLINE } from "@/features/support/support-availability";
 
 const assistentUrl = "https://nova-it.se/assistent";
-const assistentTitle = "Förbered ditt IT-ärende – Nova IT";
-const assistentDescription =
-  "Beskriv vad som krånglar och få hjälp att samla rätt underlag innan du kontaktar Nova IT.";
+const assistentTitle = SUPPORT_ASSISTANT_IS_ONLINE
+  ? "Förbered ditt IT-ärende – Nova IT"
+  : "Ärendeguiden är offline – Nova IT";
+const assistentDescription = SUPPORT_ASSISTANT_IS_ONLINE
+  ? "Beskriv vad som krånglar och få hjälp att samla rätt underlag innan du kontaktar Nova IT."
+  : "Nova IT:s automatiska ärendeguide är tillfälligt avstängd. Kontakta oss via kontaktformuläret.";
 const socialImageUrl = "https://nova-it.se/nova-it-workspace.png";
 
 export const Route = createFileRoute("/assistent")({
@@ -20,6 +24,9 @@ export const Route = createFileRoute("/assistent")({
       { name: "twitter:title", content: assistentTitle },
       { name: "twitter:description", content: assistentDescription },
       { name: "twitter:image", content: socialImageUrl },
+      ...(!SUPPORT_ASSISTANT_IS_ONLINE
+        ? [{ name: "robots", content: "noindex, follow" }]
+        : []),
     ],
     links: [{ rel: "canonical", href: assistentUrl }],
   }),
@@ -27,6 +34,29 @@ export const Route = createFileRoute("/assistent")({
 });
 
 function AssistantPage() {
+  if (!SUPPORT_ASSISTANT_IS_ONLINE) {
+    return (
+      <>
+        <PageHeader
+          eyebrow="Ärendeguiden är offline"
+          title="Kontakta oss så hjälper vi dig personligen."
+          intro="Den automatiska ärendeguiden är tillfälligt avstängd. Du kan fortfarande skicka in ditt ärende via kontaktformuläret."
+        />
+        <section className="nova-section">
+          <Container className="py-10 sm:py-14">
+            <Link
+              to="/kontakt"
+              search={{ form: "request", service: undefined }}
+              className="inline-flex items-center justify-center rounded-md bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+            >
+              Gå till kontaktformuläret
+            </Link>
+          </Container>
+        </section>
+      </>
+    );
+  }
+
   return (
     <>
       <PageHeader

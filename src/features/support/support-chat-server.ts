@@ -14,6 +14,7 @@ import {
   type ChatSvar,
 } from "./support-chat";
 import { resolveUrgency } from "./support-tools";
+import { SUPPORT_ASSISTANT_IS_ONLINE } from "./support-availability";
 
 /**
  * AI-motorn för den fria supportchatten via Cloudflare Workers AI.
@@ -244,4 +245,8 @@ export async function chattaInternt(
 
 export const chattaMedAi = createServerFn({ method: "POST" })
   .validator(chattSchema)
-  .handler(({ data }) => chattaInternt(data.meddelanden as ChatMessage[], data.sessionsTurer));
+  .handler(({ data }) =>
+    SUPPORT_ASSISTANT_IS_ONLINE
+      ? chattaInternt(data.meddelanden as ChatMessage[], data.sessionsTurer)
+      : { ok: false as const, anledning: "avstangt" as const },
+  );

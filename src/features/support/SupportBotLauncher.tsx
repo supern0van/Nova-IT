@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouterState } from "@tanstack/react-router";
 import { MessageCircleQuestion } from "lucide-react";
 import { SupportBot } from "./SupportBot";
+import { SUPPORT_ASSISTANT_IS_ONLINE } from "./support-availability";
 
 export function SupportBotLauncher() {
   const [open, setOpen] = useState(false);
@@ -21,7 +22,7 @@ export function SupportBotLauncher() {
     return () => observer.disconnect();
   }, []);
 
-  if (pathname === "/assistent") return null;
+  if (!SUPPORT_ASSISTANT_IS_ONLINE || pathname === "/assistent") return null;
 
   return (
     <>

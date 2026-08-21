@@ -13,6 +13,7 @@ import { type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { SiteHeader, SiteFooter } from "../components/site-chrome";
 import { SupportBotLauncher } from "../features/support/SupportBotLauncher";
+import { SUPPORT_ASSISTANT_IS_ONLINE } from "../features/support/support-availability";
 import { LegalDialogProvider } from "../components/legal-dialog";
 import { CookieConsent } from "../components/cookie-consent";
 import { JsonLd } from "../components/json-ld";
@@ -185,7 +186,7 @@ function RootComponent() {
             <Outlet />
           </main>
           <SiteFooter />
-          <SupportBotLauncher />
+          {SUPPORT_ASSISTANT_IS_ONLINE && <SupportBotLauncher />}
           <CookieConsent />
         </div>
       </LegalDialogProvider>
