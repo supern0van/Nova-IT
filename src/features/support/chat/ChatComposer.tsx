@@ -101,7 +101,11 @@ export function ChatComposer({
       {escalation && (
         <Link
           to="/kontakt"
-          search={{ form: "request", service: escalation.serviceSlug ?? undefined }}
+          search={{
+            form: "request",
+            handoff: "assistant",
+            service: escalation.serviceSlug ?? undefined,
+          }}
           onClick={escalation.onClick}
           className="mt-2 inline-flex items-center gap-1.5 text-xs font-medium text-slate-500 transition-colors hover:text-sky-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
         >

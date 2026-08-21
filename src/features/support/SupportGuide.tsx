@@ -552,7 +552,11 @@ export function SupportGuide({ compact = false, onNavigate }: SupportGuideProps)
                 <Button asChild>
                   <Link
                     to="/kontakt"
-                    search={{ form: "request", service: state.flow.serviceSlug }}
+                    search={{
+                      form: "request",
+                      handoff: "assistant",
+                      service: state.flow.serviceSlug,
+                    }}
                     onClick={prepareHandoff}
                   >
                     Fortsätt med underlaget <ArrowRight className="h-4 w-4" />

@@ -37,7 +37,11 @@ const socialImageUrl = "https://nova-it.se/nova-it-workspace.png";
 export const Route = createFileRoute("/kontakt")({
   validateSearch: (search: Record<string, unknown>) => {
     const service = typeof search.service === "string" ? search.service : undefined;
-    return search.form === "request" ? { service, form: "request" as const } : { service };
+    const handoff = search.handoff === "assistant" ? ("assistant" as const) : undefined;
+    if (search.form !== "request") return { service };
+    return handoff
+      ? { service, form: "request" as const, handoff }
+      : { service, form: "request" as const };
   },
   head: () => ({
     meta: [
@@ -194,10 +198,10 @@ function ContactPage() {
   }, []);
 
   useEffect(() => {
-    if (!("form" in search) || search.form !== "request") return;
+    if (search.handoff !== "assistant") return;
     const handoff = consumeSupportHandoff();
     if (!handoff) {
-      // Guiden bad om att skicka med en konversation (?form=request), men
+      // Guiden bad om att skicka med en konversation (?handoff=assistant), men
       // sessionStorage-underlaget saknas eller kunde inte tolkas (blockerad
       // lagring, för kort kontaktorsak - se parseSupportHandoff). Utan den
       // här flaggan landar kunden på en helt tom formulärsida utan minsta
@@ -224,7 +228,7 @@ function ContactPage() {
       transcript: handoff.transcript,
     });
     setAssistantHandoffApplied(true);
-  }, ["form" in search ? search.form : undefined]);
+  }, [search.handoff]);
 
   function update<K extends keyof FormValues>(key: K, value: FormValues[K]) {
     setValues((current) => ({ ...current, [key]: value }));

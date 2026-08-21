@@ -28,6 +28,8 @@ den vanliga kontaktvägen påverkas.
 Besökare ser inte längre boten på webbplatsen. Den som öppnar en gammal direktlänk
 till ärendeguiden får ett tydligt offline-besked och kan gå vidare till
 kontaktformuläret utan att någon guidekonversation försöker läsas in.
+Guideöverlämningar markeras separat från vanliga länkar till kontaktformuläret,
+så ett meddelande om saknad konversation visas bara efter ett riktigt guideflöde.
 
 ## Dokumentationspåverkan
 
