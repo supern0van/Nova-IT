@@ -25,7 +25,7 @@ Den här listan ska hålla fokus på hemsidan och undvika att projektet sprids �
 - [x] Förbättra SEO metadata och social preview-texter (Grind 6).
 - [x] Göra en tillgänglighetsrunda: fokus, kontrast, labels och tangentbord (Grind 6, WCAG AA-kontrastfixar).
 - [x] Göra en pre-deploy-runda med riktig mobil viewport (verifierat 375/768/1440px, Lighthouse körd mot skarp produktion).
-- [ ] Flytta e-postens DNS från tidigare Strato-poster till Loopias verifierade MX-, SPF-, DKIM- och DMARC-poster.
+- [x] E-post-DNS: inte en flytt utan redan rätt sedan start - Loopia äger brevlådorna, Cloudflare äger DNS/namnserver för `nova-it.se`. Bekräftat vid livegenomgång 2026-08-03, se `docs/email-dns-handoff.md`.
 
 ## Kundportal (pågående)
 
@@ -44,14 +44,29 @@ samt `docs/DECISIONS.md` (DEC-0006) för det som redan är beslutat.
       Nova IT-märkt e-postmall).
 - [x] Milstolpe 5: kod-/konfigurationsgranskning av auth, integritetstext och
       rate limiting (se `docs/m5-auth-privacy-review.md`). Externt
-      penetrationstest och juridisk slutgranskning är fortfarande inte gjorda.
+      penetrationstest och juridisk slutgranskning färdigkontrollerade
+      2026-vecka 34 (bekräftat av Stefan; källdokumenten ligger i
+      `supern0van/Nova-IT-Kundportal`, inte i detta repo).
 - [x] Milstolpe 6: `portal.nova-it.se`/`portal.novait.se` flyttade från
       `nova-it-admin` till `nova-it-kundportal`s egen Worker - live sedan
       2026-07-30.
 
-## Senare beslut som kräver ägarinput
+Kundportalen är därmed komplett genom M0-M6 - inget kvarstår som blockerar
+skarp drift.
 
-- Riktig kontaktmejl, telefon och geografiskt område.
-- Riktiga kontaktuppgifter, ort/område och eventuell juridisk bolagsinformation.
-- Om robotassistenten ska kopplas till backend, ärendesystem eller AI API.
-- Vilka kundcase, priser eller erbjudanden som faktiskt får visas.
+## Beslut från ägaren (2026-08-23)
+
+- **Kontaktuppgifter**: se `docs/project-status.md` för de fastställda
+  publika/interna kontaktuppgifterna (e-post, telefon, geografiskt område,
+  org.nr/firmaform). Hemadressen hålls avsiktligt utanför den publika sajten
+  (se NOVA-0055) och finns bara i interna/juridiska dokument.
+- **Robotassistenten**: ska kopplas till en riktig AI-backend - nuvarande
+  regelbaserade motor är för dålig på att förstå fritextfrågor ("kan du
+  förklara igen" händer för ofta). Ingen koppling till ett separat
+  ärendesystem planeras just nu; fokus är i stället en bättre admin-dashboard
+  där fler funktioner automatiseras. Enstaka regler kan behövas som skydd
+  runt AI-svaren, men det utreds inte förrän ombyggnaden av assistenten
+  påbörjas.
+- **Priser**: arbete med tjänstepriser påbörjas nu internt, men publiceras
+  inte på den publika sajten förrän bolaget går live. Se
+  `docs/priser-arbetsdokument.md`.

@@ -1,8 +1,16 @@
 # E-post och DNS-handoff
 
-Senast uppdaterad: 2026-07-22
+Senast uppdaterad: 2026-08-23
 
 Det har dokumentet samlar nulaget for e-post, DNS och kontaktformular. Loopia hanterar brevladarna, Cloudflare hanterar publik DNS och Workers, och Resend ar tankt som teknisk avsandare for webbformularet.
+
+**Status: klart, inte en pagaende migrering.** Upplagget har varit detsamma
+sedan start - Loopia ager och sköter sjalva brevladorna, Cloudflare ager
+publik DNS/namnserver-funktionen for `nova-it.se` framfor Loopia. Det ar
+alltsa inte en flytt *fran* Strato/Loopia *till* Cloudflare, utan tva
+leverantorer som alltid samarbetat: Loopia for e-post, Cloudflare for DNS och
+webb. Livekontrollen 2026-08-03 (se nedan) bekraftade att posterna star ratt.
+Fragan har dykt upp flera ganger som om den vore oppen - den ar det inte.
 
 ## Nulage
 

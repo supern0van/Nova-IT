@@ -1,6 +1,27 @@
 # Projektstatus
 
-Senast uppdaterad: 2026-07-22
+Senast uppdaterad: 2026-08-23
+
+## Kontaktuppgifter och bolagsinformation (internt referensdokument)
+
+Fastställt av Stefan 2026-08-23. Detta är den auktoritativa källan för
+Nova IT:s verkliga kontakt- och bolagsuppgifter - övriga dokument och
+publik text ska stämma överens med detta.
+
+| Uppgift | Värde | Visas publikt på nova-it.se? |
+| --- | --- | --- |
+| E-post | `kontakt@nova-it.se` | Ja |
+| Telefon | 076-225 20 39 | Nej, inte ännu - inte publicerad på live-sajten |
+| Adress | Persikogatan 12, Lgh 1302, Hässelby | Nej - medvetet borttagen (se NOVA-0055), finns bara i interna/juridiska dokument |
+| Geografiskt område | Hässelby (Stockholm) | Ja, som serviceområde/riktning - inte som besöksadress |
+| Bolagsform | Enskild firma | Ja (visas som "Nova IT (enskild firma)") |
+| Innehavare | Stefan Bergstrand | Internt/juridiskt underlag |
+| Org.nr | 19870528-0652 | Ja, som "Org.nr" utan förklarande etikett (sammanfaller med innehavarens personnummer eftersom firman är en enskild firma) |
+
+Telefonnumret är inte publicerat på live-sajten ännu - om/när det ska bli en
+publik kontaktväg är det ett separat beslut (se NOVA-0055-resonemanget om
+integritetsrisk för hemadressen; ett mobilnummer är ett mindre allvarligt
+men likartat övervägande).
 
 ## Publik drift
 
@@ -38,8 +59,13 @@ Senast uppdaterad: 2026-07-22
 
 ## Nästa fokuserade steg
 
-1. Aktivera och testa kontaktformulärets server-side e-postleverans enligt [kontaktformularets aktivering](contact-form-activation.md).
-2. Lägg till Turnstile innan formuläret exponeras brett för öppen trafik.
-3. Genomför en tillgänglighets- och mobilrunda före bredare lansering.
-4. Fortsätt förfina kundtext, tjänsteerbjudande och prioriteringar för varje sida.
-5. Håll portalprojektet avskilt tills den publika webbplatsens designsystem och releaseflöde är etablerade.
+1. Robotassistenten kopplas till en riktig AI-backend - nuvarande regelmotor
+   förstår fritext för dåligt. Ingen koppling till separat ärendesystem;
+   fokus är i stället en bättre admin-dashboard med mer automation.
+2. Påbörja prisunderlag för tjänsterna internt (se
+   `docs/priser-arbetsdokument.md`), publiceras på sajten först när bolaget
+   går live.
+3. Fortsätt förfina kundtext, tjänsteerbjudande och prioriteringar för varje sida.
+
+Se `docs/roadmap.md` för fullständig lista och avklarade punkter (Grind 6,
+e-post-DNS, kundportalens M0-M6 är alla klara).

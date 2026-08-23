@@ -2,6 +2,47 @@
 
 Beslutsloggen förklarar större vägval. Den kompletterar changelogen: changelogen visar vad som förändrades, medan denna fil visar varför en riktning valdes framför andra alternativ.
 
+## DEC-0007 – Robotassistent, prissättning och kontaktuppgifter (ägarbeslut)
+
+**Status:** accepterat
+**Datum:** 2026-08-23
+
+### Bakgrund
+
+Tre öppna punkter från `docs/roadmap.md`s "Senare beslut som kräver
+ägarinput" behövde avgöras innan vidare kodarbete: robotassistentens
+framtida arkitektur, om/när priser ska visas, och vilka kontaktuppgifter som
+faktiskt är korrekta.
+
+### Beslut
+
+- **Robotassistenten:** ska kopplas till en riktig AI-backend. Nuvarande
+  lokala, regelbaserade motor är otillräcklig - den ber alltför ofta
+  besökaren "förklara igen". Ingen koppling till ett separat ärendesystem
+  planeras just nu; i stället prioriteras en bättre admin-dashboard där fler
+  funktioner automatiseras. Enstaka regler/skyddsräcken runt AI-svaren kan
+  behövas men utreds först när ombyggnaden faktiskt påbörjas.
+- **Priser:** arbete med prissättning per tjänst påbörjas internt nu (se
+  `docs/priser-arbetsdokument.md`), men publiceras inte på den publika
+  sajten förrän bolaget går live.
+- **Kontaktuppgifter:** e-post (`kontakt@nova-it.se`), telefon
+  (076-225 20 39), geografiskt område (Hässelby), bolagsform (enskild
+  firma, Stefan Bergstrand, org.nr 19870528-0652) är fastställda och
+  dokumenterade i `docs/project-status.md`. Hemadressen förblir avsiktligt
+  utanför den publika sajten (se NOVA-0055) - endast interna/juridiska
+  dokument innehåller den. Telefonnumret är heller inte publicerat på
+  live-sajten ännu.
+
+### Konsekvens
+
+Assistentens ombyggnad och en admin-dashboard med automation blir framtida
+utvecklingsspår. Prissidan/-informationen ska inte kodas in på ett sätt som
+gör den synlig på `nova-it.se` förrän publiceringsvillkoren i
+`docs/priser-arbetsdokument.md` är uppfyllda. Framtida kontakt-relaterad
+kod/text ska stämma med tabellen i `docs/project-status.md`.
+
+---
+
 ## DEC-0006 – Kundportalens grundarkitektur (separat repo, Worker, databas)
 
 **Status:** accepterat
