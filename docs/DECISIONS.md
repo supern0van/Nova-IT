@@ -16,15 +16,23 @@ faktiskt är korrekta.
 
 ### Beslut
 
-- **Robotassistenten:** ska kopplas till en riktig AI-backend. Nuvarande
-  lokala, regelbaserade motor är otillräcklig - den ber alltför ofta
-  besökaren "förklara igen". Ingen koppling till ett separat ärendesystem
-  planeras just nu; i stället prioriteras en bättre admin-dashboard där fler
-  funktioner automatiseras. Enstaka regler/skyddsräcken runt AI-svaren kan
-  behövas men utreds först när ombyggnaden faktiskt påbörjas.
-- **Priser:** arbete med prissättning per tjänst påbörjas internt nu (se
-  `docs/priser-arbetsdokument.md`), men publiceras inte på den publika
-  sajten förrän bolaget går live.
+- **Robotassistenten:** är sedan tidigare (NOVA-0040/0043/0044/0047/0048)
+  kopplad till Cloudflare Workers AI - regelmotorn i `support-engine.ts` är
+  inte längre hela bilden, det finns redan ett LLM-klassificeringslager
+  ovanpå den (se `support-ai.ts`/`support-ai-server.ts`). Assistenten är
+  dock helt avstängd på live-sajten sedan 2026-08-21 (NOVA-0061,
+  `SUPPORT_ASSISTANT_IS_ONLINE = false`). Beslutet 2026-08-23 var att den
+  ska förbättras vidare - men eftersom AI-lagret redan finns behöver nästa
+  steg utredas mot dagens kod (t.ex. om AI-vägen faktiskt användes i
+  produktion innan avstängningen), inte byggas om från grunden. Ingen
+  koppling till ett separat ärendesystem planeras just nu; i stället
+  prioriteras en bättre admin-dashboard där fler funktioner automatiseras -
+  däribland att koppla in Nova IT:s Loopia-mejlkonton som en funktion i
+  adminportalen.
+- **Priser:** marknadsresearch genomförd 2026-08-23 (se
+  `docs/priser-arbetsdokument.md`, källor från svensk IT-supportmarknad).
+  Stefan sätter faktiska priser utifrån underlaget. Publiceras inte på den
+  publika sajten förrän bolaget går live.
 - **Kontaktuppgifter:** e-post (`kontakt@nova-it.se`), telefon
   (076-225 20 39), geografiskt område (Hässelby), bolagsform (enskild
   firma, Stefan Bergstrand, org.nr 19870528-0652) är fastställda och

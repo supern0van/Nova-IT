@@ -60,13 +60,20 @@ skarp drift.
   publika/interna kontaktuppgifterna (e-post, telefon, geografiskt område,
   org.nr/firmaform). Hemadressen hålls avsiktligt utanför den publika sajten
   (se NOVA-0055) och finns bara i interna/juridiska dokument.
-- **Robotassistenten**: ska kopplas till en riktig AI-backend - nuvarande
-  regelbaserade motor är för dålig på att förstå fritextfrågor ("kan du
-  förklara igen" händer för ofta). Ingen koppling till ett separat
-  ärendesystem planeras just nu; fokus är i stället en bättre admin-dashboard
-  där fler funktioner automatiseras. Enstaka regler kan behövas som skydd
-  runt AI-svaren, men det utreds inte förrän ombyggnaden av assistenten
-  påbörjas.
-- **Priser**: arbete med tjänstepriser påbörjas nu internt, men publiceras
-  inte på den publika sajten förrän bolaget går live. Se
-  `docs/priser-arbetsdokument.md`.
+- **Robotassistenten**: är redan kopplad till Cloudflare Workers AI sedan
+  NOVA-0040/0043/0044/0047/0048 (se `support-ai.ts`/`support-ai-server.ts`,
+  `docs/supportassistent-ai-drift.md`) - regelmotorn är inte hela historien,
+  det finns redan ett LLM-lager ovanpå den. Assistenten är dock för
+  närvarande **helt avstängd på live-sajten** sedan 2026-08-21
+  (`SUPPORT_ASSISTANT_IS_ONLINE = false`, NOVA-0061). Om det upplevda
+  problemet ("kan du förklara igen" för ofta) gällde en tidigare
+  liveversion behöver det omprövas mot dagens AI-lager innan mer kod
+  skrivs - se separat plan.
+- **Admin-dashboard-automation**: inkluderar även att koppla in Nova IT:s
+  Loopia-mejlkonton (`kontakt@`, `support@`, `info@`, `webmaster@`,
+  `no-reply@`) som en funktion i adminportalen, så att mejl kan läsas och
+  besvaras direkt därifrån i stället för i en separat mejlklient. Ingen
+  koppling till ett separat ärendesystem planeras just nu.
+- **Priser**: marknadsresearch klar, se `docs/priser-arbetsdokument.md`.
+  Stefan sätter faktiska priser utifrån underlaget. Publiceras inte på den
+  publika sajten förrän bolaget går live.
