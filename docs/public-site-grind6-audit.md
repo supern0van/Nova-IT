@@ -106,3 +106,27 @@ Alla övriga stickprov (`text-slate-300`, `text-slate-400`, länkar i huvudnavig
 
 `bun run ci` (test + lint + typecheck + build) grönt efter samtliga ändringar i detta pass.
 Lighthouse körd direkt mot produktion (`nova-it.se`) efter deploy, se tabellen ovan.
+
+## Uppföljning 2026-08-23: kodnära SEO redan klar, kvar är off-page
+
+Genomgång av `src/lib/structured-data.ts` bekräftar att `LocalBusiness`
+(`ProfessionalService`), `WebSite`, `Service` per tjänstesida, `FAQPage` och
+`BreadcrumbList` redan finns som strukturerad data, och Lighthouse SEO är
+100/100 (se tabellen ovan) - det finns inget uppenbart kodnära SEO-fynd kvar
+att åtgärda i det här repot just nu.
+
+11. **`/assistent` togs bort ur `public/sitemap.xml`** (NOVA-0062) - sidan har
+    haft `noindex, follow` sedan assistenten stängdes av (NOVA-0061), men
+    stod ändå kvar i sitemapen, en motsägande signal till sökmotorer. Läggs
+    tillbaka när assistenten är i drift igen.
+12. **Inga `sameAs`-länkar i `LocalBusiness`-schemat.** Det finns inga
+    sociala profiler eller en Google Business-profil kopplade i koden
+    (verifierat: ingen träff på facebook/instagram/linkedin/sameAs i `src/`).
+    Det här är inte en kodbugg utan en verksamhetsfråga: en **Google
+    Business-profil** (Google Maps-listning) är sannolikt den enskilt
+    starkaste kvarvarande lokala SEO-åtgärden för en Hässelby/Västerort-
+    baserad enskild firma - troligen större effekt än ytterligare
+    kodändringar, eftersom den ger synlighet i Google Maps och det lokala
+    sökresultat-paketet. Kräver en verksamhetsåtgärd (skapa/verifiera
+    profilen) snarare än kod; när den finns läggs adressen/profil-URL:en in
+    som `sameAs` i `buildLocalBusinessJsonLd()`.

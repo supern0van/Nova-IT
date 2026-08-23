@@ -73,7 +73,18 @@ skarp drift.
   Loopia-mejlkonton (`kontakt@`, `support@`, `info@`, `webmaster@`,
   `no-reply@`) som en funktion i adminportalen, så att mejl kan läsas och
   besvaras direkt därifrån i stället för i en separat mejlklient. Ingen
-  koppling till ett separat ärendesystem planeras just nu.
+  koppling till ett separat ärendesystem planeras just nu. Planeringsunderlag
+  (Loopia = IMAP/SMTP, ingen egen API, teknisk knäckfråga är IMAP-stöd i
+  Cloudflare Workers) i `docs/admin-mail-integration-planering.md`.
 - **Priser**: marknadsresearch klar, se `docs/priser-arbetsdokument.md`.
   Stefan sätter faktiska priser utifrån underlaget. Publiceras inte på den
   publika sajten förrän bolaget går live.
+- **Assistenten**: förblir avstängd tills vidare - inget kodarbete på den nu.
+  `/assistent` borttagen ur sitemap.xml för att matcha noindex-läget
+  (NOVA-0062).
+- **Fler tjänster**: kandidatlista för nya tjänster utöver de nuvarande sju
+  finns i `docs/tjanster-kandidater-arbetsdokument.md` (internt, ej publikt).
+- **SEO**: kodnära SEO bedöms klar (Lighthouse SEO 100/100, all planerad
+  strukturerad data på plats). Kvarvarande möjlighet är off-page: en Google
+  Business-profil, se `docs/public-site-grind6-audit.md` (uppföljning
+  2026-08-23).
