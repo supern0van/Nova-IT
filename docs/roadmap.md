@@ -60,15 +60,16 @@ skarp drift.
   publika/interna kontaktuppgifterna (e-post, telefon, geografiskt område,
   org.nr/firmaform). Hemadressen hålls avsiktligt utanför den publika sajten
   (se NOVA-0055) och finns bara i interna/juridiska dokument.
-- **Robotassistenten**: är redan kopplad till Cloudflare Workers AI sedan
+- **Robotassistenten - avstängningen är avklarad, inte ett öppet läge.**
+  Assistenten stängdes av avsiktligt 2026-08-21
+  (`SUPPORT_ASSISTANT_IS_ONLINE = false`, NOVA-0061) och ska förbli avstängd
+  tills vidare - det är ett medvetet, redan fattat och avslutat beslut, inte
+  något som väntar på vidare bearbetning eller kod. `/assistent` togs bort
+  ur `public/sitemap.xml` för att matcha noindex-läget (NOVA-0062). Den är
+  för övrigt redan kopplad till Cloudflare Workers AI sedan
   NOVA-0040/0043/0044/0047/0048 (se `support-ai.ts`/`support-ai-server.ts`,
-  `docs/supportassistent-ai-drift.md`) - regelmotorn är inte hela historien,
-  det finns redan ett LLM-lager ovanpå den. Assistenten är dock för
-  närvarande **helt avstängd på live-sajten** sedan 2026-08-21
-  (`SUPPORT_ASSISTANT_IS_ONLINE = false`, NOVA-0061). Om det upplevda
-  problemet ("kan du förklara igen" för ofta) gällde en tidigare
-  liveversion behöver det omprövas mot dagens AI-lager innan mer kod
-  skrivs - se separat plan.
+  `docs/supportassistent-ai-drift.md`) - regelmotorn är inte hela historien.
+  Om/när den ska tillbaka online är ett separat, framtida beslut.
 - **Admin-dashboard-automation**: inkluderar även att koppla in Nova IT:s
   Loopia-mejlkonton (`kontakt@`, `support@`, `info@`, `webmaster@`,
   `no-reply@`) som en funktion i adminportalen, så att mejl kan läsas och
@@ -79,9 +80,6 @@ skarp drift.
 - **Priser**: marknadsresearch klar, se `docs/priser-arbetsdokument.md`.
   Stefan sätter faktiska priser utifrån underlaget. Publiceras inte på den
   publika sajten förrän bolaget går live.
-- **Assistenten**: förblir avstängd tills vidare - inget kodarbete på den nu.
-  `/assistent` borttagen ur sitemap.xml för att matcha noindex-läget
-  (NOVA-0062).
 - **Fler tjänster**: kandidatlista för nya tjänster utöver de nuvarande sju
   finns i `docs/tjanster-kandidater-arbetsdokument.md` (internt, ej publikt).
 - **SEO**: kodnära SEO bedöms klar (Lighthouse SEO 100/100, all planerad

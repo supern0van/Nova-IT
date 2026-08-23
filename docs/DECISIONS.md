@@ -16,19 +16,18 @@ faktiskt är korrekta.
 
 ### Beslut
 
-- **Robotassistenten:** är sedan tidigare (NOVA-0040/0043/0044/0047/0048)
-  kopplad till Cloudflare Workers AI - regelmotorn i `support-engine.ts` är
-  inte längre hela bilden, det finns redan ett LLM-klassificeringslager
-  ovanpå den (se `support-ai.ts`/`support-ai-server.ts`). Assistenten är
-  dock helt avstängd på live-sajten sedan 2026-08-21 (NOVA-0061,
-  `SUPPORT_ASSISTANT_IS_ONLINE = false`). Beslutet 2026-08-23 var att den
-  ska förbättras vidare - men eftersom AI-lagret redan finns behöver nästa
-  steg utredas mot dagens kod (t.ex. om AI-vägen faktiskt användes i
-  produktion innan avstängningen), inte byggas om från grunden. Ingen
-  koppling till ett separat ärendesystem planeras just nu; i stället
-  prioriteras en bättre admin-dashboard där fler funktioner automatiseras -
-  däribland att koppla in Nova IT:s Loopia-mejlkonton som en funktion i
-  adminportalen.
+- **Robotassistenten:** avstängningen (NOVA-0061, 2026-08-21,
+  `SUPPORT_ASSISTANT_IS_ONLINE = false`) var ett medvetet, avslutat beslut -
+  bekräftat 2026-08-23 att den ska **förbli avstängd tills vidare**, inget
+  öppet läge och inget pågående kodarbete på den. Assistenten är för övrigt
+  sedan tidigare (NOVA-0040/0043/0044/0047/0048) kopplad till Cloudflare
+  Workers AI - regelmotorn i `support-engine.ts` är inte hela bilden, det
+  finns redan ett LLM-klassificeringslager ovanpå den (se
+  `support-ai.ts`/`support-ai-server.ts`). Om/när den ska tillbaka online är
+  ett separat, framtida beslut. Admin-dashboard-automationen prioriteras i
+  stället - däribland att koppla in Nova IT:s Loopia-mejlkonton som en
+  funktion i adminportalen. Ingen koppling till ett separat ärendesystem
+  planeras just nu.
 - **Priser:** marknadsresearch genomförd 2026-08-23 (se
   `docs/priser-arbetsdokument.md`, källor från svensk IT-supportmarknad).
   Stefan sätter faktiska priser utifrån underlaget. Publiceras inte på den
