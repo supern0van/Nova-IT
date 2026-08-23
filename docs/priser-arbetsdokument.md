@@ -112,6 +112,25 @@ Nova IT ska ta, men ett realistiskt intervall att positionera sig inom.
 | `microsoft-google` | Datorer och support | Timpris eller paket | - |
 | `datorservice` | Datorer och support | Fastpris (bedömning) + timpris (arbete) | - |
 
+### Prisförslag för de fyra prioriterade nya kandidaterna (utkast, ej beslutat)
+
+Se `docs/tjanster-kandidater-arbetsdokument.md` för rangordningen bakom
+dessa fyra. Siffrorna är Claudes förslag utifrån marknadsspannet ovan - inte
+ett beslut. Alla siffror är RUT-berättigade privatpriser (arbete i hemmet),
+angivna som pris **innan** avdrag följt av vad kunden faktiskt betalar
+**efter** 50 % RUT inom parentes.
+
+| Ny tjänst | Föreslagen modell | Prisförslag (innan / efter RUT) | Kommentar |
+| --- | --- | --- | --- |
+| Ominstallation | Fastpris | 900-1 200 kr (450-600 kr) | Förutsägbar arbetsinsats (2-3 h), passar fastpris bättre än timpris. |
+| Virussanering | Fastpris, akutpåslag möjligt | 800-1 100 kr (400-550 kr) | Håll under ominstallation - annars uppfattas det som "dyrare att inte formatera om". |
+| Dataräddning | Från-pris + bedömning | Från 600 kr för bedömning, sedan offert | Spännvidden i faktiskt arbete är för stor för ett enda pris - bedömning kostar litet, resten offereras. |
+| Uppdatering/underhåll (abonnemang) | Månadsabonnemang | 149-249 kr/månad | RUT gäller sannolikt inte ett löpande abonnemang på samma sätt som ett engångsbesök - kräver en snabb koll innan det publiceras, se juridisk-punkten nedan. |
+
+**Juridisk flagg:** abonnemangsmodellen (uppdatering/underhåll) och
+RUT-avdragets tillämpning på återkommande tjänster bör stämmas av samtidigt
+som `docs/juridisk-granskning-underlag.md` gås igenom - inte antas.
+
 ### Källor
 
 - [Hjälp med dator hemma i Göteborg: din guide 2026](https://hemmasupport.se/hjalp-med-dator-hemma-i-goteborg-din-guide-2026/)
