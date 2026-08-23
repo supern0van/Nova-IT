@@ -70,7 +70,8 @@ function Home() {
               IT som bara fungerar.
             </h1>
             <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-200 sm:text-xl">
-              Praktisk hjälp med datorer, nätverk, konton och program för privatpersoner, småföretag och föreningar. Tydligt, personligt och utan onödigt krångel.
+              Praktisk hjälp med datorer, nätverk, konton och program för privatpersoner, småföretag
+              och föreningar. Tydligt, personligt och utan onödigt krångel.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Button asChild size="lg" className="bg-sky-400 text-slate-950 hover:bg-sky-300">
@@ -282,7 +283,10 @@ function AudienceCard({
       <Icon className="h-6 w-6 text-sky-300" />
       <h3 className="mt-5 text-2xl font-semibold">{title}</h3>
       <p className="mt-3 leading-7 text-slate-300">{text}</p>
-      <Link to={to} className="mt-6 inline-flex items-center gap-2 font-medium text-sky-300 hover:text-sky-200">
+      <Link
+        to={to}
+        className="mt-6 inline-flex items-center gap-2 font-medium text-sky-300 hover:text-sky-200"
+      >
         {linkText} <ArrowRight className="h-4 w-4" />
       </Link>
     </article>

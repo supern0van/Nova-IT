@@ -75,15 +75,17 @@ function ProjectReusePage() {
               116 datorer. Ett tydligare sätt att bedöma vad som faktiskt går att använda.
             </h1>
             <p className="mt-8 max-w-2xl text-lg leading-8 text-[#b9c8d6] sm:text-xl">
-              Projekt Återbruk gav oss praktisk erfarenhet av att inventera, testa och förbereda äldre
-              datorer för fortsatt användning. Samma noggrannhet ligger bakom hur vi bedömer service,
-              uppgradering och nästa rimliga steg i dag.
+              Projekt Återbruk gav oss praktisk erfarenhet av att inventera, testa och förbereda
+              äldre datorer för fortsatt användning. Samma noggrannhet ligger bakom hur vi bedömer
+              service, uppgradering och nästa rimliga steg i dag.
             </p>
           </div>
 
           <div className="flex flex-col justify-center gap-8 py-12 lg:border-l lg:border-white/10 lg:py-20 lg:pl-14">
             <div>
-              <div className="text-[7rem] font-semibold leading-none text-[#43b6ee] sm:text-[8rem]">116</div>
+              <div className="text-[7rem] font-semibold leading-none text-[#43b6ee] sm:text-[8rem]">
+                116
+              </div>
               <p className="mt-3 text-xl font-semibold">datorer funktionstestades</p>
             </div>
             <div className="grid grid-cols-2 gap-x-8 gap-y-6 text-sm">
@@ -117,8 +119,8 @@ function ProjectReusePage() {
             </h2>
             <p className="mt-6 text-lg leading-8 text-[#aebdcc]">
               Projektet började med datorer som inte längre räknades som en användbar resurs. Vårt
-              uppdrag var att ta reda på vilka som fortfarande hade mer att ge - och sedan avgöra vad
-              som faktiskt kontrollerades och vilket system som passade bäst.
+              uppdrag var att ta reda på vilka som fortfarande hade mer att ge - och sedan avgöra
+              vad som faktiskt kontrollerades och vilket system som passade bäst.
             </p>
           </div>
 
@@ -146,8 +148,8 @@ function ProjectReusePage() {
           <div className="mt-16">
             <p className="eyebrow mb-5">Rätt system för uppgiften</p>
             <p className="max-w-2xl leading-7 text-[#aebdcc]">
-              Ingen standardlösning passar alla. Valet av operativsystem gjordes efter hårdvara, behov
-              och förvaltning, inte efter vana eller en förutbestämd favorit.
+              Ingen standardlösning passar alla. Valet av operativsystem gjordes efter hårdvara,
+              behov och förvaltning, inte efter vana eller en förutbestämd favorit.
             </p>
             <div className="mt-8 grid gap-8 md:grid-cols-3">
               {systems.map((system) => (
@@ -169,8 +171,8 @@ function ProjectReusePage() {
               Över 100 datorer kunde förberedas för fortsatt användning i utbildningsmiljö.
             </h2>
             <p className="mt-6 max-w-3xl text-lg leading-8 text-[#aebdcc]">
-              Det är inte ett löfte om att varje gammal dator går att rädda. Det är ett bevis på värdet
-              av att undersöka ordentligt innan utrustning döms ut.
+              Det är inte ett löfte om att varje gammal dator går att rädda. Det är ett bevis på
+              värdet av att undersöka ordentligt innan utrustning döms ut.
             </p>
           </div>
           <div className="text-7xl font-semibold leading-none text-[#43b6ee] sm:text-8xl">100+</div>
@@ -194,9 +196,15 @@ function ProjectReusePage() {
             </div>
 
             <div className="flex flex-col justify-center p-7 sm:p-12 lg:p-14">
-              <FileText aria-hidden="true" className="mb-8 size-8 text-[#43b6ee]" strokeWidth={1.5} />
+              <FileText
+                aria-hidden="true"
+                className="mb-8 size-8 text-[#43b6ee]"
+                strokeWidth={1.5}
+              />
               <p className="eyebrow mb-5">Originalmaterial</p>
-              <h2 className="text-3xl font-semibold leading-tight sm:text-4xl">Se arbetet bakom resultatet.</h2>
+              <h2 className="text-3xl font-semibold leading-tight sm:text-4xl">
+                Se arbetet bakom resultatet.
+              </h2>
               <p className="mt-6 text-lg leading-8 text-[#aebdcc]">
                 Presentationen visar hur inventeringen genomfördes, hur datorerna bedömdes och hur
                 ChromeOS Flex användes i projektet.
@@ -224,7 +232,9 @@ function ProjectReusePage() {
         <Container className="grid items-center gap-8 md:grid-cols-[1fr_auto]">
           <div>
             <p className="eyebrow mb-4">Datorservice och uppgradering</p>
-            <h2 className="text-3xl font-semibold leading-tight sm:text-4xl">Har du en dator som behöver bedömas?</h2>
+            <h2 className="text-3xl font-semibold leading-tight sm:text-4xl">
+              Har du en dator som behöver bedömas?
+            </h2>
             <p className="mt-4 max-w-2xl text-lg leading-8 text-[#aebdcc]">
               Berätta vad som inte fungerar eller vad du vill få ut av datorn, så börjar vi med att
               bedöma ett rimligt nästa steg.

@@ -30,11 +30,8 @@ function budgetMiljo(godkant: boolean): { AI_BUDGET_SERVICE: { fetch: typeof fet
   };
 }
 
-const {
-  aiArPaslaget,
-  klassificeraMedAiInternt,
-  klassificeraViaBindning,
-} = await import("./support-ai-server");
+const { aiArPaslaget, klassificeraMedAiInternt, klassificeraViaBindning } =
+  await import("./support-ai-server");
 
 const originalFetch = globalThis.fetch;
 
