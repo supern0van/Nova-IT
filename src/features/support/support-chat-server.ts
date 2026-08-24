@@ -1,4 +1,4 @@
-import { createServerFn, createServerOnlyFn } from "@tanstack/react-start";
+import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { classifySupportQuery } from "./support-engine";
 import { hamtaRelevantaDokument } from "./support-knowledge";
@@ -15,6 +15,12 @@ import {
 } from "./support-chat";
 import { resolveUrgency } from "./support-tools";
 import { SUPPORT_ASSISTANT_IS_ONLINE } from "./support-availability";
+import {
+  hamtaAiBindning,
+  harAiBudget,
+  medTimeout,
+  type WorkersAiBindning,
+} from "./support-ai-runtime";
 
 /**
  * AI-motorn för den fria supportchatten via Cloudflare Workers AI.
@@ -63,70 +69,8 @@ export type ChatResultat =
   | { ok: true; svar: ChatSvar }
   | { ok: false; anledning: "avstangt" | "budget" | "for-manga-turer" | "fel" };
 
-type WorkersAiBindning = {
-  run: (
-    modell: string,
-    indata: {
-      messages: Array<{ role: "system" | "user" | "assistant"; content: string }>;
-      temperature: number;
-      max_tokens: number;
-    },
-  ) => Promise<unknown>;
-};
-
 export function chattAiArPaslaget(varde: string | undefined): boolean {
   return varde?.trim().toLocaleLowerCase("sv") === "pa";
-}
-
-const hamtaAiBindning = createServerOnlyFn(async (): Promise<WorkersAiBindning | undefined> => {
-  try {
-    const { getRequest } = await import("@tanstack/react-start/server");
-    const request = getRequest() as unknown as {
-      runtime?: { cloudflare?: { env?: { AI?: unknown } } };
-    };
-    const ai = request?.runtime?.cloudflare?.env?.AI;
-    return typeof ai === "object" && ai !== null && "run" in ai && typeof ai.run === "function"
-      ? (ai as WorkersAiBindning)
-      : undefined;
-  } catch {
-    return undefined;
-  }
-});
-
-const harAiBudget = createServerOnlyFn(async (): Promise<boolean> => {
-  try {
-    const { getRequest } = await import("@tanstack/react-start/server");
-    const request = getRequest() as unknown as {
-      runtime?: { cloudflare?: { env?: { AI_BUDGET_SERVICE?: { fetch: typeof fetch } } } };
-    };
-    const tjanst = request?.runtime?.cloudflare?.env?.AI_BUDGET_SERVICE;
-    if (!tjanst) return false;
-
-    const svar = await tjanst.fetch("https://internal/reservera", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ system: "nova-it", vikt: CHAT_BUDGET_VIKT }),
-      signal: AbortSignal.timeout(2000),
-    });
-    if (!svar.ok) return false;
-
-    const data = (await svar.json().catch(() => null)) as { ok?: boolean } | null;
-    return data?.ok === true;
-  } catch {
-    return false;
-  }
-});
-
-async function medTimeout<T>(arbete: Promise<T>): Promise<T> {
-  let timeout: ReturnType<typeof setTimeout>;
-  const tidsgrans = new Promise<never>((_, avvisa) => {
-    timeout = setTimeout(() => avvisa(new Error("timeout")), TIMEOUT_MS);
-  });
-  try {
-    return await Promise.race([arbete, tidsgrans]);
-  } finally {
-    clearTimeout(timeout!);
-  }
 }
 
 function totalLangd(meddelanden: ChatMessage[]): number {
@@ -146,6 +90,7 @@ async function anropaViaBindning(
         temperature: 0.3,
         max_tokens: 500,
       }),
+      TIMEOUT_MS,
     );
     return extraheraModellsvar(svar);
   } catch (error) {
@@ -177,6 +122,7 @@ async function anropaViaRest(
           max_tokens: 500,
         }),
       }),
+      TIMEOUT_MS,
     );
     if (!svar.ok) {
       await svar.body?.cancel().catch(() => undefined);
@@ -210,7 +156,7 @@ export async function chattaInternt(
     return { ok: false, anledning: "for-manga-turer" };
   }
 
-  if (!(await harAiBudget())) return { ok: false, anledning: "budget" };
+  if (!(await harAiBudget(CHAT_BUDGET_VIKT))) return { ok: false, anledning: "budget" };
 
   const senasteFraga = [...meddelanden].reverse().find((msg) => msg.role === "user")?.content ?? "";
   const regelmotorResultat = classifySupportQuery(senasteFraga);

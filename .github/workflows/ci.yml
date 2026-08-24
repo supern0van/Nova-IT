@@ -118,6 +118,39 @@ jobs:
       - name: Build
         run: bun run build
 
+  # Rapporterande, inte blockerande: Dependabot är bara konfigurerat för
+  # version-uppdateringar (se .github/dependabot.yml), inget steg fångade
+  # tidigare kända CVE:er i det låsta beroendeträdet. `continue-on-error`
+  # gäller oavsett `bun audit`s egna exitkod-semantik (som redan var 0 vid
+  # fynd i den version detta skrevs mot) - jobbet ska aldrig blockera en
+  # merge, bara göra sårbarheter synliga i loggen. INTE med i `verify`s
+  # `needs` av samma skäl.
+  audit:
+    name: Dependency audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version-file: .bun-version
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      # `bun audit` exitar icke-noll så fort NÅGON sårbarhet hittas
+      # (bekräftat i CI, oavsett severity) - `|| true` gör steget till ett
+      # rent rapporterande jobb (grönt i checks-listan, fynden syns ändå i
+      # loggen) i stället för att förlita sig på continue-on-error, som
+      # visar jobbet som misslyckat i PR-checks trots att det inte
+      # blockerar något - onödigt brus för både människor och CI-verktyg
+      # som bevakar checks.
+      - name: Run dependency audit
+        run: bun audit || true
+
   verify:
     name: Verify frontend
     if: ${{ always() }}

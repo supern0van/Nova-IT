@@ -1,4 +1,4 @@
-import { createServerFn, createServerOnlyFn } from "@tanstack/react-start";
+import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { supportFlows } from "./support-data";
 import {
@@ -10,6 +10,12 @@ import {
 } from "./support-ai";
 import type { AiForslag } from "./support-ai";
 import { SUPPORT_ASSISTANT_IS_ONLINE } from "./support-availability";
+import {
+  hamtaAiBindning,
+  harAiBudget,
+  medTimeout,
+  type WorkersAiBindning,
+} from "./support-ai-runtime";
 
 /**
  * AI-stödd ärendeförståelse via Cloudflare Workers AI.
@@ -76,22 +82,6 @@ const fragaSchema = z.object({
 export type AiKlassificering = AiForslag | null;
 
 /**
- * Minsta möjliga typ för `env.AI`-bindningen - bara det som faktiskt
- * används. Undviker ett beroende på `@cloudflare/workers-types` bara för en
- * enda metodsignatur.
- */
-type WorkersAiBindning = {
-  run: (
-    modell: string,
-    indata: {
-      messages: Array<{ role: "system" | "user"; content: string }>;
-      temperature: number;
-      max_tokens: number;
-    },
-  ) => Promise<unknown>;
-};
-
-/**
  * Läser om AI-stödet är påslaget. Avstängt som standard: funktionen ska
  * kunna ligga i produktion utan att vara aktiv, på samma sätt som
  * `PUBLIK_INTAG_LAGE` (se `features/contact/intag-lage.ts`). Bara det
@@ -99,88 +89,6 @@ type WorkersAiBindning = {
  */
 export function aiArPaslaget(varde: string | undefined): boolean {
   return varde?.trim().toLocaleLowerCase("sv") === "pa";
-}
-
-/**
- * Letar efter `env.AI` på det inkommande request-objektet. Returnerar
- * `undefined` om formen inte stämmer, i stället för att kasta - det här
- * anropas i en miljö (lokal dev) där formen ofta helt saknas, och det är ett
- * normalt, förväntat läge, inte ett fel.
- */
-/**
- * `createServerOnlyFn` gör två saker som är nödvändiga här: dess innehåll
- * (inklusive den dynamiska importen av `@tanstack/react-start/server`
- * nedan) tas bort helt ur klientbundeln av byggpluginet, och ett
- * klientanrop av misstag kastar direkt i stället för att tyst göra
- * ingenting. `getRequest` kan INTE vara ett statiskt top-level-import i den
- * här filen - `support-ai-server.ts` importeras (via `klassificeraMedAi`)
- * även från `SupportGuide.tsx`, som är klientkod, och ett statiskt import
- * av server-entrypointen fälls då av `importProtection` i `vite.config.ts`
- * (verifierat: bygget stoppade exakt detta första gången).
- */
-const hamtaAiBindning = createServerOnlyFn(async (): Promise<WorkersAiBindning | undefined> => {
-  try {
-    const { getRequest } = await import("@tanstack/react-start/server");
-    const request = getRequest() as unknown as {
-      runtime?: { cloudflare?: { env?: { AI?: unknown } } };
-    };
-    const ai = request?.runtime?.cloudflare?.env?.AI;
-    return typeof ai === "object" && ai !== null && "run" in ai && typeof ai.run === "function"
-      ? (ai as WorkersAiBindning)
-      : undefined;
-  } catch {
-    // getRequest() kräver en aktiv serverfunktions-kontext. Utanför en
-    // sådan (t.ex. anropad direkt i ett test) är avsaknad av bindning rätt
-    // svar, inte ett fel.
-    return undefined;
-  }
-});
-
-/**
- * Frågar den delade AI-budgeten (Nova-IT-Portaler/ai-budget/, en Durable
- * Object som ALLA tre portaler delar) om det är okej att göra ett AI-anrop
- * just nu. Samma Service Binding-mönster som `hamtaAiBindning` ovan -
- * `request.runtime.cloudflare.env`, inte ett statiskt import.
- *
- * Svarar `false` vid MINSTA osäkerhet - saknad bindning, timeout, ett fel
- * svar - eftersom "vi vet inte" ska tolkas som "gör inte anropet", aldrig
- * tvärtom. Gäller BÅDA anropsvägarna nedan (bindning och REST) - budgeten
- * är gemensam oavsett teknisk väg.
- */
-const harAiBudget = createServerOnlyFn(async (): Promise<boolean> => {
-  try {
-    const { getRequest } = await import("@tanstack/react-start/server");
-    const request = getRequest() as unknown as {
-      runtime?: { cloudflare?: { env?: { AI_BUDGET_SERVICE?: { fetch: typeof fetch } } } };
-    };
-    const tjanst = request?.runtime?.cloudflare?.env?.AI_BUDGET_SERVICE;
-    if (!tjanst) return false;
-
-    const svar = await tjanst.fetch("https://internal/reservera", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ system: "nova-it" }),
-      signal: AbortSignal.timeout(2000),
-    });
-    if (!svar.ok) return false;
-
-    const data = (await svar.json().catch(() => null)) as { ok?: boolean } | null;
-    return data?.ok === true;
-  } catch {
-    return false;
-  }
-});
-
-async function medTimeout<T>(arbete: Promise<T>): Promise<T> {
-  let timeout: ReturnType<typeof setTimeout>;
-  const tidsgrans = new Promise<never>((_, avvisa) => {
-    timeout = setTimeout(() => avvisa(new Error("timeout")), TIMEOUT_MS);
-  });
-  try {
-    return await Promise.race([arbete, tidsgrans]);
-  } finally {
-    clearTimeout(timeout!);
-  }
 }
 
 // Exporterad enbart för test: att simulera getRequest()'s beroende på en
@@ -201,6 +109,7 @@ export async function klassificeraViaBindning(
         temperature: 0.1,
         max_tokens: 200,
       }),
+      TIMEOUT_MS,
     );
 
     const ratext = extraheraModellsvar(svar);
@@ -245,6 +154,7 @@ async function klassificeraViaRest(fraga: string, modell: string): Promise<AiKla
           max_tokens: 200,
         }),
       }),
+      TIMEOUT_MS,
     );
 
     if (!svar.ok) {
