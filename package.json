@@ -12,7 +12,7 @@
     "deploy": "bun run deploy:production",
     "deploy:production": "bun run build && bunx wrangler deploy",
     "deploy:preview": "bun run build && bunx wrangler deploy --temporary",
-    "test": "bun test src/features",
+    "test": "bun test src/features src/components",
     "typecheck": "tsc --noEmit --pretty false",
     "ci": "bun run test && bun run lint && bun run typecheck && bun run build",
     "lint": "eslint .",
