@@ -840,13 +840,16 @@ function ContactPage() {
                     aria-hidden="true"
                     className="absolute left-[-9999px] top-auto h-px w-px overflow-hidden"
                   >
-                    <label htmlFor="website">Lämna detta fält tomt</label>
+                    <label htmlFor="website" aria-hidden="true">
+                      Lämna detta fält tomt
+                    </label>
                     <input
                       id="website"
                       name="website"
                       type="text"
                       tabIndex={-1}
                       autoComplete="off"
+                      aria-hidden="true"
                       value={honeypot}
                       onChange={(event) => setHoneypot(event.target.value)}
                     />

@@ -39,11 +39,25 @@ export type ContactAssistantContext = {
  */
 const MAX_ARENDE_BESKRIVNING = 2000;
 
+/**
+ * En hård `.slice()` utan spår kan i sällsynta fall klippa kundens egen text
+ * mitt i en mening - internt ärende ser då ut som ett trasigt/avbrutet
+ * meddelande i stället för en medveten kortning. Lägger till en synlig
+ * markör NÄR det faktiskt klipptes, aldrig annars - markören ryms alltid
+ * inom gränsen (dras av från utrymmet innan klippningen görs).
+ */
+const KLIPPT_MARKOR = "\n\n… (fortsättning klippt)";
+
+function klippMedMarkor(text: string, max: number): string {
+  if (text.length <= max) return text;
+  return text.slice(0, max - KLIPPT_MARKOR.length) + KLIPPT_MARKOR;
+}
+
 export function composeContactMessage(
   message: string,
   assistantContext: ContactAssistantContext | null,
 ) {
-  if (!assistantContext) return message.trim().slice(0, MAX_ARENDE_BESKRIVNING);
+  if (!assistantContext) return klippMedMarkor(message.trim(), MAX_ARENDE_BESKRIVNING);
 
   const sammansatt = [
     `Kontaktorsak: ${assistantContext.contactReason}`,
@@ -73,7 +87,7 @@ export function composeContactMessage(
     .filter((line): line is string => line !== undefined)
     .join("\n");
 
-  return utanDialog.slice(0, MAX_ARENDE_BESKRIVNING);
+  return klippMedMarkor(utanDialog, MAX_ARENDE_BESKRIVNING);
 }
 
 /**
