@@ -11,6 +11,11 @@ node_modules
 .agents/
 .codex/
 outputs/
+# Engångsartefakter från lokala körningar/granskningar (t.ex. skärmdumpar,
+# renderade PDF-slides) - inte dokumentation, ska aldrig checkas in. Elva
+# PNG-filer hade av misstag smugit sig in innan denna rad fanns - städade
+# bort samtidigt som raden lades till.
+tmp/
 dist
 dist-ssr
 .output
