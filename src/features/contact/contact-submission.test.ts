@@ -151,3 +151,31 @@ test("never exceeds the admin intake description limit", () => {
   expect(message).toContain("Kundens beskrivning:");
   expect(message).not.toContain("Guidad dialog:");
 });
+
+test("markerar tydligt när kundens egen text faktiskt klipptes", () => {
+  const message = composeContactMessage("x".repeat(1900), {
+    contactReason: "Wi-Fi och nätverk – Tappar anslutning",
+    context: "Flera personer eller enheter · Det kommer och går",
+    transcript: "y".repeat(1500),
+  });
+
+  expect(message.length).toBeLessThanOrEqual(2000);
+  expect(message).toContain("… (fortsättning klippt)");
+  expect(message.endsWith("… (fortsättning klippt)")).toBe(true);
+});
+
+test("lägger INTE till någon klipp-markör när meddelandet ryms inom gränsen", () => {
+  const message = composeContactMessage("Nätet bryts under videomöten.", {
+    contactReason: "Wi-Fi och nätverk – Tappar anslutning",
+    context: "Flera personer eller enheter · Det kommer och går",
+  });
+
+  expect(message).not.toContain("fortsättning klippt");
+});
+
+test("klipper ett rent kundmeddelande (ingen assistentkontext) med markör om det ändå överstiger gränsen", () => {
+  const message = composeContactMessage("z".repeat(2500), null);
+
+  expect(message.length).toBeLessThanOrEqual(2000);
+  expect(message).toContain("… (fortsättning klippt)");
+});
