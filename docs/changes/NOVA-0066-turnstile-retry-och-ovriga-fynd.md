@@ -2,7 +2,7 @@
 id: NOVA-0066
 date: 2026-08-25
 date_precision: day
-type: bugfix
+type: fixed
 status: completed
 systems:
   - publik-webbplats
