@@ -83,14 +83,14 @@ const documents: Record<
               svar med dit, och de skickas till oss först när du skickar formuläret.
             </p>
             <p>
-              Går du vidare till kontakt följer din egen beskrivning och de val du gjort i guiden med
-              in i ärendet, så att vi slipper fråga om grunderna igen. Guidens råd och checklistor
-              följer inte med — de är skrivna för dig, inte för vår tekniker.
+              Går du vidare till kontakt följer din egen beskrivning och de val du gjort i guiden
+              med in i ärendet, så att vi slipper fråga om grunderna igen. Guidens råd och
+              checklistor följer inte med — de är skrivna för dig, inte för vår tekniker.
             </p>
             <p>
               Mellan guiden och kontaktformuläret sparas underlaget tillfälligt i webbläsarens
-              sessionslagring i högst 30 minuter. Det raderas när det har använts, och när du stänger
-              fliken. Skriv inte lösenord, personnummer eller bankuppgifter i guiden.
+              sessionslagring i högst 30 minuter. Det raderas när det har använts, och när du
+              stänger fliken. Skriv inte lösenord, personnummer eller bankuppgifter i guiden.
             </p>
           </>
         ),
@@ -107,17 +107,17 @@ const documents: Record<
             </p>
             <p>
               Väljer du i stället att skriva fritt i guidens chatt skickas hela den pågående
-              konversationen (dina meddelanden och guidens tidigare svar, inte bara det senaste) till
-              samma språkmodell inför varje svar, tillsammans med Nova IT:s egna, redan publika
+              konversationen (dina meddelanden och guidens tidigare svar, inte bara det senaste)
+              till samma språkmodell inför varje svar, tillsammans med Nova IT:s egna, redan publika
               tjänstebeskrivningar som modellen kan hänvisa till. Modellen svarar på allmänna frågor
-              om Nova IT och föreslår nästa steg - den ger aldrig felsöknings- eller
-              reparationsråd, och hittar aldrig på priser.
+              om Nova IT och föreslår nästa steg - den ger aldrig felsöknings- eller reparationsråd,
+              och hittar aldrig på priser.
             </p>
             <p>
               Oavsett läge är förslaget just ett förslag. Området byts aldrig automatiskt, du väljer
               själv, och guiden fungerar även om AI-stödet är avstängt eller inte svarar. Ingen
-              automatisk sortering eller chattdialog fattar beslut som har rättsliga följder eller på
-              liknande sätt i betydande grad påverkar dig — en människa hanterar alltid själva
+              automatisk sortering eller chattdialog fattar beslut som har rättsliga följder eller
+              på liknande sätt i betydande grad påverkar dig — en människa hanterar alltid själva
               ärendet.
             </p>
             <p>
@@ -261,8 +261,11 @@ const documents: Record<
         body: (
           <p>
             Nova IT använder för närvarande inga kakor för statistik, annonsering eller
-            marknadsföring och ingen lokal lagring för sådana ändamål. Vi använder inte heller
-            externa analysverktyg på den publika webbplatsen.
+            marknadsföring och ingen lokal lagring för sådana ändamål. Vi använder Cloudflare Web
+            Analytics för besöksstatistik - den är helt kakolös, samlar ingen personlig
+            identifierbar information och kräver därför inte samtycke enligt
+            Integritetsskyddsmyndighetens vägledning om kakor. Utöver den använder vi inga externa
+            analysverktyg på den publika webbplatsen.
           </p>
         ),
       },
@@ -288,9 +291,9 @@ const documents: Record<
             <p>
               <span className="font-medium text-slate-950">Underlag från supportguiden.</span> Om du
               går från guiden till kontaktformuläret sparas dina svar tillfälligt i webbläsarens
-              sessionslagring, i högst 30 minuter, så att formuläret kan fyllas i åt dig. Det raderas
-              när det använts och när du stänger fliken. Det skickas ingenstans förrän du skickar
-              formuläret.
+              sessionslagring, i högst 30 minuter, så att formuläret kan fyllas i åt dig. Det
+              raderas när det använts och när du stänger fliken. Det skickas ingenstans förrän du
+              skickar formuläret.
             </p>
             <p>
               Ingen av dem används för statistik, annonsering eller för att följa dig mellan
