@@ -38,6 +38,12 @@ dist-ssr
 # Local, machine-specific Claude Code tool permissions
 .claude/settings.local.json
 
+# Playwright E2E-körningar (rapporter, spår, skärmdumpar) - engångsartefakter
+# från lokala/CI-körningar, inte källkod.
+/test-results/
+/playwright-report/
+/blob-report/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

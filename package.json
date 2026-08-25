@@ -13,6 +13,8 @@
     "deploy:production": "bun run build && bunx wrangler deploy",
     "deploy:preview": "bun run build && bunx wrangler deploy --temporary",
     "test": "bun test src/features src/components",
+    "e2e": "playwright test",
+    "typecheck:e2e": "tsc --noEmit --pretty false -p e2e/tsconfig.json",
     "typecheck": "tsc --noEmit --pretty false",
     "ci": "bun run test && bun run lint && bun run typecheck && bun run build",
     "lint": "eslint .",
@@ -78,6 +80,7 @@
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@happy-dom/global-registrator": "^20.11.6",
+    "@playwright/test": "^1.62.1",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/react": "^16.3.2",
     "@types/bun": "^1.3.14",
