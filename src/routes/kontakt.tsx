@@ -25,7 +25,7 @@ import {
   type ContactAssistantContext,
 } from "@/features/contact/contact-submission";
 import { consumeSupportHandoff } from "@/features/support/support-handoff";
-import { TurnstileWidget } from "@/components/turnstile-widget";
+import { TurnstileWidget, type TurnstileWidgetHandle } from "@/components/turnstile-widget";
 import { JsonLd } from "@/components/json-ld";
 import { buildBreadcrumbJsonLd } from "@/lib/structured-data";
 
@@ -164,6 +164,11 @@ function ContactPage() {
   const formRenderedAtRef = useRef<number | null>(null);
   const [honeypot, setHoneypot] = useState("");
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  // Fynd (granskning 2026-08-25, #1) - Turnstile-tokens är engångsanvändbara.
+  // Utan den här handtaget skickades samma redan förbrukade token med igen
+  // vid ett omförsök efter ett misslyckat inskick, vilket garanterat
+  // misslyckades igen - kunden fastnade och behövde ladda om sidan.
+  const turnstileRef = useRef<TurnstileWidgetHandle>(null);
   // Presentationsläge - den bindande kontrollen sitter server-side i
   // skickaKontaktforfragan(). Startar som "oppen" så att formuläret inte
   // blinkar förbi som stängt innan serverns svar hunnit fram.
@@ -297,6 +302,11 @@ function ContactPage() {
       setSendError(
         "Ärendet kunde inte skickas just nu. Försök igen om en stund eller skriv direkt till oss.",
       );
+      // Den redan skickade token:en är förbrukad oavsett vad som gick fel
+      // server-side - utan att begära en ny hade ett omförsök misslyckats
+      // garanterat, oavsett hur många gånger kunden klickade "Skicka".
+      setTurnstileToken(null);
+      turnstileRef.current?.reset();
     } finally {
       setIsSending(false);
     }
@@ -443,7 +453,7 @@ function ContactPage() {
           <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
             {!sent && (
               <div className="flex flex-col items-center gap-3 sm:items-start">
-                <TurnstileWidget action="contact" onToken={setTurnstileToken} />
+                <TurnstileWidget ref={turnstileRef} action="contact" onToken={setTurnstileToken} />
                 {/* Widgeten monteras här, på samma steg som knappen, och
                     hinner inte alltid utfärda en token innan en snabb
                     användare hinner klicka - utan denna spärr skickades

@@ -101,6 +101,13 @@ export async function medTimeout<T>(arbete: Promise<T>, timeoutMs: number): Prom
   const tidsgrans = new Promise<never>((_, avvisa) => {
     timeout = setTimeout(() => avvisa(new Error("timeout")), timeoutMs);
   });
+  // Om `tidsgrans` vinner racet fortsätter `arbete` att köras ospårat i
+  // bakgrunden - ingen läser längre dess resultat/avvisning. Utan den här
+  // tomma catch:en syns en sen rejection som en unhandled rejection i
+  // Workers-loggarna och sudda ut den riktiga timeout-orsaken (granskning
+  // 2026-08-25, fynd #5). Anroparna har redan egna try/catch runt hela
+  // `medTimeout`-anropet, så detta ändrar inget faktiskt beteende.
+  arbete.catch(() => {});
   try {
     return await Promise.race([arbete, tidsgrans]);
   } finally {

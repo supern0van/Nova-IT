@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef } from "react";
+import { forwardRef, useEffect, useId, useImperativeHandle, useRef } from "react";
 import { getTurnstileSiteKey } from "@/features/contact/contact-server";
 
 const TURNSTILE_SCRIPT_SRC = "https://challenges.cloudflare.com/turnstile/v0/api.js";
@@ -44,6 +44,15 @@ function loadTurnstileScript(): Promise<void> {
   return scriptLoadPromise;
 }
 
+/** Imperativt handtag så en anropare (t.ex. kontaktformuläret) kan begära en
+ *  FÄRSK token efter ett misslyckat inskickningsförsök - Turnstile-tokens är
+ *  engångsanvändbara, så ett nytt försök med samma token misslyckas
+ *  garanterat annars. Se kommentaren i render()-anropet nedan för varför det
+ *  här INTE är samma sak som att widgeten reset:ar sig själv internt. */
+export interface TurnstileWidgetHandle {
+  reset: () => void;
+}
+
 /**
  * Cloudflare Turnstile-widget för spamskydd på kontaktformuläret.
  *
@@ -51,20 +60,35 @@ function loadTurnstileScript(): Promise<void> {
  * Wrangler-konfigurerad Site Key fungerar även om den inte fanns vid Vite-
  * builden. Saknas Site Key renderas inget widget för lokal utveckling.
  */
-export function TurnstileWidget({
-  action,
-  onToken,
-  diskret = false,
-  getSiteKey = getTurnstileSiteKey,
-}: {
-  action: string;
-  onToken: (token: string | null) => void;
-  diskret?: boolean;
-  getSiteKey?: () => Promise<string | null>;
-}) {
+export const TurnstileWidget = forwardRef<
+  TurnstileWidgetHandle,
+  {
+    action: string;
+    onToken: (token: string | null) => void;
+    diskret?: boolean;
+    getSiteKey?: () => Promise<string | null>;
+  }
+>(function TurnstileWidget(
+  { action, onToken, diskret = false, getSiteKey = getTurnstileSiteKey },
+  ref,
+) {
   const containerRef = useRef<HTMLDivElement>(null);
   const widgetIdRef = useRef<string | null>(null);
   const callbackName = useId().replace(/[^a-zA-Z0-9]/g, "");
+
+  // Skiljer sig från kommentaren i render()-anropet nedan ("Anropa inte
+  // reset() här igen") - den varningen gäller att INTE reset:a FRÅN
+  // widgetens egna callbacks (skulle kunna skapa en reset-loop). Det här är
+  // en EXPLICIT, av appen initierad reset efter ett känt inskickningsfel -
+  // en helt annan situation, samma `reset()`-anrop Turnstiles egen
+  // dokumentation rekommenderar för just det fallet.
+  useImperativeHandle(ref, () => ({
+    reset: () => {
+      if (widgetIdRef.current && window.turnstile) {
+        window.turnstile.reset(widgetIdRef.current);
+      }
+    },
+  }));
 
   useEffect(() => {
     let cancelled = false;
@@ -114,4 +138,4 @@ export function TurnstileWidget({
       className={diskret ? "min-h-0 overflow-hidden" : "mt-2"}
     />
   );
-}
+});

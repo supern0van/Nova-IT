@@ -244,6 +244,12 @@ export function useSupportChat() {
         });
       })
       .catch(() => {
+        // Samma resonemang som .then()-grenens `!resultat.ok`-fall ovan -
+        // ett faktiskt nätverksfel/kastat undantag gav kunden inget svar
+        // heller, och ska därför inte kosta en tur av MAX_TURNS-budgeten.
+        // Saknades tidigare, till skillnad från den kontrollerade
+        // `{ok:false}`-grenen (granskning 2026-08-25, fynd #2).
+        turerRef.current -= 1;
         dispatch({ type: "status", value: historik.length === 1 ? "ai-unavailable" : "idle" });
       });
   }
