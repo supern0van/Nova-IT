@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Menu, X, ArrowUpRight, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Container } from "@/components/design-system";
@@ -44,12 +44,19 @@ const linkClass =
 
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
+  const menyknapp = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     if (!open) return;
 
+    // Fynd (granskning 2026-08-25, #6) - fokus återställdes tidigare inte
+    // till menyknappen vid Escape, till skillnad från PortalMeny (samma
+    // fil-träd) som redan gör detta korrekt. En tangentbords-/
+    // skärmläsaranvändare tappade sin fokusplats i sidhuvudet.
     const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setOpen(false);
+      if (event.key !== "Escape") return;
+      setOpen(false);
+      menyknapp.current?.focus();
     };
 
     window.addEventListener("keydown", closeOnEscape);
@@ -100,6 +107,7 @@ export function SiteHeader() {
           </nav>
 
           <button
+            ref={menyknapp}
             type="button"
             aria-label={open ? "Stäng meny" : "Öppna meny"}
             aria-expanded={open}
