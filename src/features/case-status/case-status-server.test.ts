@@ -42,6 +42,22 @@ function jsonResponse(body: unknown, status = 200) {
   }) as Response;
 }
 
+/**
+ * Samma hjälpfunktion som contact-server.test.ts (NOVA-0058) - CodeQL
+ * flaggar substring-matchning (`url.includes(...)`) av hela URL-strängen som
+ * "Incomplete URL substring sanitization": en sträng som innehåller det
+ * förväntade domännamnet i path, query eller som del av ett annat hostname
+ * skulle annars kunna ge en falsk matchning i testmocken.
+ */
+function hasExpectedHttpsHost(rawUrl: string, expectedHostname: string): boolean {
+  try {
+    const parsedUrl = new URL(rawUrl);
+    return parsedUrl.protocol === "https:" && parsedUrl.hostname === expectedHostname;
+  } catch {
+    return false;
+  }
+}
+
 test("returnerar ärendet vid en träff", async () => {
   const calls: { url: string; init?: RequestInit }[] = [];
   globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
@@ -161,7 +177,7 @@ test("skickar Turnstile-svaret till siteverify med rätt action och avvisar fel 
   globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input);
     calls.push(url);
-    if (url.includes("challenges.cloudflare.com")) {
+    if (hasExpectedHttpsHost(url, "challenges.cloudflare.com")) {
       const body = JSON.parse(String(init?.body));
       expect(body.response).toBe("ett-token");
       return jsonResponse({ success: true, action: "fel-action", hostname: "nova-it.se" });
@@ -172,6 +188,6 @@ test("skickar Turnstile-svaret till siteverify med rätt action och avvisar fel 
   const resultat = await sokArendestatus({ ...giltigForfragan, turnstileToken: "ett-token" });
 
   expect(resultat).toEqual({ ok: false, fel: "turnstile" });
-  expect(calls.some((url) => url.includes("challenges.cloudflare.com"))).toBe(true);
-  expect(calls.some((url) => url.includes("/api/public/arendestatus"))).toBe(false);
+  expect(calls.some((url) => hasExpectedHttpsHost(url, "challenges.cloudflare.com"))).toBe(true);
+  expect(calls).not.toContain("https://admin.nova-it.se/api/public/arendestatus");
 });
