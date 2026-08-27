@@ -1,6 +1,18 @@
 import { afterEach, beforeEach, expect, test } from "bun:test";
 import { slaUppArendestatus } from "./status-check-server";
 
+// Samma hjälpare som contact-server.test.ts - `url.includes("host")` flaggas
+// av CodeQL som en ofullständig URL-substrångskontroll (godtyckliga hostnamn
+// kan innehålla strängen före/efter). Riktig URL-parsning i stället.
+function hasExpectedHttpsHost(rawUrl: string, expectedHostname: string): boolean {
+  try {
+    const parsedUrl = new URL(rawUrl);
+    return parsedUrl.protocol === "https:" && parsedUrl.hostname === expectedHostname;
+  } catch {
+    return false;
+  }
+}
+
 const ENV_KEYS = ["ADMIN_INTAKE_URL", "STATUSKOLL_SECRET", "TURNSTILE_SECRET_KEY", "TURNSTILE_REQUIRED"] as const;
 
 const originalEnv: Record<string, string | undefined> = {};
@@ -128,7 +140,7 @@ test("avvisar förfrågningar som skickas orimligt snabbt efter rendering", asyn
 
 test("skips Turnstile verification locally when it is not configured", async () => {
   globalThis.fetch = (async (input: RequestInfo | URL) => {
-    if (String(input).includes("challenges.cloudflare.com")) {
+    if (hasExpectedHttpsHost(String(input), "challenges.cloudflare.com")) {
       throw new Error("Turnstile should not be called when unconfigured");
     }
     return jsonResponse({ ok: true, funnet: false });
@@ -160,7 +172,7 @@ test("uses its own 'statuskoll' action, distinct from the contact form's 'contac
   globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input);
     calls.push({ url, init });
-    if (url.includes("challenges.cloudflare.com")) {
+    if (hasExpectedHttpsHost(url, "challenges.cloudflare.com")) {
       return jsonResponse({ success: true, action: "statuskoll", hostname: "nova-it.se" });
     }
     return jsonResponse({ ok: true, funnet: false });
@@ -169,14 +181,14 @@ test("uses its own 'statuskoll' action, distinct from the contact form's 'contac
   const result = await slaUppArendestatus({ ...validPayload, turnstileToken: "valid-token" });
 
   expect(result).toEqual({ funnet: false });
-  const turnstileCall = calls.find((call) => call.url.includes("challenges.cloudflare.com"));
+  const turnstileCall = calls.find((call) => hasExpectedHttpsHost(call.url, "challenges.cloudflare.com"));
   expect(JSON.parse(String(turnstileCall?.init?.body)).response).toBe("valid-token");
 });
 
 test("rejects when Cloudflare reports a mismatched action", async () => {
   process.env.TURNSTILE_SECRET_KEY = "test-turnstile-secret";
   globalThis.fetch = (async (input: RequestInfo | URL) => {
-    if (String(input).includes("challenges.cloudflare.com")) {
+    if (hasExpectedHttpsHost(String(input), "challenges.cloudflare.com")) {
       return jsonResponse({ success: true, action: "contact", hostname: "nova-it.se" });
     }
     throw new Error("should not reach the statuskoll endpoint");
