@@ -260,6 +260,25 @@ export function PortalMeny({
             </div>
           )}
         </form>
+
+        {/* Vill bara veta "är ni på väg?" ska inte behöva ett kundkonto -
+            se /arendestatus (case-status-server.ts). Egen rad, under
+            formuläret, så den inte förväxlas med ett tredje inloggningsfält.
+            Vanlig <a>, inte router-Link - samma mönster som "Glömt
+            lösenord?" ovan, och undviker ett beroende av <RouterProvider>
+            i den här komponentens egna, isolerade tester. */}
+        <p className="mt-3 border-t border-white/8 pt-3 text-center text-[13px] text-slate-400">
+          <a
+            href="/arendestatus"
+            onClick={() => {
+              stangPortal();
+              onNavigate?.();
+            }}
+            className="font-medium text-sky-300 transition-colors hover:text-sky-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
+          >
+            Bara kolla ärendestatus?
+          </a>
+        </p>
       </div>
     </div>
   );

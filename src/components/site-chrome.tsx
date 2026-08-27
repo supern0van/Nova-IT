@@ -215,6 +215,7 @@ export function SiteFooter() {
         >
           <FooterLink to="/om-oss">Om Nova IT</FooterLink>
           <FooterLink to="/faq">Vanliga frågor</FooterLink>
+          <FooterLink to="/arendestatus">Följ ditt ärende</FooterLink>
           {SUPPORT_ASSISTANT_IS_ONLINE && (
             <FooterLink to="/assistent">Förbered ditt ärende</FooterLink>
           )}
@@ -287,7 +288,7 @@ function FooterLink({
   to,
   children,
 }: {
-  to: "/tjanster" | "/arbetssatt" | "/om-oss" | "/faq" | "/assistent";
+  to: "/tjanster" | "/arbetssatt" | "/om-oss" | "/faq" | "/assistent" | "/arendestatus";
   children: React.ReactNode;
 }) {
   return (
