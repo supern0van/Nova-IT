@@ -141,6 +141,7 @@ export async function skickaKontaktforfragan(
         meddelande: data.message,
         idempotensnyckel: data.idempotencyKey,
       }),
+      signal: AbortSignal.timeout(8000),
     });
   } catch (error) {
     console.error("Kunde inte nå det interna ärendeintaget.", error);
@@ -172,22 +173,25 @@ export async function skickaKontaktforfragan(
 
   const { arendenummer, mottagetVid, internt } = intakeBody;
 
-  // Intern avisering till Nova IT, frikopplad från kundbekräftelsen
-  // nedan - ärendet syns redan i adminportalen oavsett, så ett
-  // misslyckat internt mejl loggas men stoppar aldrig svaret till kunden.
-  await forsokSkickaInternAvisering(data, arendenummer);
-
+  // Intern avisering till Nova IT och kundbekräftelsen körs parallellt -
+  // oberoende Resend-anrop till olika mottagare, inget delat state, och
+  // båda hanterar redan sina egna fel internt utan att kasta. Ärendet syns
+  // redan i adminportalen oavsett utfall, så ett misslyckat internt mejl
+  // loggas men stoppar aldrig svaret till kunden.
   const aktiveringslank =
     internt?.kundportalKonto?.kontoSkapat === true
       ? internt.kundportalKonto.aktiveringslank
       : undefined;
 
-  const confirmationSent = await forsokSkickaKundbekraftelse({
-    namn: data.name,
-    epost: data.email,
-    arendenummer,
-    aktiveringslank,
-  });
+  const [, confirmationSent] = await Promise.all([
+    forsokSkickaInternAvisering(data, arendenummer),
+    forsokSkickaKundbekraftelse({
+      namn: data.name,
+      epost: data.email,
+      arendenummer,
+      aktiveringslank,
+    }),
+  ]);
 
   if (internt?.arendeId) {
     await uppdateraBekraftelseStatus({
@@ -259,6 +263,7 @@ async function verifieraTurnstile(token: string | null, idempotencyKey: string):
         response: token,
         idempotency_key: idempotencyKey,
       }),
+      signal: AbortSignal.timeout(8000),
     });
     const result = (await response.json().catch(() => null)) as {
       success?: boolean;
@@ -321,6 +326,7 @@ async function forsokSkickaInternAvisering(
         subject,
         text,
       }),
+      signal: AbortSignal.timeout(8000),
     });
 
     if (!response.ok) {
@@ -378,6 +384,7 @@ async function forsokSkickaKundbekraftelse(uppgifter: {
         subject,
         text,
       }),
+      signal: AbortSignal.timeout(8000),
     });
 
     if (!response.ok) {
@@ -407,6 +414,7 @@ async function uppdateraBekraftelseStatus(uppgifter: {
         "x-intag-secret": uppgifter.intakeSecret,
       },
       body: JSON.stringify({ arendeId: uppgifter.arendeId, status: uppgifter.status }),
+      signal: AbortSignal.timeout(8000),
     });
   } catch (error) {
     // Ärendet är redan skapat och kunden har redan fått (eller inte fått)
