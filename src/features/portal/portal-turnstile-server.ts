@@ -20,6 +20,7 @@ export const getKundportalTurnstileSiteKey = createServerFn({ method: "GET" }).h
   try {
     const response = await fetch(KUNDPORTAL_TURNSTILE_CONFIG_URL, {
       headers: { accept: "application/json" },
+      signal: AbortSignal.timeout(8000),
     });
     if (!response.ok) return null;
 
