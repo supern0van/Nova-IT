@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ArbetssattRouteImport } from './routes/arbetssatt'
+import { Route as ArendestatusRouteImport } from './routes/arendestatus'
 import { Route as AssistentRouteImport } from './routes/assistent'
 import { Route as CaseStudyRouteImport } from './routes/case-study'
 import { Route as FaqRouteImport } from './routes/faq'
@@ -31,6 +32,11 @@ const IndexRoute = IndexRouteImport.update({
 const ArbetssattRoute = ArbetssattRouteImport.update({
   id: '/arbetssatt',
   path: '/arbetssatt',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ArendestatusRoute = ArendestatusRouteImport.update({
+  id: '/arendestatus',
+  path: '/arendestatus',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AssistentRoute = AssistentRouteImport.update({
@@ -92,6 +98,7 @@ const TjansterSlugRoute = TjansterSlugRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/arbetssatt': typeof ArbetssattRoute
+  '/arendestatus': typeof ArendestatusRoute
   '/assistent': typeof AssistentRoute
   '/case-study': typeof CaseStudyRoute
   '/faq': typeof FaqRoute
@@ -107,6 +114,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/arbetssatt': typeof ArbetssattRoute
+  '/arendestatus': typeof ArendestatusRoute
   '/assistent': typeof AssistentRoute
   '/case-study': typeof CaseStudyRoute
   '/faq': typeof FaqRoute
@@ -122,6 +130,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/arbetssatt': typeof ArbetssattRoute
+  '/arendestatus': typeof ArendestatusRoute
   '/assistent': typeof AssistentRoute
   '/case-study': typeof CaseStudyRoute
   '/faq': typeof FaqRoute
@@ -139,6 +148,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/arbetssatt'
+    | '/arendestatus'
     | '/assistent'
     | '/case-study'
     | '/faq'
@@ -154,6 +164,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/arbetssatt'
+    | '/arendestatus'
     | '/assistent'
     | '/case-study'
     | '/faq'
@@ -168,6 +179,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/arbetssatt'
+    | '/arendestatus'
     | '/assistent'
     | '/case-study'
     | '/faq'
@@ -184,6 +196,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ArbetssattRoute: typeof ArbetssattRoute
+  ArendestatusRoute: typeof ArendestatusRoute
   AssistentRoute: typeof AssistentRoute
   CaseStudyRoute: typeof CaseStudyRoute
   FaqRoute: typeof FaqRoute
@@ -209,6 +222,13 @@ declare module '@tanstack/react-router' {
       path: '/arbetssatt'
       fullPath: '/arbetssatt'
       preLoaderRoute: typeof ArbetssattRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/arendestatus': {
+      id: '/arendestatus'
+      path: '/arendestatus'
+      fullPath: '/arendestatus'
+      preLoaderRoute: typeof ArendestatusRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/assistent': {
@@ -308,6 +328,7 @@ const TjansterRouteWithChildren = TjansterRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ArbetssattRoute: ArbetssattRoute,
+  ArendestatusRoute: ArendestatusRoute,
   AssistentRoute: AssistentRoute,
   CaseStudyRoute: CaseStudyRoute,
   FaqRoute: FaqRoute,
