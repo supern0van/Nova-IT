@@ -48,6 +48,7 @@ export function PortalMeny({
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   const [inloggningsfel, setInloggningsfel] = useState<string | null>(null);
   const behallare = useRef<HTMLDivElement>(null);
+  const panel = useRef<HTMLDivElement>(null);
   const knapp = useRef<HTMLButtonElement>(null);
   const arendenummerFalt = useRef<HTMLInputElement>(null);
   const panelId = useId();
@@ -67,9 +68,25 @@ export function PortalMeny({
     if (!open) return;
 
     const vidTangent = (event: KeyboardEvent) => {
-      if (event.key !== "Escape") return;
-      stangPortal();
-      knapp.current?.focus();
+      if (event.key === "Escape") {
+        stangPortal();
+        knapp.current?.focus();
+        return;
+      }
+      if (event.key !== "Tab" || !panel.current) return;
+      const fokusbara = panel.current.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      );
+      if (!fokusbara.length) return;
+      const forsta = fokusbara[0];
+      const sista = fokusbara[fokusbara.length - 1];
+      if (event.shiftKey && document.activeElement === forsta) {
+        event.preventDefault();
+        sista.focus();
+      } else if (!event.shiftKey && document.activeElement === sista) {
+        event.preventDefault();
+        forsta.focus();
+      }
     };
 
     const vidKlickUtanfor = (event: MouseEvent) => {
@@ -127,8 +144,11 @@ export function PortalMeny({
       </button>
 
       <div
+        ref={panel}
         id={panelId}
         hidden={!open}
+        role="region"
+        aria-label="Kundportalens inloggning"
         className={cn(
           "rounded-lg border border-white/12 bg-[#0c141d] p-5 text-left shadow-2xl shadow-black/60",
           arMobil

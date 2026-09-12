@@ -128,6 +128,8 @@ export async function skickaKontaktforfragan(
       headers: {
         "content-type": "application/json",
         "x-intag-secret": intakeSecret,
+        "x-intag-timestamp": String(Date.now()),
+        "x-intag-nonce": crypto.randomUUID(),
       },
       body: JSON.stringify({
         kalla: data.kalla,
@@ -412,6 +414,8 @@ async function uppdateraBekraftelseStatus(uppgifter: {
       headers: {
         "content-type": "application/json",
         "x-intag-secret": uppgifter.intakeSecret,
+        "x-intag-timestamp": String(Date.now()),
+        "x-intag-nonce": crypto.randomUUID(),
       },
       body: JSON.stringify({ arendeId: uppgifter.arendeId, status: uppgifter.status }),
       signal: AbortSignal.timeout(8000),
