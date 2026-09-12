@@ -63,6 +63,9 @@ export default defineConfig({
       defaultPreset: "cloudflare-module",
       cloudflare: {
         wrangler: {
+          name: "supern0van-nova-it",
+          compatibility_date: "2026-09-11",
+          observability: { enabled: true },
           ai: { binding: "AI" },
           // Delad AI-budget över alla tre portaler (nova-it.se, adminportal,
           // kundportal) - se Nova-IT-Portaler/ai-budget/. Service Binding,

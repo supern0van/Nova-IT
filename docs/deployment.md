@@ -48,7 +48,7 @@ Utgå från `.env.example`.
 
 Regel: frontendvariabler kan läsas av besökaren. Lägg därför aldrig API-nycklar, GitHub-tokens, ärendesystemsnycklar eller privata kunduppgifter i Vite-variabler. Kontaktadresserna ligger medvetet som publika uppgifter i `src/lib/nova-data.ts`.
 
-Kontaktformuläret skickar e-post server-side genom Resend. Det öppnar inte besökarens e-postapp och sparar inte ärenden i en databas. Se [kontaktformularets aktivering](contact-form-activation.md) för hela flödet och kontrollpunkterna.
+Kontaktformuläret skapar först kund och ärende genom Adminportalens skyddade intag. Därefter skickar Resend intern avisering och kundbekräftelse server-side. Den publika Worker:n har ingen egen ärendedatabas, men ärendet lagras i Adminportalens Supabase-projekt. Se [kontaktformulärets aktivering](contact-form-activation.md) för hela flödet och kontrollpunkterna.
 
 När en verifierad avsändare är klar i Resend läggs hemligheterna in i Cloudflare efter bygget:
 
