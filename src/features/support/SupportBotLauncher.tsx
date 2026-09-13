@@ -30,7 +30,11 @@ export function SupportBotLauncher() {
         ref={triggerRef}
         type="button"
         onClick={() => setOpen(true)}
-        className={`nova-support-launcher group fixed right-4 z-40 flex h-13 items-center justify-center gap-2.5 rounded-full border border-white/12 bg-[#0b131c] px-5 text-slate-100 transition-[bottom,transform,border-color,background-color] hover:-translate-y-0.5 hover:border-sky-300/60 hover:bg-[#101a24] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0d151e] motion-reduce:transform-none sm:right-6 ${nearFooter ? "bottom-24 sm:bottom-20" : "bottom-4 sm:bottom-6"}`}
+        // bottom-offsetten lägger alltid till --nova-cookie-banner-h (satt av
+        // CookieConsent, 0px när den är stängd/borta) ovanpå det vanliga
+        // avståndet - annars döljs launchern helt bakom kakbannerns sidbreda
+        // rad (samma z-lager, launchern förlorar) tills besökaren stänger den.
+        className={`nova-support-launcher group fixed right-4 z-40 flex h-13 items-center justify-center gap-2.5 rounded-full border border-white/12 bg-[#0b131c] px-5 text-slate-100 transition-[bottom,transform,border-color,background-color] hover:-translate-y-0.5 hover:border-sky-300/60 hover:bg-[#101a24] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0d151e] motion-reduce:transform-none sm:right-6 ${nearFooter ? "bottom-[calc(6rem+var(--nova-cookie-banner-h,0px))] sm:bottom-[calc(5rem+var(--nova-cookie-banner-h,0px))]" : "bottom-[calc(1rem+var(--nova-cookie-banner-h,0px))] sm:bottom-[calc(1.5rem+var(--nova-cookie-banner-h,0px))]"}`}
         aria-label="Öppna ärendeguiden"
         aria-expanded={open}
         aria-haspopup="dialog"

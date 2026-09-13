@@ -5,6 +5,16 @@ import { LegalDialogTrigger } from "@/components/legal-dialog";
 const STORAGE_KEY = "nova-it-cookie-information-seen";
 const OPEN_EVENT = "nova-it:open-cookie-preferences";
 
+/**
+ * CSS-variabel som speglar den här rutans FAKTISKA renderade höjd, satt på
+ * `:root` medan den syns (0px annars). Låter andra fasta, bottenförankrade
+ * element (just nu `SupportBotLauncher`) lägga till den i sin egen
+ * `bottom`-offset i stället för att gissa en höjd i pixlar - texten radbryts
+ * olika mycket beroende på viewport-bredd, så en hårdkodad siffra skulle
+ * antingen lämna ett glapp eller (värre) inte räcka till.
+ */
+const HEIGHT_VAR = "--nova-cookie-banner-h";
+
 export function CookieConsent() {
   const [visible, setVisible] = useState(false);
   const panelRef = useRef<HTMLElement>(null);
@@ -20,6 +30,27 @@ export function CookieConsent() {
 
   useEffect(() => {
     if (visible) panelRef.current?.focus();
+  }, [visible]);
+
+  // Håller HEIGHT_VAR i synk med den riktiga höjden så länge rutan är synlig
+  // (textens radbrytning ändras med viewport-bredden), och nollställer den
+  // både vid stängning och vid unmount - annars skulle en tidigare öppen
+  // banner lämna kvar en falsk offset permanent.
+  useEffect(() => {
+    if (!visible) return;
+    const el = panelRef.current;
+    if (!el) return;
+
+    const satt = () =>
+      document.documentElement.style.setProperty(HEIGHT_VAR, `${el.offsetHeight}px`);
+    satt();
+    const observer = new ResizeObserver(satt);
+    observer.observe(el);
+
+    return () => {
+      observer.disconnect();
+      document.documentElement.style.setProperty(HEIGHT_VAR, "0px");
+    };
   }, [visible]);
 
   if (!visible) return null;
