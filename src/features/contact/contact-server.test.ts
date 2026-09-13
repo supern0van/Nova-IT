@@ -1,5 +1,23 @@
-import { afterEach, beforeEach, expect, test } from "bun:test";
-import { skickaKontaktforfragan } from "./contact-server";
+import { afterEach, beforeEach, expect, mock, test } from "bun:test";
+
+/**
+ * PUB-3 (kontaktformulärets eget hastighetsskydd) mockas på modulnivå så
+ * att `skickaKontaktforfragan`s EGEN kod - inte bara
+ * `arKontaktformularIpSparrad` isolerat, redan täckt av
+ * contact-ratelimit.test.ts - kan testas för att faktiskt anropa spärren
+ * och avvisa korrekt, innan honeypot/tidskontroll/Turnstile ens körs.
+ * `mock.module` måste köras FÖRE `./contact-server` importeras (annars är
+ * modulgrafen redan cachad med den riktiga `contact-ratelimit`-modulen),
+ * därför en dynamisk import i stället för en vanlig top-level `import` -
+ * samma mönster som `contact-ratelimit.test.ts` använder för
+ * `@tanstack/react-start/server`.
+ */
+const arKontaktformularIpSparradMock = mock(async () => false);
+mock.module("./contact-ratelimit", () => ({
+  arKontaktformularIpSparrad: arKontaktformularIpSparradMock,
+}));
+
+const { skickaKontaktforfragan } = await import("./contact-server");
 
 const ENV_KEYS = [
   "ADMIN_INTAKE_URL",
@@ -31,6 +49,8 @@ beforeEach(() => {
   delete process.env.TURNSTILE_SECRET_KEY; // default: ej konfigurerad (soft-fail)
   delete process.env.TURNSTILE_REQUIRED;
   originalFetch = globalThis.fetch;
+  arKontaktformularIpSparradMock.mockReset();
+  arKontaktformularIpSparradMock.mockImplementation(async () => false);
 });
 
 afterEach(() => {
@@ -411,4 +431,47 @@ test("a locked intake rejects the submission without processing any customer dat
   } finally {
     delete process.env.PUBLIK_INTAG_LAGE;
   }
+});
+
+test("PUB-3: en IP som nått kontaktformulärets egna hastighetsspärr avvisas innan honeypot/tidskontroll/Turnstile körs", async () => {
+  arKontaktformularIpSparradMock.mockImplementation(async () => true);
+
+  let fetchCalled = false;
+  globalThis.fetch = (async () => {
+    fetchCalled = true;
+    throw new Error("should not be called");
+  }) as unknown as typeof fetch;
+
+  await expect(skickaKontaktforfragan(validPayload)).rejects.toThrow(
+    "Ärendet kunde inte skickas just nu. Försök igen om en liten stund.",
+  );
+  // Varken ärendeintaget, Turnstile eller Resend får ha kontaktats - PUB-3
+  // ska slå till FÖRE all annan bearbetning, samma ordning som den låsta
+  // intag-kontrollen testas ovan.
+  expect(fetchCalled).toBe(false);
+});
+
+test("PUB-3: en IP som INTE nått spärren skickas vidare som vanligt", async () => {
+  arKontaktformularIpSparradMock.mockImplementation(async () => false);
+
+  globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
+    const url = String(input);
+    if (url.endsWith("/api/public/intag") && init?.method === "POST") {
+      return jsonResponse({
+        accepted: true,
+        arendenummer: "NIT-2701",
+        mottagetVid: "2026-09-13T10:00:00.000Z",
+        internt: { arendeId: "arende-2", kundEpost: "anna@example.se", kundNamn: "Anna Andersson" },
+      });
+    }
+    if (url.endsWith("/api/public/intag") && init?.method === "PATCH") {
+      return jsonResponse({ ok: true });
+    }
+    if (hasExpectedHttpsHost(url, "api.resend.com")) return jsonResponse({ id: "email-1" });
+    throw new Error(`Unexpected fetch to ${url}`);
+  }) as unknown as typeof fetch;
+
+  const result = await skickaKontaktforfragan(validPayload);
+  expect(result.accepted).toBe(true);
+  expect(result.arendenummer).toBe("NIT-2701");
 });

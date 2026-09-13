@@ -6,7 +6,8 @@
   "packageManager": "bun@1.3.14",
   "scripts": {
     "dev": "vite dev",
-    "build": "vite build",
+    "sitemap": "bun scripts/generate-sitemap.mjs",
+    "build": "bun run sitemap && vite build",
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
     "deploy": "bun run deploy:production",
