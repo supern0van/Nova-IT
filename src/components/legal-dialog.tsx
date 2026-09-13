@@ -308,9 +308,9 @@ const documents: Record<
         heading: "Informationsrutan",
         body: (
           <p>
-            Webbplatsen visar information om den teknik som faktiskt används. Det finns inga
-            valfria statistik- eller marknadsföringskategorier att slå på, därför visas inga
-            skenbara samtyckesval. Informationen kan öppnas igen via sidfoten.
+            Webbplatsen visar information om den teknik som faktiskt används. Det finns inga valfria
+            statistik- eller marknadsföringskategorier att slå på, därför visas inga skenbara
+            samtyckesval. Informationen kan öppnas igen via sidfoten.
           </p>
         ),
       },

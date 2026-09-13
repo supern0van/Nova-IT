@@ -1,4 +1,4 @@
-import { createServerFn } from "@tanstack/react-start";
+import { createServerFn, createServerOnlyFn } from "@tanstack/react-start";
 import { z } from "zod";
 
 /**
@@ -118,13 +118,19 @@ async function verifieraTurnstile(token: string | null): Promise<void> {
  * utan detta skulle adminportalens per-IP-spärr bara se nova-it.se:s egen
  * utgående Cloudflare-anslutning, delad av ALLA besökare på samma gång.
  *
- * Dynamisk import, samma mönster och skäl som `support-ai-runtime.ts`:
- * `getRequest()` kräver en aktiv serverfunktions-kontext och ett statiskt
- * import av `@tanstack/react-start/server` här skulle annars dras in i varje
- * modul som importerar den här filen, inklusive klientsidans anrop av
- * `lookupCaseStatus` nedan.
+ * `createServerOnlyFn`, samma mönster och skäl som `support-ai-runtime.ts`
+ * och `contact-ratelimit.ts`: `getRequest()` kräver en aktiv
+ * serverfunktions-kontext, och ETT dynamiskt `import()` med en literal
+ * sträng räcker INTE för att undvika `importProtection` i vite.config.ts -
+ * Vite följer literala dynamiska imports statiskt precis som vanliga
+ * imports. Bara `createServerOnlyFn` ger den kompilator-igenkända
+ * klient/server-gränsen som faktiskt stryker anropet ur klientbunten
+ * (bekräftat: utan detta kraschade `/arendestatus` i dev-läge med
+ * "Import denied in client environment" - fångat av
+ * `e2e/tillganglighet.spec.ts`s axe-svep, som såg Vites felöverlägg som en
+ * WCAG-tangentbordsträff).
  */
-async function hamtaBesokarensIp(): Promise<string | null> {
+const hamtaBesokarensIp = createServerOnlyFn(async (): Promise<string | null> => {
   try {
     const { getRequest } = await import("@tanstack/react-start/server");
     const request = getRequest();
@@ -132,7 +138,7 @@ async function hamtaBesokarensIp(): Promise<string | null> {
   } catch {
     return null;
   }
-}
+});
 
 /**
  * Kärnlogiken, en vanlig testbar funktion - se `skickaKontaktforfragan`s
