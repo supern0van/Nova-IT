@@ -94,13 +94,17 @@ Alla övriga stickprov (`text-slate-300`, `text-slate-400`, länkar i huvudnavig
    fynd i de kategorierna. CLS är 0 på båda, vilket bekräftar att bild- och layoutändringarna
    i detta pass inte introducerat något layoutskift.
 
-## Kvarstående, inte åtgärdat
+## Avslutad restpunkt – ej genomförd
 
 10. **Skärmläsarbeteende i praktiken** (NVDA/VoiceOver) är inte testat — kräver en riktig
     skärmläsare, inte bara DOM-/kontrastanalys eller Lighthouses automatiserade a11y-revision
     (som redan ger 100/100, men det täcker inte allt en riktig skärmläsare skulle avslöja).
     Tangentbordsfokusordning i kontaktformuläret är dock redan verifierad tidigare (Grind 4):
     tomt formulär flyttar fokus till första ogiltiga fält och visar `role="alert"` per fält.
+
+Punkten avslutas här som **ej genomförd, accepterad restpunkt** enligt
+`NOVA-0073`. Detta ska inte läsas som ett genomfört eller godkänt
+skärmläsartest.
 
 ## Kvalitetsgrindar
 
