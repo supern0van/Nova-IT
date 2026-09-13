@@ -34,7 +34,7 @@ type PendingAssistant = {
 type ChatState = {
   messages: DisplayMessage[];
   draft: string;
-  status: "idle" | "loading" | "ai-unavailable" | "session-limit";
+  status: "idle" | "loading" | "ai-unavailable" | "session-limit" | "rate-limited";
   serviceSlug: SupportServiceSlug | null;
   urgency: SupportUrgency;
   securityIncident: boolean;
@@ -211,6 +211,11 @@ export function useSupportChat() {
           turerRef.current -= 1;
           if (resultat.anledning === "for-manga-turer") {
             dispatch({ type: "status", value: "session-limit" });
+          } else if (resultat.anledning === "for-manga-forfragningar") {
+            // PUB-1: skiljs uttryckligen från "ai-unavailable" - det här är
+            // INTE AI:n som är nere, utan en tillfällig, IP-baserad spärr
+            // (se `arChattIpSparrad`) som släpper igen inom kort.
+            dispatch({ type: "status", value: "rate-limited" });
           } else if (historik.length === 1) {
             // Första turen misslyckades - AI:n är sannolikt av eller nere.
             // Fallande tillbaka till den regelbaserade guiden är UI-lagrets

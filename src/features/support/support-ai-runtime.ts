@@ -92,6 +92,49 @@ export const harAiBudget = createServerOnlyFn(async (vikt?: number): Promise<boo
   }
 });
 
+/**
+ * PUB-1 (fördjupad revision 2026-09-12): per-besökare hastighetsbegränsning
+ * för supportchatten via Cloudflares egen `ratelimits`-bindning (se
+ * vite.config.ts) - en riktig distribuerad räknare, inte ett manuellt
+ * Worker-minnesräkneverk (den typen filens tidigare kommentarer korrekt
+ * varnade för). Nyckeln är besökarens `cf-connecting-ip` - samma enda
+ * icke-förfalskningsbara IP-källa som `case-status-server.ts` redan
+ * använder, av samma skäl (se den filens kommentar).
+ *
+ * Fail-OPEN vid saknad bindning eller ett oväntat fel - till skillnad från
+ * `harAiBudget` ovan (som fail-closar) är det här ett ANDRA, kompletterande
+ * skydd ovanpå den delade AI-budgeten; om bindningen någon gång saknas
+ * (t.ex. en lokal dev-miljö utan `ratelimits` konfigurerat) ska chatten
+ * fortfarande fungera - budgetkontrollen är den skarpa spärren.
+ */
+export const arChattIpSparrad = createServerOnlyFn(async (): Promise<boolean> => {
+  try {
+    const { getRequest } = await import("@tanstack/react-start/server");
+    const request = getRequest() as unknown as {
+      headers: { get(name: string): string | null };
+      runtime?: {
+        cloudflare?: {
+          env?: {
+            SUPPORT_CHAT_RATE_LIMITER?: {
+              limit: (opts: { key: string }) => Promise<{ success: boolean }>;
+            };
+          };
+        };
+      };
+    };
+    const begransare = request?.runtime?.cloudflare?.env?.SUPPORT_CHAT_RATE_LIMITER;
+    if (!begransare) return false;
+
+    const ip = request.headers.get("cf-connecting-ip") ?? request.headers.get("x-forwarded-for");
+    if (!ip) return false; // ingen pålitlig nyckel att begränsa på - hellre släppa igenom än att spärra alla bakom samma proxy
+
+    const { success } = await begransare.limit({ key: ip });
+    return !success;
+  } catch {
+    return false;
+  }
+});
+
 /** Kapar `arbete` vid `timeoutMs` - de två anroparna har olika gränser
  *  (klassificeraren 4000ms, chatten 9000ms eftersom den skickar mer
  *  underlag och väntar på ett längre svar), så gränsen är en parameter
