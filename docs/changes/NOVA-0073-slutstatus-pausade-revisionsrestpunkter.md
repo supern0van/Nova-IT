@@ -36,3 +36,5 @@ skärmläsarstöd. De ska därför inte redovisas som utförda tester.
 
 Revisionsstatusen är dokumenterad som avslutad med accepterad restpunkt.
 Ingen produktionsdata eller produktionskonfiguration ändras av denna post.
+Det tidigare oanvända Cloudflare Workers Builds-tokenet är borttaget efter
+verifiering att kontot saknade aktiva Builds-triggers.
