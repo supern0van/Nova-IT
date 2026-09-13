@@ -85,11 +85,20 @@ export default defineConfig({
           // tillgänglig direkt som en bindning utan någon
           // dashboard-konfiguration. `namespace_id` är valfritt men måste
           // vara unikt per bindning i kontot.
+          // PUB-3 (fördjupad revision 2026-09-12): motsvarande eget skydd
+          // för kontaktformuläret - se contact-ratelimit.ts. Något generösare
+          // gräns än chatten (färre men "dyrare" - riktiga ärenden skapas -
+          // anrop, och Turnstile filtrerar redan bort ren bot-trafik).
           ratelimits: [
             {
               name: "SUPPORT_CHAT_RATE_LIMITER",
               namespace_id: "1001",
               simple: { limit: 10, period: 60 },
+            },
+            {
+              name: "CONTACT_FORM_RATE_LIMITER",
+              namespace_id: "1002",
+              simple: { limit: 5, period: 60 },
             },
           ],
         },
