@@ -101,6 +101,44 @@ describe("chattaInternt", () => {
     expect(anropad).toBe(false);
   });
 
+  test("PUB-1: nekar när SUPPORT_CHAT_RATE_LIMITER-bindningen säger nej, utan att kalla budgeten eller fetch", async () => {
+    let budgetAnropad = false;
+    getRequestMock.mockImplementation(() => ({
+      headers: new Headers({ "cf-connecting-ip": "203.0.113.1" }),
+      runtime: {
+        cloudflare: {
+          env: {
+            AI_BUDGET_SERVICE: {
+              fetch: (async () => {
+                budgetAnropad = true;
+                return new Response(JSON.stringify({ ok: true }), { status: 200 });
+              }) as unknown as typeof fetch,
+            },
+            SUPPORT_CHAT_RATE_LIMITER: { limit: async () => ({ success: false }) },
+          },
+        },
+      },
+    }));
+    globalThis.fetch = (async () => {
+      throw new Error("ska inte anropas");
+    }) as unknown as typeof fetch;
+
+    const resultat = await chattaInternt([{ role: "user", content: "hej" }], 0);
+    expect(resultat).toEqual({ ok: false, anledning: "for-manga-forfragningar" });
+    expect(budgetAnropad).toBe(false);
+  });
+
+  test("PUB-1: släpper igenom (fail-open) när SUPPORT_CHAT_RATE_LIMITER-bindningen saknas helt", async () => {
+    getRequestMock.mockImplementation(() => ({
+      headers: new Headers({ "cf-connecting-ip": "203.0.113.1" }),
+      runtime: { cloudflare: { env: budgetMiljo(true) } },
+    }));
+    svaraMed({ reply: "Vi kan hjälpa till med det.", urgency: "standard" });
+
+    const resultat = await chattaInternt([{ role: "user", content: "hej" }], 0);
+    expect(resultat.ok).toBe(true);
+  });
+
   test("faller tillbaka till 'fel' vid trasigt AI-svar", async () => {
     globalThis.fetch = (async () => new Response("{}", { status: 500 })) as unknown as typeof fetch;
     const resultat = await chattaInternt([{ role: "user", content: "hej" }], 0);

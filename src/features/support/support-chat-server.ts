@@ -16,6 +16,7 @@ import {
 import { resolveUrgency } from "./support-tools";
 import { SUPPORT_ASSISTANT_IS_ONLINE } from "./support-availability";
 import {
+  arChattIpSparrad,
   hamtaAiBindning,
   harAiBudget,
   medTimeout,
@@ -67,7 +68,10 @@ const chattSchema = z.object({
 
 export type ChatResultat =
   | { ok: true; svar: ChatSvar }
-  | { ok: false; anledning: "avstangt" | "budget" | "for-manga-turer" | "fel" };
+  | {
+      ok: false;
+      anledning: "avstangt" | "budget" | "for-manga-turer" | "for-manga-forfragningar" | "fel";
+    };
 
 export function chattAiArPaslaget(varde: string | undefined): boolean {
   return varde?.trim().toLocaleLowerCase("sv") === "pa";
@@ -149,12 +153,18 @@ export async function chattaInternt(
 
   // Server-sidan är den enda kontroll som faktiskt går att lita på - klienten
   // skickar med sin egen turräkning, men en klient som ljuger om den stoppas
-  // ändå här. Detta är INTE ett ersättning för riktig hastighetsbegränsning
-  // per IP vid kanten (se docs/changes) - bara ett tak på en enskild sessions
-  // längd, oavsett vem som frågar.
+  // ändå här. Det här är bara ett tak på en ENSKILD sessions längd/turer -
+  // en besökare som startar om konversationen (ny session, ny turräkning)
+  // fångas istället av den riktiga per-IP-hastighetsbegränsningen
+  // (`arChattIpSparrad`, PUB-1) direkt nedan.
   if (sessionsTurer >= MAX_TURNS || totalLangd(meddelanden) > MAX_TOTAL_CHARS) {
     return { ok: false, anledning: "for-manga-turer" };
   }
+
+  // PUB-1: kontrolleras FÖRE den delade AI-budgeten (billigast/snabbast
+  // skydd först) - en besökare som startar om konversationen för att
+  // kringgå sessionsTurer-taket ovan stoppas ändå här, per IP.
+  if (await arChattIpSparrad()) return { ok: false, anledning: "for-manga-forfragningar" };
 
   if (!(await harAiBudget(CHAT_BUDGET_VIKT))) return { ok: false, anledning: "budget" };
 

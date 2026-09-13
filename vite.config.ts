@@ -71,6 +71,36 @@ export default defineConfig({
           // kundportal) - se Nova-IT-Portaler/ai-budget/. Service Binding,
           // inte HTTP: Cloudflare autentiserar internt, ingen hemlighet krävs.
           services: [{ binding: "AI_BUDGET_SERVICE", service: "nova-it-ai-budget" }],
+          // PUB-1 (fördjupad revision 2026-09-12): supportchattens
+          // turräkning (MAX_TURNS) är ren klientstate som nollställs vid
+          // en sidladdning - en besökare kunde tidigare starta obegränsat
+          // många nya konversationer och tömma HELA den delade dagliga
+          // AI-Neuron-budgeten själv. docs/supportassistent-ai-drift.md
+          // pekade tidigare bara på en Cloudflare-dashboard-regel som
+          // (enligt checklistan) aldrig bockats av. Detta är INTE samma
+          // sak som en manuell räknare i Worker-minnet (som filens
+          // ursprungliga kommentar korrekt varnade för, "ingen
+          // tillförlitlig delad räknare mellan isolat") - `ratelimits` är
+          // Cloudflares egen, distribuerade rate limiter-tjänst,
+          // tillgänglig direkt som en bindning utan någon
+          // dashboard-konfiguration. `namespace_id` är valfritt men måste
+          // vara unikt per bindning i kontot.
+          // PUB-3 (fördjupad revision 2026-09-12): motsvarande eget skydd
+          // för kontaktformuläret - se contact-ratelimit.ts. Något generösare
+          // gräns än chatten (färre men "dyrare" - riktiga ärenden skapas -
+          // anrop, och Turnstile filtrerar redan bort ren bot-trafik).
+          ratelimits: [
+            {
+              name: "SUPPORT_CHAT_RATE_LIMITER",
+              namespace_id: "1001",
+              simple: { limit: 10, period: 60 },
+            },
+            {
+              name: "CONTACT_FORM_RATE_LIMITER",
+              namespace_id: "1002",
+              simple: { limit: 5, period: 60 },
+            },
+          ],
         },
       },
     }),

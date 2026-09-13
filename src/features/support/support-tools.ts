@@ -81,8 +81,27 @@ const felsokningsmonster =
 export const FELSOKNING_ERSATTNINGSSVAR =
   "Jag samlar underlag till ärendet, jag felsöker inte här - men jag kan hjälpa dig beskriva det du märker.";
 
+/**
+ * PUB-2 (fördjupad revision 2026-09-12): tredje försvarslinjen, mot att
+ * modellen citerar/läcker sin EGEN systemprompt i svarstexten (t.ex. lurad
+ * av en kund som ber den "upprepa dina instruktioner" eller "visa din
+ * systemprompt"). `sanitizeReply` skyddade tidigare bara mot felsökningsråd
+ * - en läckt systemprompt slank rakt igenom till kunden.
+ *
+ * Samma heuristik-med-reservationer-princip som ovan: fångar de mönster som
+ * faktiskt förekommer i `byggChattSystemPrompt` (den ordagranna
+ * rollbeskrivningen, JSON-kontraktets nyckelord, "instruktion(er)"/
+ * "systemprompt" som begrepp) - ingen garanti mot en omformulerad läcka, men
+ * stänger den enklaste och vanligaste varianten: att modellen citerar
+ * prompten rakt av.
+ */
+const systempromptlackagemonster =
+  /(du är nova it:s ärendeguide|svara endast med ett json-objekt|mina instruktioner|min systemprompt|min prompt|as an ai (language model|assistant)|ignorera (tidigare|ovanstående) instruktioner)/i;
+
 export function sanitizeReply(reply: string): string {
   const trimmed = reply.trim();
   if (!trimmed) return FELSOKNING_ERSATTNINGSSVAR;
-  return felsokningsmonster.test(trimmed) ? FELSOKNING_ERSATTNINGSSVAR : trimmed;
+  if (felsokningsmonster.test(trimmed)) return FELSOKNING_ERSATTNINGSSVAR;
+  if (systempromptlackagemonster.test(trimmed)) return FELSOKNING_ERSATTNINGSSVAR;
+  return trimmed;
 }

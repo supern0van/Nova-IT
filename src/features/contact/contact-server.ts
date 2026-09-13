@@ -7,6 +7,7 @@ import {
   tillAdminKundtyp,
 } from "./contact-submission";
 import { INTAG_STANGT_MEDDELANDE, lasIntagLage } from "./intag-lage";
+import { arKontaktformularIpSparrad } from "./contact-ratelimit";
 
 /**
  * Kundens synliga kontaktväg (reply-to på bekräftelsemejlet) - matchar
@@ -89,6 +90,18 @@ export async function skickaKontaktforfragan(
   // anropas direkt. Se `intag-lage.ts`.
   if (lasIntagLage(process.env.PUBLIK_INTAG_LAGE) === "stangd") {
     throw new Error(INTAG_STANGT_MEDDELANDE);
+  }
+
+  // PUB-3 (fördjupad revision 2026-09-12): kontaktformuläret hade tidigare
+  // inget EGET hastighetsskydd - det litade helt på Turnstile (mänsklig
+  // verifiering, kräver JS/en lyckad utmaning) och adminportalens egen
+  // nedströms IP-spärr på `/api/public/intag`. Turnstile stoppar bottar men
+  // inte en enskild ihärdig människa, och adminportalens spärr ser bara
+  // Nova IT:s EGEN utgående Cloudflare-anslutning om `x-forwarded-for` inte
+  // sätts (se `case-status-server.ts`s motsvarande kommentar). Samma mönster
+  // som `arChattIpSparrad` (PUB-1) - fail-open, sekundärt skydd.
+  if (await arKontaktformularIpSparrad()) {
+    throw new Error("Ärendet kunde inte skickas just nu. Försök igen om en liten stund.");
   }
 
   // Honeypot: ett fält som är osynligt och onåbart för en människa som
