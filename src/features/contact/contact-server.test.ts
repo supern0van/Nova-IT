@@ -1,23 +1,42 @@
 import { afterEach, beforeEach, expect, mock, test } from "bun:test";
 
 /**
- * PUB-3 (kontaktformulärets eget hastighetsskydd) mockas på modulnivå så
- * att `skickaKontaktforfragan`s EGEN kod - inte bara
- * `arKontaktformularIpSparrad` isolerat, redan täckt av
- * contact-ratelimit.test.ts - kan testas för att faktiskt anropa spärren
- * och avvisa korrekt, innan honeypot/tidskontroll/Turnstile ens körs.
- * `mock.module` måste köras FÖRE `./contact-server` importeras (annars är
- * modulgrafen redan cachad med den riktiga `contact-ratelimit`-modulen),
- * därför en dynamisk import i stället för en vanlig top-level `import` -
- * samma mönster som `contact-ratelimit.test.ts` använder för
- * `@tanstack/react-start/server`.
+ * PUB-3 (kontaktformulärets eget hastighetsskydd): för att bevisa att
+ * `skickaKontaktforfragan`s EGEN kod faktiskt anropar
+ * `arKontaktformularIpSparrad` och avvisar korrekt - inte bara att
+ * hjälpfunktionen fungerar isolerat, redan täckt av
+ * contact-ratelimit.test.ts - körs den RIKTIGA `arKontaktformularIpSparrad`
+ * här, med bara dess egen underliggande beroende (`getRequest`) mockad.
+ *
+ * MEDVETET INTE `mock.module("./contact-ratelimit", ...)`: Bun kör alla
+ * testfiler i EN process, och `mock.module` ersätter modulregistret
+ * globalt för resten av körningen, inte bara för den här filen - ett
+ * första försök med det läckte in i `contact-ratelimit.test.ts`s egna
+ * tester (som importerar exakt samma fil) och fick dem att se det mockade
+ * stubb-svaret i stället för den riktiga logiken. Att mocka
+ * `@tanstack/react-start/server` i stället - samma lågnivåberoende och
+ * samma mönster som `contact-ratelimit.test.ts` redan använder - rör
+ * aldrig `./contact-ratelimit`s modulidentitet, så det kan inte smitta
+ * någon annan testfil oavsett körordning.
  */
-const arKontaktformularIpSparradMock = mock(async () => false);
-mock.module("./contact-ratelimit", () => ({
-  arKontaktformularIpSparrad: arKontaktformularIpSparradMock,
+const getRequestMock = mock(() => ({
+  headers: new Headers(),
+  runtime: { cloudflare: { env: {} } },
 }));
+mock.module("@tanstack/react-start/server", () => ({ getRequest: getRequestMock }));
 
 const { skickaKontaktforfragan } = await import("./contact-server");
+
+function satPubTreRatelimiterSvar(nekar: boolean) {
+  getRequestMock.mockImplementation(() => ({
+    headers: new Headers({ "cf-connecting-ip": "203.0.113.9" }),
+    runtime: {
+      cloudflare: {
+        env: { CONTACT_FORM_RATE_LIMITER: { limit: async () => ({ success: !nekar }) } },
+      },
+    },
+  }));
+}
 
 const ENV_KEYS = [
   "ADMIN_INTAKE_URL",
@@ -49,8 +68,12 @@ beforeEach(() => {
   delete process.env.TURNSTILE_SECRET_KEY; // default: ej konfigurerad (soft-fail)
   delete process.env.TURNSTILE_REQUIRED;
   originalFetch = globalThis.fetch;
-  arKontaktformularIpSparradMock.mockReset();
-  arKontaktformularIpSparradMock.mockImplementation(async () => false);
+  // Standard: ingen bindning/IP-träff, PUB-3 släpper igenom (fail-open) -
+  // samma standardläge som `contact-ratelimit.test.ts` använder.
+  getRequestMock.mockImplementation(() => ({
+    headers: new Headers(),
+    runtime: { cloudflare: { env: {} } },
+  }));
 });
 
 afterEach(() => {
@@ -59,6 +82,7 @@ afterEach(() => {
     else process.env[key] = originalEnv[key];
   }
   globalThis.fetch = originalFetch;
+  getRequestMock.mockReset();
 });
 
 const validPayload = {
@@ -434,7 +458,7 @@ test("a locked intake rejects the submission without processing any customer dat
 });
 
 test("PUB-3: en IP som nått kontaktformulärets egna hastighetsspärr avvisas innan honeypot/tidskontroll/Turnstile körs", async () => {
-  arKontaktformularIpSparradMock.mockImplementation(async () => true);
+  satPubTreRatelimiterSvar(true);
 
   let fetchCalled = false;
   globalThis.fetch = (async () => {
@@ -452,7 +476,7 @@ test("PUB-3: en IP som nått kontaktformulärets egna hastighetsspärr avvisas i
 });
 
 test("PUB-3: en IP som INTE nått spärren skickas vidare som vanligt", async () => {
-  arKontaktformularIpSparradMock.mockImplementation(async () => false);
+  satPubTreRatelimiterSvar(false);
 
   globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input);
