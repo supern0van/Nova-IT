@@ -13,5 +13,7 @@ export function sakerJsonLd(data: object): string {
 }
 
 export function JsonLd({ data }: { data: object }) {
-  return <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: sakerJsonLd(data) }} />;
+  return (
+    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: sakerJsonLd(data) }} />
+  );
 }

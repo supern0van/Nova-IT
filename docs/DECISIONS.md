@@ -2,6 +2,55 @@
 
 Beslutsloggen förklarar större vägval. Den kompletterar changelogen: changelogen visar vad som förändrades, medan denna fil visar varför en riktning valdes framför andra alternativ.
 
+## DEC-0007 – Fail-open per-IP-hastighetsskydd är ett medvetet val, inte en lucka
+
+**Status:** accepterat
+**Datum:** 2026-09-13
+
+### Bakgrund
+
+Den fördjupade revisionen (PUB-1/PUB-3) lade till eget per-IP-hastighetsskydd
+för supportchatten (`arChattIpSparrad`, `support-ai-runtime.ts`) och
+kontaktformuläret (`arKontaktformularIpSparrad`, `contact-ratelimit.ts`).
+Båda faller tillbaka till "släpp igenom" (fail-open) om Cloudflares
+`ratelimits`-bindning saknas i miljön, eller om ingen pålitlig IP
+(`cf-connecting-ip`/`x-forwarded-for`) går att läsa ur requesten. En
+efterföljande bred granskning (2026-09-13) flaggade detta som värt att
+motivera explicit, i stället för att bara stå som en kommentar i koden.
+
+### Beslut
+
+Fail-open behålls, oförändrat. Motivering:
+
+- Båda spärrarna är **sekundära/kompletterande** skydd, inte den enda
+  linjen. Supportchatten har den delade, fail-closed AI-budgetspärren
+  (`harAiBudget`) bakom sig; kontaktformuläret har Turnstile (fail-closed i
+  produktion, se `contact-server.ts`) och adminportalens egen nedströms
+  IP-spärr (`publik-statuskoll-server.ts`/`hamtaKlientIp`) bakom sig. Ingen
+  av dessa två nya spärrar är den sista försvarslinjen mot missbruk - de
+  finns för att slå till TIDIGARE, innan en begäran ens når AI-budgeten
+  eller adminportalen.
+- Att göra dem fail-closed hade betytt: en driftsstörning i Cloudflares
+  `ratelimits`-tjänst, eller en request där IP-headern av någon anledning
+  saknas (t.ex. ett internt hälsokontrollanrop, en proxy-konfiguration som
+  ändras), stänger av HELA kontaktvägen till Nova IT - även för legitima
+  besökare. Det är en väsentligt värre konsekvens än att en angripare i
+  undantagsfall slipper förbi ett kompletterande skydd som redan har en
+  fail-closed spärr bakom sig.
+- Samma avvägning (sekundärt skydd → fail-open; primärt/auktoritativt skydd
+  → fail-closed) är redan konsekvent genomförd i hela kodbasen: jämför
+  `arChattIpSparrad`/`arKontaktformularIpSparrad` (fail-open) med
+  `harAiBudget` och Turnstile-verifieringen i produktion (båda fail-closed).
+
+### Konsekvens
+
+Inget kodändras av detta beslut - det dokumenterar och bekräftar ett
+mönster som redan fanns. Om Cloudflares `ratelimits`-bindning skulle sakna
+tillgänglighet under en längre period bör det synas som ett eget
+driftslarm (inte tystas bort som "förväntat"), men det är ett
+observability-behov, inte ett skäl att ändra fail-open till fail-closed
+här.
+
 ## DEC-0006 – Kundportalens grundarkitektur (separat repo, Worker, databas)
 
 **Status:** accepterat

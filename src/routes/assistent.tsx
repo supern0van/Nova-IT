@@ -24,9 +24,7 @@ export const Route = createFileRoute("/assistent")({
       { name: "twitter:title", content: assistentTitle },
       { name: "twitter:description", content: assistentDescription },
       { name: "twitter:image", content: socialImageUrl },
-      ...(!SUPPORT_ASSISTANT_IS_ONLINE
-        ? [{ name: "robots", content: "noindex, follow" }]
-        : []),
+      ...(!SUPPORT_ASSISTANT_IS_ONLINE ? [{ name: "robots", content: "noindex, follow" }] : []),
     ],
     links: [{ rel: "canonical", href: assistentUrl }],
   }),
