@@ -21,7 +21,7 @@ export function renderErrorPage(): string {
       <h1>Sidan kunde inte laddas</h1>
       <p>Något gick fel i vyn. Försök ladda om eller gå tillbaka till startsidan.</p>
       <div class="actions">
-        <button class="primary" onclick="location.reload()">Försök igen</button>
+        <a class="primary" href="">Försök igen</a>
         <a class="secondary" href="/">Till startsidan</a>
       </div>
     </div>

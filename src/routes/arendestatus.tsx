@@ -1,239 +1,82 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useRef, useState, type FormEvent } from "react";
-import { AlertCircle, CheckCircle2, Clock, Hourglass, LockKeyhole, Search } from "lucide-react";
-
+import { AlertCircle, CheckCircle2, HelpCircle, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Container, PageHeader } from "@/components/design-system";
-import { TurnstileWidget, type TurnstileWidgetHandle } from "@/components/turnstile-widget";
 import { JsonLd } from "@/components/json-ld";
 import { buildBreadcrumbJsonLd } from "@/lib/structured-data";
-import { KUNDPORTAL_ORIGIN } from "@/lib/security-policy";
+import { contactChannels } from "@/lib/nova-data";
+import { TurnstileWidget, type TurnstileWidgetHandle } from "@/components/turnstile-widget";
 import {
-  lookupCaseStatus,
-  type PubliktArendeStatus,
-} from "@/features/case-status/case-status-server";
+  checkTicketStatus,
+  type ArendeStatusResultat,
+} from "@/features/status-check/status-check-server";
 import {
-  GRUNDSTEG,
-  aktivtGrundsteg,
+  formateraDatum,
   kategoriEtikett,
   statusEtikett,
   statusVagledning,
-} from "@/features/case-status/case-status-labels";
-import { cn } from "@/lib/utils";
+} from "@/features/status-check/status-labels";
 
-const caseStatusUrl = "https://nova-it.se/arendestatus";
-const caseStatusTitle = "Följ ditt ärende – Nova IT";
-const caseStatusDescription =
-  "Se status på ditt ärende med ärendenummer och e-post - ingen inloggning krävs.";
+const pageUrl = "https://nova-it.se/arendestatus";
+const pageTitle = "Kolla ärendestatus – Nova IT";
+const pageDescription = "Se status på ditt ärende med ärendenummer och e-post, utan att logga in.";
 
 export const Route = createFileRoute("/arendestatus")({
   head: () => ({
     meta: [
-      { title: caseStatusTitle },
-      { name: "description", content: caseStatusDescription },
-      { property: "og:title", content: caseStatusTitle },
-      { property: "og:description", content: caseStatusDescription },
-      { property: "og:url", content: caseStatusUrl },
-      { name: "twitter:title", content: caseStatusTitle },
-      { name: "twitter:description", content: caseStatusDescription },
+      { title: pageTitle },
+      { name: "description", content: pageDescription },
+      { property: "og:title", content: pageTitle },
+      { property: "og:description", content: pageDescription },
+      { property: "og:url", content: pageUrl },
     ],
-    links: [{ rel: "canonical", href: caseStatusUrl }],
+    links: [{ rel: "canonical", href: pageUrl }],
   }),
   component: ArendestatusPage,
 });
 
-const STATUS_IKON: Record<string, typeof Clock> = {
-  ny: Clock,
-  pagaende: Clock,
-  vantar_pa_kund: Hourglass,
-  bokad: Clock,
-  lost: CheckCircle2,
-  stangd: LockKeyhole,
-};
-
-function StatusMarke({ status }: { status: string }) {
-  const Ikon = STATUS_IKON[status] ?? Clock;
-  const varm = status === "vantar_pa_kund";
-  const klar = status === "lost" || status === "stangd";
-
-  return (
-    <span
-      className={cn(
-        "inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[13px] font-medium",
-        varm && "bg-amber-400/15 text-amber-300",
-        klar && "bg-emerald-400/15 text-emerald-300",
-        !varm && !klar && "bg-sky-300/15 text-sky-300",
-      )}
-    >
-      <Ikon className="h-3.5 w-3.5" aria-hidden="true" />
-      {statusEtikett(status)}
-    </span>
-  );
-}
-
-/** Enkel steg-för-steg-visning, samma tregrundsteg-modell som kundportalens
- *  Framstegssparning (se case-status-labels.ts) - en lättare version utan
- *  personalens extrasteg, eftersom den publika statuskollen medvetet inte
- *  returnerar dem här (adminportalens svar har fältet, men den här sidan
- *  håller sig till de tre grundstegen för att inte duplicera hela
- *  komponenten för en engångsvy). */
-function Framstegssparning({ status }: { status: string }) {
-  const aktivt = aktivtGrundsteg(status);
-
-  return (
-    <ol className="flex items-center" aria-label="Ärendets framsteg">
-      {GRUNDSTEG.map((etikett, index) => {
-        const klar = index < aktivt;
-        const aktiv = index === aktivt;
-        return (
-          <li
-            key={etikett}
-            aria-current={aktiv ? "step" : undefined}
-            className="flex flex-1 items-center last:flex-none"
-          >
-            <div className="flex flex-col items-center gap-2">
-              <span
-                className={cn(
-                  "grid size-8 shrink-0 place-items-center rounded-full border-2 text-[13px] font-semibold",
-                  klar && "border-emerald-400 bg-emerald-400 text-[#04101c]",
-                  aktiv && !klar && "border-sky-300 bg-sky-300 text-[#04101c]",
-                  !aktiv && !klar && "border-white/20 bg-transparent text-slate-500",
-                )}
-              >
-                {klar ? <CheckCircle2 className="size-4" aria-hidden="true" /> : index + 1}
-              </span>
-              <span
-                className={cn(
-                  "max-w-24 text-center text-[12px] font-medium",
-                  aktiv || klar ? "text-white" : "text-slate-500",
-                )}
-              >
-                {etikett}
-              </span>
-            </div>
-            {index < GRUNDSTEG.length - 1 && (
-              <span
-                className={cn(
-                  "mx-2 h-0.5 flex-1 rounded-full",
-                  klar ? "bg-emerald-400" : "bg-white/15",
-                )}
-                aria-hidden="true"
-              />
-            )}
-          </li>
-        );
-      })}
-    </ol>
-  );
-}
-
-function ArendeResultat({ arende }: { arende: PubliktArendeStatus }) {
-  const vagledning = statusVagledning(arende.status);
-
-  return (
-    <Card className="mt-6 border-white/12 bg-[#0c141d] text-white">
-      <CardContent className="p-6">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <p className="text-[13px] font-medium text-slate-400">{arende.arendenummer}</p>
-            <h2 className="mt-1 text-xl font-semibold">{arende.rubrik}</h2>
-            <p className="mt-1 text-[13px] text-slate-400">{kategoriEtikett(arende.kategori)}</p>
-          </div>
-          <StatusMarke status={arende.status} />
-        </div>
-
-        <div className="mt-6">
-          <Framstegssparning status={arende.status} />
-        </div>
-
-        <div className="mt-6 rounded-md border border-white/10 bg-white/5 p-4">
-          <p className="text-sm font-semibold text-white">{vagledning.rubrik}</p>
-          <p className="mt-1 text-[13px] leading-6 text-slate-300">{vagledning.beskrivning}</p>
-        </div>
-
-        <p className="mt-4 text-[12px] text-slate-500">
-          Senast uppdaterad{" "}
-          {new Date(arende.uppdaterad).toLocaleDateString("sv-SE", {
-            day: "numeric",
-            month: "long",
-            year: "numeric",
-          })}
-        </p>
-
-        <p className="mt-6 text-[13px] leading-6 text-slate-300">
-          Vill du läsa hela konversationen, svara Nova IT eller ladda upp en fil?{" "}
-          <a
-            href={`${KUNDPORTAL_ORIGIN}/logga-in`}
-            className="font-medium text-sky-300 underline underline-offset-2 hover:text-sky-200"
-          >
-            Logga in i kundportalen
-          </a>
-          .
-        </p>
-      </CardContent>
-    </Card>
-  );
-}
-
-type SokLage = "vila" | "skickar" | "hittades_inte" | "fel";
-
 function ArendestatusPage() {
-  const [arendenummer, setArendenummer] = useState("");
-  const [epost, setEpost] = useState("");
+  const [ticketNumber, setTicketNumber] = useState("");
+  const [email, setEmail] = useState("");
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
-  const [lage, setLage] = useState<SokLage>("vila");
-  const [felmeddelande, setFelmeddelande] = useState<string | null>(null);
-  const [arende, setArende] = useState<PubliktArendeStatus | null>(null);
+  const [website, setWebsite] = useState("");
+  const [formRenderedAt] = useState(() => Date.now());
+  const [isChecking, setIsChecking] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [result, setResult] = useState<ArendeStatusResultat | "not_found" | null>(null);
   const turnstileRef = useRef<TurnstileWidgetHandle>(null);
 
-  const kanSoka = Boolean(turnstileToken) && lage !== "skickar";
-
-  async function sok(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setLage("skickar");
-    setFelmeddelande(null);
-    setArende(null);
+    setError(null);
+    setResult(null);
+    setIsChecking(true);
 
     try {
-      const resultat = await lookupCaseStatus({
+      const svar = await checkTicketStatus({
         data: {
-          arendenummer: arendenummer.trim(),
-          epost: epost.trim(),
+          ticketNumber,
+          email,
+          website,
+          formRenderedAt,
           turnstileToken,
         },
       });
-
-      if (!resultat.ok) {
-        turnstileRef.current?.reset();
-        setTurnstileToken(null);
-        if (resultat.fel === "sparrat") {
-          setFelmeddelande("För många försök. Vänta en stund och försök igen.");
-        } else if (resultat.fel === "turnstile") {
-          setFelmeddelande("Verifieringen kunde inte genomföras. Ladda om sidan och försök igen.");
-        } else {
-          setFelmeddelande("Något gick fel just nu. Försök igen om en stund.");
-        }
-        setLage("fel");
-        return;
-      }
-
-      if (!resultat.funnet) {
-        turnstileRef.current?.reset();
-        setTurnstileToken(null);
-        setLage("hittades_inte");
-        return;
-      }
-
-      setArende(resultat.arende);
-      setLage("vila");
-    } catch {
+      setResult(svar.funnet ? svar.arende : "not_found");
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Uppslaget kunde inte genomföras just nu. Försök igen om en stund.",
+      );
       turnstileRef.current?.reset();
       setTurnstileToken(null);
-      setFelmeddelande("Något gick fel just nu. Försök igen om en stund.");
-      setLage("fel");
+    } finally {
+      setIsChecking(false);
     }
   }
 
@@ -242,84 +85,178 @@ function ArendestatusPage() {
       <JsonLd
         data={buildBreadcrumbJsonLd([
           { name: "Hem", url: "https://nova-it.se/" },
-          { name: "Följ ditt ärende", url: caseStatusUrl },
+          { name: "Ärendestatus", url: pageUrl },
         ])}
       />
       <PageHeader
-        eyebrow="Följ ditt ärende"
-        title="Är ni på väg? Så här ligger det till."
-        intro="Ange ärendenumret och e-postadressen du fick i bekräftelsen så visar vi ärendets status - ingen inloggning behövs."
+        eyebrow="Ärendestatus"
+        title="Se hur det går med ditt ärende"
+        intro="Ange ärendenumret och e-postadressen du fick när ärendet skapades - ingen inloggning krävs."
       />
 
       <section className="nova-section">
-        <Container className="max-w-xl py-14">
-          <Card className="border-white/12 bg-[#0c141d] text-white">
-            <CardContent className="p-6">
-              <form onSubmit={sok} className="flex flex-col gap-4">
-                <div>
-                  <Label htmlFor="arendenummer" className="text-slate-200">
-                    Ärendenummer
-                  </Label>
+        <Container className="max-w-xl py-14 lg:py-18">
+          <Card>
+            <CardContent className="p-6 sm:p-8">
+              <form onSubmit={handleSubmit} className="space-y-5">
+                <div className="space-y-1.5">
+                  <Label htmlFor="ticketNumber">Ärendenummer</Label>
                   <Input
-                    id="arendenummer"
-                    name="arendenummer"
+                    id="ticketNumber"
+                    name="ticketNumber"
+                    placeholder="NIT-2601"
+                    value={ticketNumber}
+                    onChange={(event) => setTicketNumber(event.target.value)}
                     required
-                    autoComplete="off"
-                    placeholder="NIT-1234"
-                    value={arendenummer}
-                    onChange={(event) => setArendenummer(event.target.value)}
-                    className="mt-1.5 border-white/15 bg-[#070d14] text-white placeholder:text-slate-600"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="email">E-postadress</Label>
+                  <Input
+                    id="email"
+                    name="email"
+                    type="email"
+                    placeholder="du@example.se"
+                    value={email}
+                    onChange={(event) => setEmail(event.target.value)}
+                    required
                   />
                 </div>
 
-                <div>
-                  <Label htmlFor="epost" className="text-slate-200">
-                    E-post
-                  </Label>
-                  <Input
-                    id="epost"
-                    name="epost"
-                    type="email"
-                    required
-                    autoComplete="email"
-                    value={epost}
-                    onChange={(event) => setEpost(event.target.value)}
-                    className="mt-1.5 border-white/15 bg-[#070d14] text-white placeholder:text-slate-600"
+                {/* Honeypot - osynligt/onåbart för en människa som fyller i
+                    formuläret normalt. Se status-check-server.ts. */}
+                <div className="hidden" aria-hidden="true">
+                  <label htmlFor="website">Lämna detta fält tomt</label>
+                  <input
+                    id="website"
+                    name="website"
+                    tabIndex={-1}
+                    autoComplete="off"
+                    value={website}
+                    onChange={(event) => setWebsite(event.target.value)}
                   />
                 </div>
 
                 <TurnstileWidget
-                  ref={turnstileRef}
-                  action="arendestatus"
+                  action="statuskoll"
                   onToken={setTurnstileToken}
+                  ref={turnstileRef}
                 />
 
-                {lage === "hittades_inte" && (
-                  <p
+                {error && (
+                  <div
                     role="alert"
-                    className="flex items-start gap-2 text-[13px] leading-6 text-amber-300"
+                    className="flex gap-3 rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-left text-sm text-muted-foreground"
                   >
-                    <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
-                    Vi hittade inget ärende med den kombinationen. Kontrollera ärendenumret och
-                    e-postadressen - båda måste stämma exakt med bekräftelsen du fick.
-                  </p>
+                    <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-destructive" />
+                    <p>
+                      {error}{" "}
+                      <a
+                        className="font-medium text-primary underline-offset-4 hover:underline"
+                        href={`mailto:${contactChannels.contact}`}
+                      >
+                        Skriv till {contactChannels.contact}
+                      </a>
+                      .
+                    </p>
+                  </div>
                 )}
 
-                {felmeddelande && (
-                  <p role="alert" className="text-[13px] leading-6 text-rose-300">
-                    {felmeddelande}
-                  </p>
-                )}
-
-                <Button type="submit" disabled={!kanSoka} className="mt-2 w-full gap-2">
+                <Button
+                  type="submit"
+                  disabled={isChecking || !turnstileToken}
+                  className="w-full sm:w-auto"
+                >
                   <Search className="h-4 w-4" aria-hidden="true" />
-                  {lage === "skickar" ? "Söker…" : "Visa status"}
+                  {isChecking ? "Söker..." : !turnstileToken ? "Verifierar..." : "Visa status"}
                 </Button>
               </form>
             </CardContent>
           </Card>
 
-          {arende && <ArendeResultat arende={arende} />}
+          {result === "not_found" && (
+            <div
+              role="status"
+              className="mt-6 flex gap-3 rounded-lg border border-border bg-secondary/35 p-5 text-sm text-muted-foreground"
+            >
+              <HelpCircle className="mt-0.5 h-5 w-5 shrink-0" aria-hidden="true" />
+              <p>
+                Vi hittade inget ärende som matchar ärendenumret och e-postadressen. Kontrollera
+                stavningen, eller{" "}
+                <a
+                  className="font-medium text-primary underline-offset-4 hover:underline"
+                  href={`mailto:${contactChannels.contact}`}
+                >
+                  skriv till {contactChannels.contact}
+                </a>
+                .
+              </p>
+            </div>
+          )}
+
+          {result && result !== "not_found" && (
+            <div role="status" className="mt-6 rounded-lg border border-border bg-card p-6">
+              <div className="flex items-start gap-3">
+                <CheckCircle2
+                  className="mt-0.5 h-5 w-5 shrink-0 text-emerald-400"
+                  aria-hidden="true"
+                />
+                <div>
+                  <p className="font-mono text-sm font-semibold text-foreground">
+                    {result.arendenummer}
+                  </p>
+                  <h2 className="mt-1 text-xl font-semibold tracking-tight">{result.rubrik}</h2>
+                </div>
+              </div>
+
+              <div className="mt-5 grid gap-px overflow-hidden rounded-lg border border-border bg-border text-left sm:grid-cols-2">
+                <div className="bg-card p-4">
+                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                    Status
+                  </p>
+                  <p className="mt-1.5 font-medium">{statusEtikett(result.status)}</p>
+                </div>
+                <div className="bg-card p-4">
+                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                    Kategori
+                  </p>
+                  <p className="mt-1.5 font-medium">{kategoriEtikett(result.kategori)}</p>
+                </div>
+              </div>
+
+              <p className="mt-4 text-sm leading-6 text-muted-foreground">
+                {statusVagledning(result.status)}
+              </p>
+
+              {result.steg.length > 0 && (
+                <ol className="mt-5 space-y-3 border-t border-border pt-5">
+                  {result.steg.map((steg) => (
+                    <li
+                      key={steg.nyckel}
+                      className="flex items-baseline justify-between gap-3 text-sm"
+                    >
+                      <span className="font-medium">{steg.etikett}</span>
+                      <span className="shrink-0 text-muted-foreground">
+                        {formateraDatum(steg.tidpunkt)}
+                      </span>
+                    </li>
+                  ))}
+                </ol>
+              )}
+
+              <p className="mt-5 text-xs text-muted-foreground">
+                Senast uppdaterad {formateraDatum(result.uppdaterad)}. Vill du svara eller se hela
+                konversationen? Logga in i{" "}
+                <a
+                  className="font-medium text-primary underline-offset-4 hover:underline"
+                  href="https://portal.nova-it.se"
+                >
+                  kundportalen
+                </a>
+                .
+              </p>
+            </div>
+          )}
         </Container>
       </section>
     </>

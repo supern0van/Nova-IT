@@ -68,7 +68,7 @@ export const hamtaAiBindning = createServerOnlyFn(
  * felaktigt svar - eftersom "vi vet inte" ska tolkas som "gör inte anropet",
  * aldrig tvärtom.
  */
-export const harAiBudget = createServerOnlyFn(async (vikt?: number): Promise<boolean> => {
+export const harAiBudget = createServerOnlyFn(async (vikt?: number, rateKey?: string): Promise<boolean> => {
   try {
     const { getRequest } = await import("@tanstack/react-start/server");
     const request = getRequest() as unknown as {
@@ -80,7 +80,7 @@ export const harAiBudget = createServerOnlyFn(async (vikt?: number): Promise<boo
     const svar = await tjanst.fetch("https://internal/reservera", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ system: "nova-it", ...(vikt !== undefined ? { vikt } : {}) }),
+      body: JSON.stringify({ system: "nova-it", ...(vikt !== undefined ? { vikt } : {}), ...(rateKey ? { rateKey } : {}) }),
       signal: AbortSignal.timeout(2000),
     });
     if (!svar.ok) return false;

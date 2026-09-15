@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { Menu, X, ArrowUpRight, Mail } from "lucide-react";
+import { Menu, X, ArrowUpRight, Mail, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Container } from "@/components/design-system";
 import { contactChannels, services } from "@/lib/nova-data";
@@ -18,6 +18,8 @@ const nav = [
   { to: "/faq", label: "FAQ" },
   { to: "/om-oss", label: "Om oss" },
 ] as const;
+
+const GOOGLE_BUSINESS_PROFILE_URL = "https://www.google.com/maps?cid=10168029159440162274";
 
 /**
  * Kolumnindelningen för fotens tjänstelista - härledd från den kanoniska
@@ -236,7 +238,7 @@ export function SiteFooter() {
         >
           <FooterLink to="/om-oss">Om Nova IT</FooterLink>
           <FooterLink to="/faq">Vanliga frågor</FooterLink>
-          <FooterLink to="/arendestatus">Följ ditt ärende</FooterLink>
+          <FooterLink to="/arendestatus">Kolla ärendestatus</FooterLink>
           {SUPPORT_ASSISTANT_IS_ONLINE && (
             <FooterLink to="/assistent">Förbered ditt ärende</FooterLink>
           )}
@@ -250,6 +252,18 @@ export function SiteFooter() {
             >
               <Mail className="h-3.5 w-3.5" aria-hidden="true" />
               {contactChannels.contact}
+            </a>
+          </li>
+          <li className="mt-3">
+            <a
+              href={GOOGLE_BUSINESS_PROFILE_URL}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-2 transition-colors hover:text-sky-200 focus-visible:text-sky-200"
+            >
+              <Star className="h-3.5 w-3.5" aria-hidden="true" />
+              Se våra Google-omdömen
+              <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
             </a>
           </li>
         </FooterColumn>

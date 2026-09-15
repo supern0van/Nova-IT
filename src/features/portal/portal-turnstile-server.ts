@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { fetchWithTimeout } from "@/lib/fetch-timeout";
 
 import { KUNDPORTAL_ORIGIN } from "@/lib/security-policy";
 
@@ -37,9 +38,8 @@ export async function hamtaKundportalTurnstileSiteKey(): Promise<string | null> 
   }
 
   try {
-    const response = await fetch(KUNDPORTAL_TURNSTILE_CONFIG_URL, {
+    const response = await fetchWithTimeout(KUNDPORTAL_TURNSTILE_CONFIG_URL, {
       headers: { accept: "application/json" },
-      signal: AbortSignal.timeout(8000),
     });
     if (!response.ok) return null;
 

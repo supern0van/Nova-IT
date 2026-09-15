@@ -63,7 +63,7 @@ export function SupportChat({ compact = false, onNavigate }: SupportChatProps) {
       .map((m) => `${m.role === "user" ? "Kund" : "Guide"}: ${m.content}`)
       .join("\n");
 
-    saveSupportHandoff(
+    const sparad = saveSupportHandoff(
       createSupportHandoff({
         contactReason: lastUser || "Kontakt via ärendeguidens chatt",
         context: "",
@@ -77,6 +77,11 @@ export function SupportChat({ compact = false, onNavigate }: SupportChatProps) {
         urgency: chat.urgency,
       }),
     );
+    if (!sparad) {
+      // Navigera inte bort från en konversation som inte kunde sparas lokalt.
+      return false;
+    }
+    return true;
   }
 
   return (
@@ -199,8 +204,7 @@ export function SupportChat({ compact = false, onNavigate }: SupportChatProps) {
             ? {
                 urgency: chat.urgency,
                 onClick: () => {
-                  prepareHandoff();
-                  onNavigate?.();
+                  if (prepareHandoff()) onNavigate?.();
                 },
                 serviceSlug: chat.serviceSlug,
               }

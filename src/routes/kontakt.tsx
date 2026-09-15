@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
@@ -386,9 +386,21 @@ function ContactPage() {
               : "Granska innan du skickar"}
           </h1>
           {sent && arendenummer && (
-            <p className="mt-4 font-mono text-lg font-semibold text-foreground">
-              Ärendenummer: {arendenummer}
-            </p>
+            <>
+              <p className="mt-4 font-mono text-lg font-semibold text-foreground">
+                Ärendenummer: {arendenummer}
+              </p>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Spara ärendenumret - du kan alltid{" "}
+                <Link
+                  to="/arendestatus"
+                  className="font-medium text-primary underline-offset-4 hover:underline"
+                >
+                  kolla status här
+                </Link>
+                , utan att logga in.
+              </p>
+            </>
           )}
           <p className="mt-3 text-muted-foreground">
             {sent
