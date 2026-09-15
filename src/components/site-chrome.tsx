@@ -47,6 +47,7 @@ const linkClass =
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
   const menyknapp = useRef<HTMLButtonElement>(null);
+  const mobilMeny = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -56,9 +57,25 @@ export function SiteHeader() {
     // fil-träd) som redan gör detta korrekt. En tangentbords-/
     // skärmläsaranvändare tappade sin fokusplats i sidhuvudet.
     const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key !== "Escape") return;
-      setOpen(false);
-      menyknapp.current?.focus();
+      if (event.key === "Escape") {
+        setOpen(false);
+        menyknapp.current?.focus();
+        return;
+      }
+      if (event.key !== "Tab" || !mobilMeny.current) return;
+      const fokusbara = mobilMeny.current.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      );
+      if (!fokusbara.length) return;
+      const forsta = fokusbara[0];
+      const sista = fokusbara[fokusbara.length - 1];
+      if (event.shiftKey && document.activeElement === forsta) {
+        event.preventDefault();
+        sista.focus();
+      } else if (!event.shiftKey && document.activeElement === sista) {
+        event.preventDefault();
+        forsta.focus();
+      }
     };
 
     window.addEventListener("keydown", closeOnEscape);
@@ -124,7 +141,11 @@ export function SiteHeader() {
 
       {open && (
         <div
+          ref={mobilMeny}
           id="mobile-navigation"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Mobilnavigering"
           className="fixed inset-x-0 top-18 z-50 border-t border-white/10 bg-[#090f15] text-white shadow-2xl shadow-black/50 lg:hidden"
         >
           <Container className="py-4">

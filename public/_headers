@@ -1,24 +1,23 @@
-# robots.txt/sitemap.xml/security.txt är rena text-/XML-svar - de renderas
-# aldrig som HTML, exekverar inga skript och kan inte meningsfullt iframe:as
-# på ett sätt klickjacking skulle utnyttja. En full kopia av sidans
-# HTML-säkerhetsheaders (CSP, X-Frame-Options, COOP, Referrer-Policy) på de
-# här filerna var därför en död regel - orsakade ingen skada, men skyddade
-# heller ingenting, och kunde vilseleda en granskare att tro att de här
-# svaren fick samma skydd som en riktig sida. Behåller bara det som
-# faktiskt gör något oavsett innehållstyp: HSTS (transportnivå, oberoende
-# av vad som skickas) och nosniff (hindrar webbläsaren från att gissa sig
-# till en annan content-type än text/plain respektive application/xml).
+# Även text/XML-resurser får de två billiga, entydiga klickjacking-/MIME-
+# skydden. De påverkar inte robotar eller XML-konsumenter och håller statiska
+# svar konsekventa med SSR-svaren.
 /robots.txt
   Strict-Transport-Security: max-age=15552000; includeSubDomains
   X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Content-Security-Policy: frame-ancestors 'none'
 
 /sitemap.xml
   Strict-Transport-Security: max-age=15552000; includeSubDomains
   X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Content-Security-Policy: frame-ancestors 'none'
 
 /.well-known/security.txt
   Strict-Transport-Security: max-age=15552000; includeSubDomains
   X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Content-Security-Policy: frame-ancestors 'none'
 
 # Vite emits content-hashed build assets under /assets/.
 /assets/*

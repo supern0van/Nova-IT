@@ -72,11 +72,24 @@ betyder att någon kan anropa den upprepat och antingen bränna dygnskvoten
 (funktionen slutar fungera) eller, på Workers Paid, driva upp en kostnad.
 
 Skyddet hör hemma i Cloudflare, inte i applikationskoden — en Worker har
-ingen tillförlitlig delad räknare mellan isolat, så en rate limit i koden ger
-falsk trygghet. Innan `SUPPORT_AI_LAGE=pa` sätts i produktion ska därför en
-**Rate Limiting-regel** läggas upp i Cloudflare-dashboarden mot
-serverfunktionens sökväg, förslagsvis i storleksordningen 10 anrop per minut
-per IP.
+ingen tillförlitlig delad räknare mellan isolat, så en manuell räknare i
+Worker-minnet ger falsk trygghet. Innan `SUPPORT_AI_LAGE=pa` sätts i
+produktion ska därför en **Rate Limiting-regel** läggas upp i
+Cloudflare-dashboarden mot serverfunktionens sökväg, förslagsvis i
+storleksordningen 10 anrop per minut per IP.
+
+**Uppdatering (PUB-1, fördjupad revision 2026-09-12):** för den fria
+supportchatten (`support-chat-server.ts`, skild från denna fils
+klassificerare) är motsvarande skydd numera satt direkt i kod, inte bara som
+en TODO mot dashboarden - Cloudflares egen distribuerade `ratelimits`-
+bindning (`SUPPORT_CHAT_RATE_LIMITER`, 10 anrop/60s per IP, se
+`vite.config.ts` och `support-ai-runtime.ts#arChattIpSparrad`). Det är
+INTE samma sak som den Worker-minnesräknare stycket ovan varnar för - det är
+Cloudflares egen tjänst, bara nåbar som en bindning. Skyddet är
+kompletterande (fail-open om bindningen saknas) ovanpå den delade,
+fail-closed AI-budgeten, som förblir den skarpa spärren. Denna fils egen
+klassificerare (`support-ai-server.ts`) har ännu INGET motsvarande skydd i
+kod - dashboard-regeln nedan gäller fortsatt för den tills den byggs.
 
 Kodens egna begränsningar täcker resten: indata kapas till 600 tecken,
 `max_tokens` är 200, timeouten är 4 sekunder, och funktionen är avstängd som

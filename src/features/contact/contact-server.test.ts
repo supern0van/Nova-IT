@@ -1,5 +1,42 @@
-import { afterEach, beforeEach, expect, test } from "bun:test";
-import { skickaKontaktforfragan } from "./contact-server";
+import { afterEach, beforeEach, expect, mock, test } from "bun:test";
+
+/**
+ * PUB-3 (kontaktformulärets eget hastighetsskydd): för att bevisa att
+ * `skickaKontaktforfragan`s EGEN kod faktiskt anropar
+ * `arKontaktformularIpSparrad` och avvisar korrekt - inte bara att
+ * hjälpfunktionen fungerar isolerat, redan täckt av
+ * contact-ratelimit.test.ts - körs den RIKTIGA `arKontaktformularIpSparrad`
+ * här, med bara dess egen underliggande beroende (`getRequest`) mockad.
+ *
+ * MEDVETET INTE `mock.module("./contact-ratelimit", ...)`: Bun kör alla
+ * testfiler i EN process, och `mock.module` ersätter modulregistret
+ * globalt för resten av körningen, inte bara för den här filen - ett
+ * första försök med det läckte in i `contact-ratelimit.test.ts`s egna
+ * tester (som importerar exakt samma fil) och fick dem att se det mockade
+ * stubb-svaret i stället för den riktiga logiken. Att mocka
+ * `@tanstack/react-start/server` i stället - samma lågnivåberoende och
+ * samma mönster som `contact-ratelimit.test.ts` redan använder - rör
+ * aldrig `./contact-ratelimit`s modulidentitet, så det kan inte smitta
+ * någon annan testfil oavsett körordning.
+ */
+const getRequestMock = mock(() => ({
+  headers: new Headers(),
+  runtime: { cloudflare: { env: {} } },
+}));
+mock.module("@tanstack/react-start/server", () => ({ getRequest: getRequestMock }));
+
+const { skickaKontaktforfragan } = await import("./contact-server");
+
+function satPubTreRatelimiterSvar(nekar: boolean) {
+  getRequestMock.mockImplementation(() => ({
+    headers: new Headers({ "cf-connecting-ip": "203.0.113.9" }),
+    runtime: {
+      cloudflare: {
+        env: { CONTACT_FORM_RATE_LIMITER: { limit: async () => ({ success: !nekar }) } },
+      },
+    },
+  }));
+}
 
 const ENV_KEYS = [
   "ADMIN_INTAKE_URL",
@@ -31,6 +68,12 @@ beforeEach(() => {
   delete process.env.TURNSTILE_SECRET_KEY; // default: ej konfigurerad (soft-fail)
   delete process.env.TURNSTILE_REQUIRED;
   originalFetch = globalThis.fetch;
+  // Standard: ingen bindning/IP-träff, PUB-3 släpper igenom (fail-open) -
+  // samma standardläge som `contact-ratelimit.test.ts` använder.
+  getRequestMock.mockImplementation(() => ({
+    headers: new Headers(),
+    runtime: { cloudflare: { env: {} } },
+  }));
 });
 
 afterEach(() => {
@@ -39,6 +82,7 @@ afterEach(() => {
     else process.env[key] = originalEnv[key];
   }
   globalThis.fetch = originalFetch;
+  getRequestMock.mockReset();
 });
 
 const validPayload = {
@@ -411,4 +455,47 @@ test("a locked intake rejects the submission without processing any customer dat
   } finally {
     delete process.env.PUBLIK_INTAG_LAGE;
   }
+});
+
+test("PUB-3: en IP som nått kontaktformulärets egna hastighetsspärr avvisas innan honeypot/tidskontroll/Turnstile körs", async () => {
+  satPubTreRatelimiterSvar(true);
+
+  let fetchCalled = false;
+  globalThis.fetch = (async () => {
+    fetchCalled = true;
+    throw new Error("should not be called");
+  }) as unknown as typeof fetch;
+
+  await expect(skickaKontaktforfragan(validPayload)).rejects.toThrow(
+    "Ärendet kunde inte skickas just nu. Försök igen om en liten stund.",
+  );
+  // Varken ärendeintaget, Turnstile eller Resend får ha kontaktats - PUB-3
+  // ska slå till FÖRE all annan bearbetning, samma ordning som den låsta
+  // intag-kontrollen testas ovan.
+  expect(fetchCalled).toBe(false);
+});
+
+test("PUB-3: en IP som INTE nått spärren skickas vidare som vanligt", async () => {
+  satPubTreRatelimiterSvar(false);
+
+  globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
+    const url = String(input);
+    if (url.endsWith("/api/public/intag") && init?.method === "POST") {
+      return jsonResponse({
+        accepted: true,
+        arendenummer: "NIT-2701",
+        mottagetVid: "2026-09-13T10:00:00.000Z",
+        internt: { arendeId: "arende-2", kundEpost: "anna@example.se", kundNamn: "Anna Andersson" },
+      });
+    }
+    if (url.endsWith("/api/public/intag") && init?.method === "PATCH") {
+      return jsonResponse({ ok: true });
+    }
+    if (hasExpectedHttpsHost(url, "api.resend.com")) return jsonResponse({ id: "email-1" });
+    throw new Error(`Unexpected fetch to ${url}`);
+  }) as unknown as typeof fetch;
+
+  const result = await skickaKontaktforfragan(validPayload);
+  expect(result.accepted).toBe(true);
+  expect(result.arendenummer).toBe("NIT-2701");
 });

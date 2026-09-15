@@ -167,6 +167,13 @@ export function SupportChat({ compact = false, onNavigate }: SupportChatProps) {
             därifrån.
           </div>
         )}
+
+        {chat.status === "rate-limited" && (
+          <div className="ml-10 rounded-md bg-amber-300/[0.06] px-3.5 py-2.5 text-sm text-amber-100">
+            Det har kommit många frågor på kort tid från din anslutning. Vänta en liten stund och
+            försök igen, eller kontakta oss direkt.
+          </div>
+        )}
       </div>
 
       {/* 2. Aktuella val - fast placerad, visar bara senaste turens val. */}

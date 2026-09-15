@@ -1,0 +1,56 @@
+name: Deploy public site
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "src/**"
+      - "public/**"
+      - "scripts/**"
+      - "package.json"
+      - "bun.lock"
+      - "vite.config.ts"
+      - "tsconfig.json"
+      - ".github/workflows/deploy-public.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-public-site
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Build och deploya supern0van-nova-it
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: production
+
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          ref: main
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version-file: .bun-version
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Kör full CI
+        run: bun run ci
+
+      - name: Deploya till Cloudflare Workers
+        run: bun run deploy:production
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+
+      - name: Smoke-testa publik site
+        run: curl --fail --silent --show-error --location --max-time 20 https://nova-it.se/

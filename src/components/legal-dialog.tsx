@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { ExternalLink } from "lucide-react";
 import {
   Dialog,
@@ -49,10 +49,10 @@ const documents: Record<
         body: (
           <>
             <p>
-              När du väljer att skicka formuläret överförs de uppgifter du har fyllt i till Nova IT
-              via vår e-postleverantör Resend. Webbplatsen använder inte formuläret som en
-              kunddatabas. Uppgifterna används för att meddelandet ska kunna levereras och för att
-              vi ska kunna svara på din fråga och bedöma nästa steg.
+              När du skickar formuläret överförs uppgifterna till Nova IT:s ärendesystem, där en
+              kundpost och ett ärende skapas eller kopplas ihop. Därefter används Resend för att
+              skicka avisering och mottagningsbekräftelse via e-post. Uppgifterna används för att ta
+              emot, besvara och följa upp din förfrågan samt bedöma nästa steg.
             </p>
             <p>
               Om du i stället skriver direkt till någon av våra e-postadresser behandlas uppgifterna
@@ -173,9 +173,10 @@ const documents: Record<
           <>
             <p>
               Vi säljer inte personuppgifter och använder dem inte för annonsering. När du skickar
-              formuläret används Resend för att leverera e-post till Nova IT. Resend behandlar de
-              uppgifter som krävs för leveransen. När du skriver direkt till någon av våra
-              e-postadresser behandlas meddelandet av vår e-postleverantör.
+              formuläret lagras ärendet i Nova IT:s ärendesystem hos Supabase och Resend används för
+              e-postaviseringar. Leverantörerna behandlar de uppgifter som krävs för respektive
+              tjänst. När du skriver direkt till någon av våra e-postadresser behandlas meddelandet
+              av vår e-postleverantör.
             </p>
             <p>
               Webbplatsen levereras och skyddas genom Cloudflare. Cloudflare kan därför behandla
@@ -263,8 +264,8 @@ const documents: Record<
             Nova IT använder för närvarande inga kakor för statistik, annonsering eller
             marknadsföring och ingen lokal lagring för sådana ändamål. Vi använder Cloudflare Web
             Analytics för besöksstatistik - den är helt kakolös, samlar ingen personlig
-            identifierbar information och kräver därför inte samtycke enligt
-            Integritetsskyddsmyndighetens vägledning om kakor. Utöver den använder vi inga externa
+            identifierbar information och kräver därför inte samtycke enligt vår bedömning utifrån
+            Post- och telestyrelsens information om kakor. Utöver den använder vi inga externa
             analysverktyg på den publika webbplatsen.
           </p>
         ),
@@ -285,8 +286,9 @@ const documents: Record<
           <div className="space-y-2">
             <p>Två saker sparas lokalt i din webbläsare, båda för att sidan ska fungera:</p>
             <p>
-              <span className="font-medium text-slate-950">Ditt samtyckesval.</span> Sparas tills du
-              ändrar eller raderar det, så att du slipper svara på frågan varje gång.
+              <span className="font-medium text-slate-950">Visad kakoinformation.</span> En enkel
+              markering sparas när du stänger informationsrutan, så att den inte visas vid varje
+              besök. Den aktiverar inga statistik- eller marknadsföringsfunktioner.
             </p>
             <p>
               <span className="font-medium text-slate-950">Underlag från supportguiden.</span> Om du
@@ -303,12 +305,12 @@ const documents: Record<
         ),
       },
       {
-        heading: "Hur samtycke hanteras",
+        heading: "Informationsrutan",
         body: (
           <p>
-            Webbplatsen visar en samtyckesbanner där du kan neka alla valfria kategorier, spara ett
-            eget val eller godkänna alla. I nuläget aktiveras inga statistik- eller
-            marknadsföringsskript utan ett uttryckligt val.
+            Webbplatsen visar information om den teknik som faktiskt används. Det finns inga valfria
+            statistik- eller marknadsföringskategorier att slå på, därför visas inga skenbara
+            samtyckesval. Informationen kan öppnas igen via sidfoten.
           </p>
         ),
       },
@@ -413,6 +415,14 @@ const documents: Record<
 export function LegalDialogProvider({ children }: { children: ReactNode }) {
   const [activeDocument, setActiveDocument] = useState<LegalDocumentId | null>(null);
   const document = activeDocument ? documents[activeDocument] : null;
+
+  useEffect(() => {
+    const efterfragad = new URLSearchParams(window.location.search).get("legal");
+    if (efterfragad === "privacy" || efterfragad === "cookies" || efterfragad === "terms") {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setActiveDocument(efterfragad);
+    }
+  }, []);
 
   return (
     <LegalDialogContext.Provider value={{ openDocument: setActiveDocument }}>

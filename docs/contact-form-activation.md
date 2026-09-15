@@ -1,6 +1,6 @@
 # Aktivering av kontaktformularet
 
-Senast uppdaterad: 2026-07-22
+Senast uppdaterad: 2026-09-12
 
 ## Syfte
 
@@ -10,11 +10,11 @@ Flodet ar:
 
 1. Besokaren skickar formularet pa `nova-it.se`.
 2. Cloudflare Worker validerar uppgifterna pa serversidan.
-3. Resend skickar ett e-postmeddelande till `kontakt@nova-it.se`.
-4. Meddelandet skickas fran `Nova IT <no-reply@nova-it.se>`.
-5. Besokarens e-postadress satts som `Reply-To`, sa att svaret fran Nova IT gar direkt till personen som skickade arendet.
+3. Worker:n anropar Adminportalens skyddade intag, som matchar eller skapar kunden och skapar ett riktigt arende.
+4. Resend skickar en intern avisering till `kontakt@nova-it.se` och en separat bekraftelse till kunden.
+5. Kundbekraftelsen kan misslyckas utan att det redan registrerade arendet forsvinner; sidan visar da en arlig avvikande status.
 
-Webbplatsen lagrar inte arendet i en egen databas. Resend anvands som teknisk e-postleverantor och Loopia tar emot e-post i Nova IT:s brevladar.
+Webbplatsens Worker har ingen egen arendedatabas. Arendet och kundkopplingen lagras i Adminportalens Supabase-projekt. Resend anvands endast for avisering och bekraftelse, medan Loopia tar emot e-post i Nova IT:s brevladar.
 
 ## Fordelning av adresser
 
@@ -69,10 +69,11 @@ Cloudflare-kontots inloggningsadress paverkar inte formularets funktion. Bytet t
 
 1. Skicka ett test genom kontaktformularet pa `https://nova-it.se/kontakt` med en egen extern testadress.
 2. Bekrafta att sidan visar lyckat skickat utan att oppna en e-postapp.
-3. Bekrafta att meddelandet kommer till `kontakt@nova-it.se` och innehaller ratt tjanst, prioritet och beskrivning.
-4. Svara direkt pa meddelandet och bekrafta att svaret gar till testadressens e-post.
-5. Testa formularet pa mobil och desktop.
-6. Kontrollera skrappostmappen under de forsta testen och justera Resend-verifieringen om leveransen inte ar stabil.
+3. Bekrafta att arendet syns i Adminportalen med ratt kund, tjanst, prioritet och beskrivning.
+4. Bekrafta att intern avisering kommer till `kontakt@nova-it.se` och att kundbekraftelsen kommer till testadressen.
+5. Skicka om samma idempotensnyckel och bekrafta att inget dubblettarende skapas.
+6. Testa formularet pa mobil och desktop.
+7. Kontrollera skrappostmappen under de forsta testen och justera Resend-verifieringen om leveransen inte ar stabil.
 
 ## Fore bred lansering
 
