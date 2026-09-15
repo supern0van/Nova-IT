@@ -405,7 +405,9 @@ export function SupportGuide({ compact = false, onNavigate }: SupportGuideProps)
                 <div className="mt-3.5 flex flex-wrap gap-2">
                   <button
                     type="button"
-                    onClick={() => selectFlow(state.aiForslag!.flow, state.query, state.match)}
+                    // AI-förslaget är ett nytt klassificeringsbeslut; en
+                    // tidigare flows förtydligandematch får inte följa med.
+                    onClick={() => selectFlow(state.aiForslag!.flow, state.query, null)}
                     className="min-h-11 rounded-md border border-sky-300/50 bg-sky-300/10 px-3.5 py-2.5 text-sm font-medium text-sky-100 transition-colors hover:bg-sky-300/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
                   >
                     Byt till {state.aiForslag.flow.label.toLocaleLowerCase("sv")}

@@ -55,3 +55,20 @@ samt `docs/DECISIONS.md` (DEC-0006) för det som redan är beslutat.
 - Riktiga kontaktuppgifter, ort/område och eventuell juridisk bolagsinformation.
 - Om robotassistenten ska kopplas till backend, ärendesystem eller AI API.
 - Vilka kundcase, priser eller erbjudanden som faktiskt får visas.
+  Prisintervall/priskalkylator har ett researchunderlag i
+  `docs/prisunderlag-2026-08-27.md`, men priserna är inte beslutade för
+  publicering. Prislogiken ska tills vidare vara intern/dev-only och får inte
+  exponeras publikt; liveaktivering kräver separat ägarbeslut och kontroll.
+- Kundomdömen/kundcase: endast Projekt Återbruk finns dokumenterat och det är
+  uttryckligen inte en kundreferens. Nya citat eller identifierbara case kräver
+  verifierat kundgodkännande; se `docs/kundomdomen-underlag-2026-08-28.md`.
+
+## Framtida produktidéer (inte beslutade eller påbörjade)
+
+- Produktstyrd supportmeny där besökaren stegvis väljer exempelvis tillverkare,
+  produkttyp och modell/serie (`Samsung` -> `laptop` -> modell) och därefter
+  kommer till en relevant supportsida med supportmanualer, felsökningshjälp,
+  kompatibla reservdelar och vägar vidare till Nova IT. Innan implementation
+  behöver placeringarna av menyn, produkt- och manualdatakällor,
+  modellidentifiering, länkar till tredjepartsmaterial samt eventuell
+  reservdelsförsäljning och lagerhållning utredas.

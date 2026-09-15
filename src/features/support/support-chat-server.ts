@@ -54,6 +54,19 @@ const TIMEOUT_MS = 9000;
  *  chattanrop med systemprompt + RAG-underlag + historik är betydligt dyrare
  *  - 4x är en medveten överskattning hellre än en underskattning. */
 const CHAT_BUDGET_VIKT = 4;
+async function hamtaChatRateKey(): Promise<string | undefined> {
+  try {
+    const { getRequest } = await import("@tanstack/react-start/server");
+    const request = getRequest() as unknown as { headers?: Headers };
+    const ip = request.headers?.get("cf-connecting-ip") ?? request.headers?.get("x-forwarded-for") ?? "unknown";
+    const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(ip));
+    return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("").slice(0, 32);
+  } catch {
+    // Utanför aktiv serverkontext (t.ex. unit tests) saknas en klientnyckel;
+    // den delade Durable Object-budgeten är fortfarande obligatorisk.
+    return undefined;
+  }
+}
 
 const meddelandeSchema = z.object({
   role: z.enum(["user", "assistant"]),
@@ -149,14 +162,15 @@ export async function chattaInternt(
 
   // Server-sidan är den enda kontroll som faktiskt går att lita på - klienten
   // skickar med sin egen turräkning, men en klient som ljuger om den stoppas
-  // ändå här. Detta är INTE ett ersättning för riktig hastighetsbegränsning
-  // per IP vid kanten (se docs/changes) - bara ett tak på en enskild sessions
-  // längd, oavsett vem som frågar.
+  // ändå här. Den distribuerade rateKey-spärren i ai-budget begränsar dessutom
+  // samma IP-fingeravtryck över alla Worker-instanser; detta lokala tak skyddar
+  // fortfarande varje enskild sessions längd.
   if (sessionsTurer >= MAX_TURNS || totalLangd(meddelanden) > MAX_TOTAL_CHARS) {
     return { ok: false, anledning: "for-manga-turer" };
   }
 
-  if (!(await harAiBudget(CHAT_BUDGET_VIKT))) return { ok: false, anledning: "budget" };
+  const rateKey = await hamtaChatRateKey();
+  if (!(await harAiBudget(CHAT_BUDGET_VIKT, rateKey))) return { ok: false, anledning: "budget" };
 
   const senasteFraga = [...meddelanden].reverse().find((msg) => msg.role === "user")?.content ?? "";
   const regelmotorResultat = classifySupportQuery(senasteFraga);

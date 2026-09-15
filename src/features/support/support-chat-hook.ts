@@ -166,6 +166,7 @@ function useStreamedReveal(fullText: string | null, onDone: () => void) {
 export function useSupportChat() {
   const [state, dispatch] = useReducer(reducer, initialState);
   const turerRef = useRef(0);
+  const generationRef = useRef(0);
   const [pending, setPending] = useState<PendingAssistant | null>(null);
 
   const revealedText = useStreamedReveal(pending?.content ?? null, () => {
@@ -196,11 +197,13 @@ export function useSupportChat() {
       { role: "user" as const, content: query },
     ];
     const turNummer = turerRef.current;
+    const generation = generationRef.current;
     turerRef.current += 1;
     dispatch({ type: "user-message", content: query });
 
     chattaMedAi({ data: { meddelanden: historik, sessionsTurer: turNummer } })
       .then((resultat) => {
+        if (generation !== generationRef.current) return;
         if (!resultat.ok) {
           // Ett misslyckat anrop (AI nere, budget slut, nätverksfel) gav
           // kunden inget svar - då ska det inte heller kosta en tur.
@@ -208,7 +211,7 @@ export function useSupportChat() {
           // rätt `sessionsTurer` till servern; utan denna återställning kunde
           // en kund tömma hela MAX_TURNS på enbart misslyckade försök och
           // aldrig hinna få ett enda faktiskt svar.
-          turerRef.current -= 1;
+          turerRef.current = Math.max(0, turerRef.current - 1);
           if (resultat.anledning === "for-manga-turer") {
             dispatch({ type: "status", value: "session-limit" });
           } else if (historik.length === 1) {
@@ -244,18 +247,20 @@ export function useSupportChat() {
         });
       })
       .catch(() => {
+        if (generation !== generationRef.current) return;
         // Samma resonemang som .then()-grenens `!resultat.ok`-fall ovan -
         // ett faktiskt nätverksfel/kastat undantag gav kunden inget svar
         // heller, och ska därför inte kosta en tur av MAX_TURNS-budgeten.
         // Saknades tidigare, till skillnad från den kontrollerade
         // `{ok:false}`-grenen (granskning 2026-08-25, fynd #2).
-        turerRef.current -= 1;
+        turerRef.current = Math.max(0, turerRef.current - 1);
         dispatch({ type: "status", value: historik.length === 1 ? "ai-unavailable" : "idle" });
       });
   }
 
   const setDraft = useCallback((value: string) => dispatch({ type: "draft", value }), []);
   const reset = useCallback(() => {
+    generationRef.current += 1;
     turerRef.current = 0;
     setPending(null);
     dispatch({ type: "reset" });

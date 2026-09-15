@@ -148,6 +148,11 @@ describe("support engine", () => {
     expect(match.urgency).toBe("priority");
   });
 
+  test("escalates thermal and fire-risk language immediately", () => {
+    expect(classifySupportQuery("Det luktar bränt från datorn").urgency).toBe("urgent");
+    expect(classifySupportQuery("Datorn överhettar och stänger av sig").urgency).toBe("urgent");
+  });
+
   test("normalizes case, punctuation and Swedish diacritics", () => {
     expect(matchSupportFlow("WIFI!!! tappar anslutningen").id).toBe("wifi");
     expect(matchSupportFlow("Datorn är LANGSAM").id).toBe("slow-computer");

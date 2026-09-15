@@ -1,4 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
+import { fetchWithTimeout } from "@/lib/fetch-timeout";
+import { buildServerIntakeHeaders } from "@/lib/server-intag-headers";
 import { z } from "zod";
 
 /**
@@ -75,12 +77,9 @@ export async function slaUppArendestatus(
 
   let response: Response;
   try {
-    response = await fetch(`${statuskollUrl}/api/public/arendestatus`, {
+    response = await fetchWithTimeout(`${statuskollUrl}/api/public/arendestatus`, {
       method: "POST",
-      headers: {
-        "content-type": "application/json",
-        "x-statuskoll-secret": statuskollSecret,
-      },
+      headers: buildServerIntakeHeaders(statuskollSecret, "statuskoll"),
       body: JSON.stringify({
         arendenummer: data.ticketNumber,
         epost: data.email,
@@ -142,7 +141,7 @@ async function verifieraTurnstile(token: string | null, idempotencyKey: string):
   }
 
   try {
-    const response = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
+    const response = await fetchWithTimeout("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({

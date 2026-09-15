@@ -37,7 +37,10 @@ function loadTurnstileScript(): Promise<void> {
     script.async = true;
     script.defer = true;
     script.onload = () => resolve();
-    script.onerror = () => reject(new Error("Kunde inte ladda Turnstile."));
+    script.onerror = () => {
+      scriptLoadPromise = null;
+      reject(new Error("Kunde inte ladda Turnstile."));
+    };
     document.head.appendChild(script);
   });
 

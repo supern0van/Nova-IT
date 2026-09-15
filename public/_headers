@@ -19,3 +19,7 @@
 /.well-known/security.txt
   Strict-Transport-Security: max-age=15552000; includeSubDomains
   X-Content-Type-Options: nosniff
+
+# Vite emits content-hashed build assets under /assets/.
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable

@@ -1,4 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
+import { fetchWithTimeout } from "@/lib/fetch-timeout";
+import { buildServerIntakeHeaders } from "@/lib/server-intag-headers";
 import { z } from "zod";
 import {
   formatContactEmail,
@@ -123,12 +125,9 @@ export async function skickaKontaktforfragan(
 
   let intakeResponse: Response;
   try {
-    intakeResponse = await fetch(`${intakeUrl}/api/public/intag`, {
+    intakeResponse = await fetchWithTimeout(`${intakeUrl}/api/public/intag`, {
       method: "POST",
-      headers: {
-        "content-type": "application/json",
-        "x-intag-secret": intakeSecret,
-      },
+      headers: buildServerIntakeHeaders(intakeSecret, "intag"),
       body: JSON.stringify({
         kalla: data.kalla,
         namn: data.name,
@@ -255,7 +254,7 @@ async function verifieraTurnstile(token: string | null, idempotencyKey: string):
   }
 
   try {
-    const response = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
+    const response = await fetchWithTimeout("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
@@ -312,7 +311,7 @@ async function forsokSkickaInternAvisering(
   const { subject, text } = formatContactEmail({ ...data, arendenummer });
 
   try {
-    const response = await fetch("https://api.resend.com/emails", {
+    const response = await fetchWithTimeout("https://api.resend.com/emails", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${apiKey}`,
@@ -370,7 +369,7 @@ async function forsokSkickaKundbekraftelse(uppgifter: {
   );
 
   try {
-    const response = await fetch("https://api.resend.com/emails", {
+    const response = await fetchWithTimeout("https://api.resend.com/emails", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${apiKey}`,
@@ -407,12 +406,9 @@ async function uppdateraBekraftelseStatus(uppgifter: {
   status: "skickad" | "misslyckad";
 }): Promise<void> {
   try {
-    await fetch(`${uppgifter.intakeUrl}/api/public/intag`, {
+    await fetchWithTimeout(`${uppgifter.intakeUrl}/api/public/intag`, {
       method: "PATCH",
-      headers: {
-        "content-type": "application/json",
-        "x-intag-secret": uppgifter.intakeSecret,
-      },
+      headers: buildServerIntakeHeaders(uppgifter.intakeSecret, "intag"),
       body: JSON.stringify({ arendeId: uppgifter.arendeId, status: uppgifter.status }),
       signal: AbortSignal.timeout(8000),
     });

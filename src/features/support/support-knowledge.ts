@@ -89,10 +89,11 @@ function scoreDoc(query: string, doc: KnowledgeDoc): number {
   if (queryWords.size === 0) return 0;
 
   const docText = normalize(`${doc.title} ${doc.text}`);
+  const docWords = new Set(docText.split(" ").filter(Boolean));
   let score = 0;
   for (const word of queryWords) {
     if (` ${docText} `.includes(` ${word} `)) score += word.length >= 6 ? 3 : 1;
-    else if (docText.includes(word)) score += 0.5;
+    else if ([...docWords].some((docWord) => docWord.startsWith(word) || word.startsWith(docWord))) score += 0.5;
   }
   return score;
 }

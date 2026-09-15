@@ -43,6 +43,15 @@ const urgentSecurityTerms = [
   "ransomware",
 ];
 
+const urgentSafetyTerms = [
+  "luktar brant",
+  "det luktar brant",
+  "brandlukt",
+  "ryker",
+  "overhettar",
+  "datorn blir jattevarm",
+];
+
 const priorityTerms = [
   "akut",
   "bradskande",
@@ -176,6 +185,9 @@ function getUrgency(
   stemmedQuery: string,
   flow: SupportFlow,
 ): SupportUrgency {
+  if (urgentSafetyTerms.some((term) => containsTerm(normalizedQuery, stemmedQuery, term))) {
+    return "urgent";
+  }
   if (
     flow.id === "virus" &&
     urgentSecurityTerms.some((term) => containsTerm(normalizedQuery, stemmedQuery, term))
