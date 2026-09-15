@@ -105,7 +105,7 @@ export function SiteHeader() {
             </span>
           </Link>
 
-          <nav className="hidden items-center gap-1 lg:flex" aria-label="Huvudnavigering">
+          <nav className="hidden items-center gap-1 xl:flex" aria-label="Huvudnavigering">
             {nav.map((item) => (
               <Link
                 key={item.to}
@@ -132,7 +132,7 @@ export function SiteHeader() {
             aria-expanded={open}
             aria-controls="mobile-navigation"
             onClick={() => setOpen((value) => !value)}
-            className="grid h-10 w-10 place-items-center rounded-md border border-white/15 bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 lg:hidden"
+            className="grid h-10 w-10 place-items-center rounded-md border border-white/15 bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 xl:hidden"
           >
             {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
@@ -146,7 +146,7 @@ export function SiteHeader() {
           role="dialog"
           aria-modal="true"
           aria-label="Mobilnavigering"
-          className="fixed inset-x-0 top-18 z-50 border-t border-white/10 bg-[#090f15] text-white shadow-2xl shadow-black/50 lg:hidden"
+          className="fixed inset-x-0 top-18 z-50 border-t border-white/10 bg-[#090f15] text-white shadow-2xl shadow-black/50 xl:hidden"
         >
           <Container className="py-4">
             <nav className="flex flex-col" aria-label="Mobilnavigering">
