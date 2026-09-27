@@ -38,6 +38,10 @@ dist-ssr
 # Local, machine-specific Claude Code tool permissions
 .claude/settings.local.json
 
+# Scratch checkouts for isolated Claude Code subagent worktrees - local
+# tooling state, never project content.
+.claude/worktrees/
+
 # Playwright E2E-körningar (rapporter, spår, skärmdumpar) - engångsartefakter
 # från lokala/CI-körningar, inte källkod.
 /test-results/
