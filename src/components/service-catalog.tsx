@@ -5,11 +5,11 @@ import type { Service } from "@/lib/nova-data";
 
 export function ServiceCatalog({ services }: { services: Service[] }) {
   return (
-    <div className="border-t border-white/12">
+    <div>
       {services.map((service) => (
         <article
           key={service.slug}
-          className="grid gap-6 border-b border-white/12 py-8 sm:py-10 lg:grid-cols-[1.3fr_1fr] lg:gap-10"
+          className="grid gap-6 py-8 sm:py-10 lg:grid-cols-[1.3fr_1fr] lg:gap-10"
         >
           <div>
             <span className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
