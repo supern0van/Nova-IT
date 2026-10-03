@@ -37,10 +37,6 @@ const SIDOR = [
 for (const sida of SIDOR) {
   test(`${sida.namn} (${sida.path}) har inga axe-core WCAG A/AA-fynd`, async ({ page }) => {
     await page.goto(sida.path);
-    // Cookiebannern (role="region", se cookie-consent.tsx) ligger ovanpå
-    // sidan tills den besvaras - lämna den obesvarad avsiktligt så den
-    // egna tillgängligheten (fokus, aria-live, kontrast) också täcks av
-    // svepet nedan, i stället för att döljas genom att klicka bort den.
     await page.waitForLoadState("networkidle");
 
     const resultat = await new AxeBuilder({ page })

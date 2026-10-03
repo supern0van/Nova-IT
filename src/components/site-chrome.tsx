@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Container } from "@/components/design-system";
 import { contactChannels, services } from "@/lib/nova-data";
 import { LegalDialogTrigger } from "@/components/legal-dialog";
-import { CookiePreferencesButton } from "@/components/cookie-consent";
 import { PortalMeny } from "@/components/portal-meny";
 import { SUPPORT_ASSISTANT_IS_ONLINE } from "@/features/support/support-availability";
 
@@ -284,7 +283,6 @@ export function SiteFooter() {
             >
               Kakor
             </LegalDialogTrigger>
-            <CookiePreferencesButton />
             <LegalDialogTrigger
               document="terms"
               className="transition-colors hover:text-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
