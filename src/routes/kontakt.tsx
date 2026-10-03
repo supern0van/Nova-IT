@@ -28,11 +28,11 @@ import { consumeSupportHandoff } from "@/features/support/support-handoff";
 import { TurnstileWidget, type TurnstileWidgetHandle } from "@/components/turnstile-widget";
 import { JsonLd } from "@/components/json-ld";
 import { buildBreadcrumbJsonLd } from "@/lib/structured-data";
+import { socialImageUrl } from "@/lib/site-meta";
 
 const contactUrl = "https://nova-it.se/kontakt";
 const contactTitle = "Kontakta Nova IT";
 const contactDescription = "Berätta vad som krånglar så återkommer Nova IT med en bra start.";
-const socialImageUrl = "https://nova-it.se/nova-it-workspace.png";
 
 export const Route = createFileRoute("/kontakt")({
   validateSearch: (search: Record<string, unknown>) => {

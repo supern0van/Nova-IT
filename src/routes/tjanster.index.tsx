@@ -6,12 +6,12 @@ import { ProjectProof } from "@/components/project-proof";
 import { Container, PageHeader } from "@/components/design-system";
 import { JsonLd } from "@/components/json-ld";
 import { buildBreadcrumbJsonLd } from "@/lib/structured-data";
+import { socialImageUrl } from "@/lib/site-meta";
 
 const tjansterUrl = "https://nova-it.se/tjanster";
 const tjansterTitle = "Tjänster – Nova IT";
 const tjansterDescription =
   "Praktisk IT-hjälp i Hässelby, Västerort och Stockholms innerstad för datorer, nätverk, installationer, konton och säkerhet.";
-const socialImageUrl = "https://nova-it.se/nova-it-workspace.png";
 
 export const Route = createFileRoute("/tjanster/")({
   head: () => ({

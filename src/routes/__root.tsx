@@ -19,9 +19,7 @@ import { CookieConsent } from "../components/cookie-consent";
 import { JsonLd } from "../components/json-ld";
 import { buildWebSiteJsonLd } from "../lib/structured-data";
 import { FORM_ACTION_DIRECTIVE } from "../lib/security-policy";
-
-const siteUrl = "https://nova-it.se";
-const socialImageUrl = `${siteUrl}/nova-it-workspace.png`;
+import { siteUrl, socialImageUrl } from "../lib/site-meta";
 
 function NotFoundComponent() {
   return (

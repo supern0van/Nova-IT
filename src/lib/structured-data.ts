@@ -1,8 +1,6 @@
 import { contactChannels, services } from "@/lib/nova-data";
 import { serviceRegion } from "@/lib/service-region";
-
-const siteUrl = "https://nova-it.se";
-const socialImageUrl = `${siteUrl}/nova-it-workspace.png`;
+import { siteUrl, socialImageUrl } from "@/lib/site-meta";
 
 // Delas av LocalBusiness (index.tsx) och Service (tjanster.$slug.tsx) som
 // provider, så de syftar på samma organisation i strukturerad data.

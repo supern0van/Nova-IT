@@ -5,12 +5,12 @@ import { Container, PageHeader } from "@/components/design-system";
 import { serviceRegion } from "@/lib/service-region";
 import { buildBreadcrumbJsonLd } from "@/lib/structured-data";
 import { JsonLd } from "@/components/json-ld";
+import { socialImageUrl } from "@/lib/site-meta";
 
 const pageUrl = "https://nova-it.se/om-oss";
 const pageTitle = "Om Nova IT – praktisk IT-hjälp i Västerort";
 const pageDescription =
   "Nova IT utgår från Hässelby och hjälper privatpersoner, småföretag och föreningar med datorer, nätverk, felsökning och säkerhet.";
-const socialImageUrl = "https://nova-it.se/nova-it-workspace.png";
 
 export const Route = createFileRoute("/om-oss")({
   head: () => ({

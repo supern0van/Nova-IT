@@ -10,11 +10,11 @@ import { faqs } from "@/lib/nova-data";
 import { Container, TrustNotice, PageHeader } from "@/components/design-system";
 import { buildBreadcrumbJsonLd, buildFaqPageJsonLd } from "@/lib/structured-data";
 import { JsonLd } from "@/components/json-ld";
+import { socialImageUrl } from "@/lib/site-meta";
 
 const faqUrl = "https://nova-it.se/faq";
 const faqTitle = "Vanliga frågor – Nova IT";
 const faqDescription = "Svar om hur vi hjälper med datorer, nätverk, konton och installationer.";
-const socialImageUrl = "https://nova-it.se/nova-it-workspace.png";
 
 export const Route = createFileRoute("/faq")({
   head: () => ({

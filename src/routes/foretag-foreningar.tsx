@@ -6,12 +6,12 @@ import { getServiceBySlug } from "@/lib/nova-data";
 import { serviceRegion } from "@/lib/service-region";
 import { buildBreadcrumbJsonLd } from "@/lib/structured-data";
 import { JsonLd } from "@/components/json-ld";
+import { socialImageUrl } from "@/lib/site-meta";
 
 const pageUrl = "https://nova-it.se/foretag-foreningar";
 const pageTitle = "IT-stöd för småföretag och föreningar – Nova IT";
 const pageDescription =
   "Praktiskt IT-stöd för mindre företag och föreningar i Västerort, Bromma och Stockholms innerstad med arbetsplatser, nätverk, konton och backup.";
-const socialImageUrl = "https://nova-it.se/nova-it-workspace.png";
 
 export const Route = createFileRoute("/foretag-foreningar")({
   head: () => ({

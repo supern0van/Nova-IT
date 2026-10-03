@@ -2,6 +2,7 @@ import { Link, createFileRoute } from "@tanstack/react-router";
 import { Container, PageHeader } from "@/components/design-system";
 import { SupportChat } from "@/features/support/SupportChat";
 import { SUPPORT_ASSISTANT_IS_ONLINE } from "@/features/support/support-availability";
+import { socialImageUrl } from "@/lib/site-meta";
 
 const assistentUrl = "https://nova-it.se/assistent";
 const assistentTitle = SUPPORT_ASSISTANT_IS_ONLINE
@@ -10,7 +11,6 @@ const assistentTitle = SUPPORT_ASSISTANT_IS_ONLINE
 const assistentDescription = SUPPORT_ASSISTANT_IS_ONLINE
   ? "Beskriv vad som krånglar och få hjälp att samla rätt underlag innan du kontaktar Nova IT."
   : "Nova IT:s automatiska ärendeguide är tillfälligt avstängd. Kontakta oss via kontaktformuläret.";
-const socialImageUrl = "https://nova-it.se/nova-it-workspace.png";
 
 export const Route = createFileRoute("/assistent")({
   head: () => ({

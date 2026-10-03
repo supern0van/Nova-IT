@@ -16,9 +16,9 @@ import { contactChannels, faqs, processSteps } from "@/lib/nova-data";
 import { serviceRegion } from "@/lib/service-region";
 import { buildLocalBusinessJsonLd } from "@/lib/structured-data";
 import { JsonLd } from "@/components/json-ld";
+import { socialImageUrl } from "@/lib/site-meta";
 
 const homeUrl = "https://nova-it.se/";
-const socialImageUrl = "https://nova-it.se/nova-it-workspace.png";
 
 export const Route = createFileRoute("/")({
   head: () => ({

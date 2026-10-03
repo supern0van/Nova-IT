@@ -2,12 +2,12 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, ClipboardList, MonitorCog, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Container, PageHeader } from "@/components/design-system";
+import { socialImageUrl } from "@/lib/site-meta";
 
 const arbetssattUrl = "https://nova-it.se/arbetssatt";
 const arbetssattTitle = "Arbetssätt – Nova IT";
 const arbetssattDescription =
   "Så arbetar Nova IT från första ärendebeskrivning till felsökning, åtgärd och uppföljning.";
-const socialImageUrl = "https://nova-it.se/nova-it-workspace.png";
 
 export const Route = createFileRoute("/arbetssatt")({
   head: () => ({

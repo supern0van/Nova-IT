@@ -21,6 +21,12 @@ import { nitro } from "nitro/vite";
  * `vite-plugin-hmr-gate` och `@tanstack/devtools-vite`.
  */
 export default defineConfig({
+  // GITHUB_SHA finns bara i CI-bygget (deploy-public.yml) - lokala bygg/dev-
+  // körningar faller tillbaka på "dev". Används för att cache-busta
+  // og:image, se src/lib/site-meta.ts.
+  define: {
+    __OG_IMAGE_VERSION__: JSON.stringify(process.env.GITHUB_SHA?.slice(0, 7) ?? "dev"),
+  },
   plugins: [
     tailwindcss(),
     tsConfigPaths({ projects: ["./tsconfig.json"] }),

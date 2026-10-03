@@ -5,9 +5,7 @@ import { Container, PageHeader } from "@/components/design-system";
 import { getServiceBySlug } from "@/lib/nova-data";
 import { buildBreadcrumbJsonLd, buildServiceJsonLd } from "@/lib/structured-data";
 import { JsonLd } from "@/components/json-ld";
-
-const siteUrl = "https://nova-it.se";
-const socialImageUrl = `${siteUrl}/nova-it-workspace.png`;
+import { siteUrl, socialImageUrl } from "@/lib/site-meta";
 
 export const Route = createFileRoute("/tjanster/$slug")({
   // En ogiltig slug ska ge ett RIKTIGT 404-svar - notFound() gör att

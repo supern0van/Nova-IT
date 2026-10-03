@@ -6,12 +6,12 @@ import { getServiceBySlug } from "@/lib/nova-data";
 import { serviceRegion } from "@/lib/service-region";
 import { buildBreadcrumbJsonLd } from "@/lib/structured-data";
 import { JsonLd } from "@/components/json-ld";
+import { socialImageUrl } from "@/lib/site-meta";
 
 const pageUrl = "https://nova-it.se/privatpersoner";
 const pageTitle = "IT-hjälp för privatpersoner – Nova IT";
 const pageDescription =
   "Praktisk IT-hjälp för privatpersoner i Hässelby, Västerort, Bromma och Stockholms innerstad med datorer, Wi-Fi, konton, installationer och backup.";
-const socialImageUrl = "https://nova-it.se/nova-it-workspace.png";
 
 export const Route = createFileRoute("/privatpersoner")({
   head: () => ({

@@ -2,12 +2,12 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, ArrowUpRight, FileText } from "lucide-react";
 
 import { Container } from "@/components/design-system";
+import { socialImageUrl } from "@/lib/site-meta";
 
 const projektAterbrukUrl = "https://nova-it.se/projekt-aterbruk";
 const projektAterbrukTitle = "Projekt Återbruk – Nova IT";
 const projektAterbrukDescription =
   "Ett dokumenterat LIA-projekt där 116 datorer inventerades, testades och förbereddes för fortsatt användning.";
-const socialImageUrl = "https://nova-it.se/nova-it-workspace.png";
 
 export const Route = createFileRoute("/projekt-aterbruk")({
   head: () => ({
