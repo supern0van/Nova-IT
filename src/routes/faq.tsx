@@ -74,7 +74,7 @@ function FaqPage() {
           </div>
           <div>
             <h2 className="sr-only">Frågor och svar</h2>
-            <Accordion type="single" collapsible className="border-t border-white/10">
+            <Accordion type="single" collapsible>
               {faqs.map((faq, index) => (
                 // id matchar sourceUrl:en supportchattens källhänvisningar
                 // bygger (`/faq#fraga-${index + 1}`, se support-knowledge.ts)

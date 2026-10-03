@@ -67,7 +67,7 @@ const systems = [
 function ProjectReusePage() {
   return (
     <div className="nova-section">
-      <section className="overflow-hidden border-b border-white/10 bg-[#091119]">
+      <section className="overflow-hidden bg-[#091119]">
         <Container className="grid min-h-[560px] items-stretch lg:grid-cols-[minmax(0,1.25fr)_minmax(320px,0.75fr)]">
           <div className="flex flex-col justify-center py-20 pr-0 sm:py-24 lg:pr-16">
             <p className="eyebrow mb-7">Dokumenterat LIA-projekt</p>
@@ -81,7 +81,7 @@ function ProjectReusePage() {
             </p>
           </div>
 
-          <div className="flex flex-col justify-center gap-8 py-12 lg:border-l lg:border-white/10 lg:py-20 lg:pl-14">
+          <div className="flex flex-col justify-center gap-8 py-12 lg:py-20 lg:pl-14">
             <div>
               <div className="text-[7rem] font-semibold leading-none text-[#43b6ee] sm:text-[8rem]">
                 116
@@ -126,7 +126,7 @@ function ProjectReusePage() {
 
           <div className="mt-14 grid gap-8 md:grid-cols-3">
             {projectSteps.map((step) => (
-              <div key={step.title} className="border-t border-white/10 pt-6">
+              <div key={step.title} className="pt-6">
                 <span className="flex h-10 w-10 items-center justify-center rounded-md border border-[#43b6ee]/30 bg-[#43b6ee]/10 text-[#8ed8f7]">
                   <FileText aria-hidden="true" className="size-5" strokeWidth={1.6} />
                 </span>
@@ -138,7 +138,7 @@ function ProjectReusePage() {
 
           <div className="mt-16 grid gap-8 sm:grid-cols-2">
             {checks.map(([title, text]) => (
-              <div key={title} className="border-t border-white/10 pt-6">
+              <div key={title} className="pt-6">
                 <h3 className="font-semibold">{title}</h3>
                 <p className="mt-2 leading-7 text-[#9eb0c1]">{text}</p>
               </div>
@@ -153,7 +153,7 @@ function ProjectReusePage() {
             </p>
             <div className="mt-8 grid gap-8 md:grid-cols-3">
               {systems.map((system) => (
-                <div key={system.name} className="border-t border-white/10 pt-6">
+                <div key={system.name} className="pt-6">
                   <h3 className="font-semibold">{system.name}</h3>
                   <p className="mt-2 leading-7 text-[#aebdcc]">{system.detail}</p>
                 </div>
@@ -163,7 +163,7 @@ function ProjectReusePage() {
         </Container>
       </section>
 
-      <section className="border-y border-[#43b6ee]/25 bg-[#0b1720] py-16 sm:py-20">
+      <section className="bg-[#0b1720] py-16 sm:py-20">
         <Container className="grid items-end gap-8 md:grid-cols-[1fr_auto]">
           <div>
             <p className="eyebrow mb-5">Resultatet</p>
@@ -182,7 +182,7 @@ function ProjectReusePage() {
       <section className="nova-section py-20 sm:py-28">
         <Container>
           <div className="grid overflow-hidden border border-white/10 nova-section-muted lg:grid-cols-[1.05fr_0.95fr]">
-            <div className="relative min-h-[300px] overflow-hidden border-b border-white/10 lg:min-h-[540px] lg:border-b-0 lg:border-r">
+            <div className="relative min-h-[300px] overflow-hidden lg:min-h-[540px]">
               <picture>
                 <source srcSet="/projekt-aterbruk/presentation-cover.webp" type="image/webp" />
                 <img
@@ -228,7 +228,7 @@ function ProjectReusePage() {
         </Container>
       </section>
 
-      <section className="border-t border-white/10 bg-[#091119] py-16 sm:py-20">
+      <section className="bg-[#091119] py-16 sm:py-20">
         <Container className="grid items-center gap-8 md:grid-cols-[1fr_auto]">
           <div>
             <p className="eyebrow mb-4">Datorservice och uppgradering</p>

@@ -343,7 +343,7 @@ function ContactPage() {
   // webbplatsen, inklusive supportassistenten, fungerar som vanligt.
   if (intagStangt) {
     return (
-      <section className="border-b border-border bg-secondary/35">
+      <section className="bg-secondary/35">
         <Container className="max-w-2xl py-20 text-center">
           <span className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-secondary text-muted-foreground">
             <Mail className="h-7 w-7" />
@@ -372,7 +372,7 @@ function ContactPage() {
 
   if (submitted) {
     return (
-      <section className="border-b border-border bg-secondary/35">
+      <section className="bg-secondary/35">
         <Container className="max-w-2xl py-20 text-center">
           <span className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-emerald-300/15 text-emerald-200">
             <CheckCircle2 className="h-7 w-7" />
@@ -923,7 +923,7 @@ function ContactInformation() {
             </p>
           </div>
 
-          <div className="nova-panel divide-y divide-white/10 rounded-md">
+          <div className="nova-panel rounded-md">
             <div className="p-6 sm:p-8">
               <ContactFact
                 icon={Mail}

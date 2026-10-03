@@ -146,7 +146,7 @@ export function SiteHeader() {
           role="dialog"
           aria-modal="true"
           aria-label="Mobilnavigering"
-          className="fixed inset-x-0 top-18 z-50 border-t border-white/10 bg-[#090f15] text-white shadow-2xl shadow-black/50 lg:hidden"
+          className="fixed inset-x-0 top-18 z-50 bg-[#090f15] text-white shadow-2xl shadow-black/50 lg:hidden"
         >
           <Container className="py-4">
             <nav className="flex flex-col" aria-label="Mobilnavigering">
@@ -155,7 +155,7 @@ export function SiteHeader() {
                   key={item.to}
                   to={item.to}
                   onClick={() => setOpen(false)}
-                  className="border-b border-white/10 py-4 text-base font-medium text-slate-300 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
+                  className="border-b border-transparent py-4 text-base font-medium text-slate-300 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
                   activeProps={{ className: "border-sky-300 text-sky-200" }}
                   activeOptions={{ exact: item.to === "/" }}
                 >
@@ -184,7 +184,7 @@ export function SiteFooter() {
   return (
     <footer id="site-footer" className="bg-[#111c25] text-slate-200">
       <Container className="grid overflow-hidden lg:grid-cols-[1.1fr_2fr_0.8fr_0.9fr]">
-        <div className="border-b border-white/10 py-7 lg:border-b-0 lg:pr-10">
+        <div className="py-7 lg:pr-10">
           <Link
             to="/"
             className="flex w-fit items-center gap-3 rounded-md transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
@@ -204,7 +204,7 @@ export function SiteFooter() {
           </p>
         </div>
 
-        <div className="border-b border-white/10 py-7 lg:border-x lg:border-b-0 lg:px-10">
+        <div className="py-7 lg:px-10">
           <h2 className="text-xs font-semibold uppercase tracking-[0.16em] text-sky-200">
             <Link
               to="/tjanster"
@@ -234,7 +234,7 @@ export function SiteFooter() {
 
         <FooterColumn
           title="Information"
-          className="border-b border-white/10 py-7 lg:border-b-0 lg:px-10"
+          className="py-7 lg:px-10"
         >
           <FooterLink to="/om-oss">Om Nova IT</FooterLink>
           <FooterLink to="/faq">Vanliga frågor</FooterLink>
@@ -268,7 +268,7 @@ export function SiteFooter() {
           </li>
         </FooterColumn>
       </Container>
-      <div className="border-t border-white/10 bg-black/10">
+      <div className="bg-black/10">
         <Container className="flex flex-col gap-3 py-5 text-xs text-slate-400 sm:flex-row sm:items-center sm:justify-between">
           <span>© {new Date().getFullYear()} Nova IT. Alla rättigheter förbehållna.</span>
           <nav aria-label="Juridisk information" className="flex flex-wrap gap-x-4 gap-y-2">
