@@ -3,11 +3,11 @@ import { serviceAreas } from "@/lib/nova-data";
 export function ServiceAreas({ compact = false }: { compact?: boolean }) {
   if (!compact) {
     return (
-      <div className="border-y border-white/12">
+      <div>
         {serviceAreas.map((area) => (
           <article
             key={area.title}
-            className="grid gap-1 border-b border-white/12 py-4 last:border-b-0 sm:grid-cols-[minmax(14rem,0.8fr)_minmax(0,1.2fr)] sm:items-baseline sm:gap-8"
+            className="grid gap-1 py-4 sm:grid-cols-[minmax(14rem,0.8fr)_minmax(0,1.2fr)] sm:items-baseline sm:gap-8"
           >
             <h3 className="text-lg font-semibold tracking-normal text-white">{area.title}</h3>
             <p className="text-sm leading-6 text-slate-300">{area.examples}</p>

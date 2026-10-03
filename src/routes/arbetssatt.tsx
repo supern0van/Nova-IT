@@ -68,7 +68,7 @@ function WorkMethodPage() {
             </p>
           </div>
 
-          <ol className="divide-y divide-white/10 border-y border-white/10">
+          <ol>
             {stages.map((stage) => (
               <li key={stage.title} className="flex gap-4 py-6 sm:gap-6 sm:py-8">
                 <span className="grid h-9 w-9 shrink-0 place-items-center rounded-md border border-sky-300/15 bg-sky-300/8 text-sky-200">
@@ -84,7 +84,7 @@ function WorkMethodPage() {
         </Container>
       </section>
 
-      <section className="nova-section border-t border-white/10">
+      <section className="nova-section">
         <Container className="flex flex-col items-start gap-5 py-14 sm:flex-row sm:items-center sm:justify-between sm:py-16">
           <div>
             <p className="eyebrow">Nästa steg</p>
