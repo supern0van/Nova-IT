@@ -15,7 +15,6 @@ import { SiteHeader, SiteFooter } from "../components/site-chrome";
 import { SupportBotLauncher } from "../features/support/SupportBotLauncher";
 import { SUPPORT_ASSISTANT_IS_ONLINE } from "../features/support/support-availability";
 import { LegalDialogProvider } from "../components/legal-dialog";
-import { CookieConsent } from "../components/cookie-consent";
 import { JsonLd } from "../components/json-ld";
 import { buildWebSiteJsonLd } from "../lib/structured-data";
 import { FORM_ACTION_DIRECTIVE } from "../lib/security-policy";
@@ -186,7 +185,6 @@ function RootComponent() {
           </main>
           <SiteFooter />
           {SUPPORT_ASSISTANT_IS_ONLINE && <SupportBotLauncher />}
-          <CookieConsent />
         </div>
       </LegalDialogProvider>
     </QueryClientProvider>

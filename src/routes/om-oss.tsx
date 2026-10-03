@@ -63,7 +63,7 @@ function About() {
         intro="Nova IT utgår från Hässelby och hjälper privatpersoner, småföretag och föreningar när tekniken behöver bli tydligare, stabilare och enklare att använda."
       />
 
-      <section className="nova-section border-b border-white/10">
+      <section className="nova-section">
         <Container className="grid gap-10 py-16 lg:grid-cols-[1fr_0.8fr] lg:items-start">
           <div>
             <p className="eyebrow">Bakgrund och inriktning</p>
@@ -90,7 +90,7 @@ function About() {
               <span className="font-semibold">{serviceRegion.base}</span>
             </div>
             <p className="mt-4 leading-7 text-slate-300">{serviceRegion.description}</p>
-            <div className="mt-6 flex items-center gap-3 border-t border-white/10 pt-6 text-sm text-slate-400">
+            <div className="mt-6 flex items-center gap-3 pt-6 text-sm text-slate-400">
               <Network className="h-5 w-5 text-sky-300" />
               Datorer, nätverk, konton, felsökning och grundläggande säkerhet.
             </div>
@@ -107,7 +107,7 @@ function About() {
         <Container className="py-16 sm:py-20">
           <div className="grid gap-8 md:grid-cols-3">
             {principles.map((item) => (
-              <article key={item.title} className="border-t border-white/10 pt-6">
+              <article key={item.title} className="pt-6">
                 <span className="grid h-10 w-10 place-items-center rounded-md border border-sky-300/15 bg-sky-300/8 text-sky-200">
                   <item.icon className="h-5 w-5" />
                 </span>

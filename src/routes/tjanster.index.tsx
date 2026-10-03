@@ -57,7 +57,7 @@ function ServicesPage() {
           <div className="mt-8">
             <ServiceAreas />
           </div>
-          <div className="mt-12 flex flex-col gap-3 border-t border-white/12 pt-10 sm:mt-16 sm:flex-row sm:items-end sm:justify-between sm:pt-12">
+          <div className="mt-12 flex flex-col gap-3 pt-10 sm:mt-16 sm:flex-row sm:items-end sm:justify-between sm:pt-12">
             <div>
               <p className="eyebrow">Tjänster i korthet</p>
               <h2 className="mt-3 text-3xl font-semibold tracking-normal">

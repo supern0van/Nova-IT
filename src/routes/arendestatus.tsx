@@ -229,7 +229,7 @@ function ArendestatusPage() {
               </p>
 
               {result.steg.length > 0 && (
-                <ol className="mt-5 space-y-3 border-t border-border pt-5">
+                <ol className="mt-5 space-y-3 pt-5">
                   {result.steg.map((steg) => (
                     <li
                       key={steg.nyckel}

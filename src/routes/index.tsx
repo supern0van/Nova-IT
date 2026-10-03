@@ -92,7 +92,7 @@ function Home() {
         </Container>
       </section>
 
-      <section className="nova-section border-b border-white/10">
+      <section className="nova-section">
         <Container className="py-16 sm:py-20">
           <div className="max-w-2xl">
             <p className="eyebrow">Vem behöver hjälp?</p>
@@ -151,7 +151,7 @@ function Home() {
           </div>
           <ol className="grid gap-7 sm:grid-cols-3">
             {processSteps.map((step) => (
-              <li key={step.title} className="border-t border-slate-700 pt-4">
+              <li key={step.title} className="pt-4">
                 <h3 className="mt-3 font-semibold">{step.title}</h3>
                 <p className="mt-2 text-sm leading-6 text-slate-300">{step.text}</p>
               </li>
@@ -235,7 +235,7 @@ function Home() {
           </div>
           <ul className="mt-8 grid gap-5 sm:grid-cols-2">
             {faqs.slice(0, 4).map((item) => (
-              <li key={item.q} className="border-t border-white/10 pt-4">
+              <li key={item.q} className="pt-4">
                 <h3 className="font-semibold">{item.q}</h3>
                 <p className="mt-2 text-sm leading-6 text-slate-300">{item.a}</p>
               </li>
@@ -244,7 +244,7 @@ function Home() {
         </Container>
       </section>
 
-      <section className="nova-section border-t border-white/10">
+      <section className="nova-section">
         <Container className="flex flex-col items-start gap-5 py-16 sm:flex-row sm:items-center sm:justify-between sm:py-20">
           <div>
             <p className="eyebrow flex items-center gap-2">
