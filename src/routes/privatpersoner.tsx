@@ -11,7 +11,7 @@ import { socialImageUrl } from "@/lib/site-meta";
 const pageUrl = "https://nova-it.se/privatpersoner";
 const pageTitle = "IT-hjälp för privatpersoner – Nova IT";
 const pageDescription =
-  "Praktisk IT-hjälp för privatpersoner i Hässelby, Västerort, Bromma och Stockholms innerstad med datorer, Wi-Fi, konton, installationer och backup.";
+  "Praktisk IT-hjälp för privatpersoner i Hässelby, Västerort och Bromma med datorer, Wi-Fi, konton, installationer och backup.";
 
 export const Route = createFileRoute("/privatpersoner")({
   head: () => ({

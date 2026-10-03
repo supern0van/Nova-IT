@@ -11,7 +11,7 @@ import { socialImageUrl } from "@/lib/site-meta";
 const pageUrl = "https://nova-it.se/foretag-foreningar";
 const pageTitle = "IT-stöd för småföretag och föreningar – Nova IT";
 const pageDescription =
-  "Praktiskt IT-stöd för mindre företag och föreningar i Västerort, Bromma och Stockholms innerstad med arbetsplatser, nätverk, konton och backup.";
+  "Praktiskt IT-stöd för mindre företag och föreningar i Västerort och Bromma med arbetsplatser, nätverk, konton och backup.";
 
 export const Route = createFileRoute("/foretag-foreningar")({
   head: () => ({

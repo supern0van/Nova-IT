@@ -14,7 +14,6 @@ const areaServed = [
   "Jakobsberg",
   "Sundbyberg",
   "Solna",
-  "Stockholms innerstad",
 ];
 
 export function buildLocalBusinessJsonLd() {

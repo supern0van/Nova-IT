@@ -23,15 +23,15 @@ const homeUrl = "https://nova-it.se/";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Nova IT – IT-hjälp i Västerort och Stockholms innerstad" },
+      { title: "Nova IT – IT-hjälp i Hässelby och Västerort" },
       {
         name: "description",
         content:
-          "Praktisk IT-hjälp för privatpersoner, småföretag och föreningar i Hässelby, Västerort, Bromma och Stockholms innerstad.",
+          "Praktisk IT-hjälp för privatpersoner, småföretag och föreningar i Hässelby, Västerort och Bromma.",
       },
       {
         property: "og:title",
-        content: "Nova IT – IT-hjälp i Västerort och Stockholms innerstad",
+        content: "Nova IT – IT-hjälp i Hässelby och Västerort",
       },
       {
         property: "og:description",
