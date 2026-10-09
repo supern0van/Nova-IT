@@ -26,8 +26,10 @@ Portalerna använder **separata Supabase-projekt** och kommunicerar
 server-till-server över interna endpoints skyddade med delade hemligheter.
 Kundportalens tjänsteklient når aldrig adminportalens kunddatabas direkt.
 
-Personuppgiftsansvarig: Nova IT, org.nr 19870528-0652, Persikogatan 12,
-165 63 Hässelby.
+Personuppgiftsansvarig: Nova IT (enskild firma). Org.nr och hemadress
+utelämnade här av integritetsskäl - org.nr är innehavarens personnummer
+och lämnas bara där det krävs (avtal, offert, faktura), inte i löpande
+dokumentation.
 
 ## 2. Personuppgiftsbiträden
 

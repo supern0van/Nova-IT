@@ -263,8 +263,8 @@ till Milstolpe 5.
 
 ### Buggar som hittades och åtgärdades vid den riktiga e2e-verifieringen
 
-Live-testat i skarp miljö (ägarens eget konto, `stefan.bergstrand@gmail.com`)
-efter varje fix, inte bara i teorin:
+Live-testat i skarp miljö (ägarens eget konto, personlig e-postadress
+utelämnad av integritetsskäl) efter varje fix, inte bara i teorin:
 
 1. **PKCE-kodens engångsanvändning krockade med e-postlänkskanning/enhetsbyte.**
    Ursprunglig implementation bytte in Supabases PKCE-`code` automatiskt vid

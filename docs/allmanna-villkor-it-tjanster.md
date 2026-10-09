@@ -13,8 +13,10 @@ Version: utkast 1, 2026-08-16.
 
 ## 1. Parter och tillämpning
 
-Dessa villkor gäller mellan Nova IT, org.nr 19870528-0652, Persikogatan 12,
-165 63 Hässelby ("Nova IT"), och den som beställer en tjänst ("Kunden").
+Dessa villkor gäller mellan Nova IT (enskild firma) ("Nova IT"), och den som
+beställer en tjänst ("Kunden"). Org.nr och adress anges i det faktiska
+avtalet/offerten/fakturan, inte i detta villkorsdokument - org.nr är
+innehavarens personnummer och ska inte spridas i löpande text.
 
 Villkoren gäller när inget annat skriftligen avtalats. Vid konflikt gäller en
 skriftlig offert eller ett särskilt avtal före dessa villkor.

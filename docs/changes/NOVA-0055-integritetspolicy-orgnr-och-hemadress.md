@@ -21,7 +21,7 @@ systems:
   utskrivet i personnummerformat på en publik sida. Etiketten är nu
   "Org.nr" och firmaformen anges explicit ("Nova IT (enskild firma)")
   för att göra sammanhanget tydligt för besökaren.
-- Hemadressen ("Persikogatan 12, 165 63 Hässelby") är borttagen helt.
+- Hemadressen (en fullständig bostadsadress) är borttagen helt.
   Verksamheten har ingen fysisk besöksadress för kunder - att publicera
   en privatpersons hemadress gav ingen funktionell nytta men en
   onödig integritetsrisk för innehavaren. Kontakt sker via e-post, som
